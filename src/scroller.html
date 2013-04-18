@@ -1,0 +1,14 @@
+<!doctype html>
+<html ng-app="application">
+<head>
+    <meta charset="utf-8">
+    <title>Scroller Demo</title>
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
+    <script src="scripts/scroller/directive.js"></script>
+    <script src="scripts/scroller/application.js"></script>
+</head>
+<body ng-controller="MainCtrl">
+    <div ng-scroll="item in datasource">*{{item}}*</div>
+</body>
+</html>
