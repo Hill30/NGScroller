@@ -1,0 +1,43 @@
+{
+  "name": "sb-tran",
+  "description": "Swingbyte strings translator",
+  "version": "0.1.0",
+  "src": "./src/",
+  "public": "./public/",
+  "main": "./server.coffee",
+  "homepage": "sb-tran.herokuapp.com",
+  "author": {
+    "name": "pboettcher",
+    "email": "pboettcher@hill30.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://heroku.com/sb-tran.git"
+  },
+  "bugs": {
+    "url": ""
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "sb-tran.herokuapp.com/blob/master/LICENSE-MIT"
+    }
+  ],
+  "dependencies": {
+      "express": "~3.0.0",
+      "grunt": "~0.3.12",
+      "grunt-hustler": "~0.5.5",
+      "grunt-less": "0.1.5"
+  },
+  "engine": "server >= 0.8.1",
+  "engines": {
+    "node": ">= 0.6.0"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "devDependencies": {
+    "grunt": "~0.3.17"
+  },
+  "keywords": []
+}
