@@ -1,9 +1,4 @@
 angular.module('application', ['scroller'])
-.controller( 'MainCtrl',
-[ '$scope'
-  ($scope) ->
-    $scope.name = 'World'
-])
 .factory( 'datasource',
 [ '$log', '$timeout',
 
@@ -21,5 +16,3 @@ angular.module('application', ['scroller'])
     get
     }
 ])
-
-angular.bootstrap document, ['application']

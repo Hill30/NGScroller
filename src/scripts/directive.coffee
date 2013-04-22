@@ -1,4 +1,12 @@
 angular.module('scroller', [])
+  .directive( 'ngScrollCanvas'
+    [ '$log'
+      (console) ->
+        link: (scope, element, attrs, controller) ->
+          console.log element
+          scope.scrollerCanvas = element
+
+    ])
   .directive( 'ngScroll'
     [ '$log', '$injector'
       (console, $injector) ->
@@ -37,7 +45,10 @@ angular.module('scroller', [])
                 ###
 
                 viewport = angular.element(window)
-                canvas = element.parent()
+                canvas = $scope.scrollerCanvas || element.parent()
+                console.log element
+                console.log element.parent()
+                console.log canvas
 
                 topPadding = angular.element('<div/>')
                 topPaddingHeight = (value) ->
