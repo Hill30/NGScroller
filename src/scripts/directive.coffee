@@ -1,23 +1,40 @@
 angular.module('scroller', [])
+
+  .directive( 'ngScrollViewport'
+    [ '$log'
+      (console) ->
+        controller:
+          [ '$scope', '$element'
+            (scope, element)->
+              {viewport: element}
+          ]
+
+    ])
+
   .directive( 'ngScrollCanvas'
     [ '$log'
       (console) ->
-        link: (scope, element, attrs, controller) ->
-          console.log element
-          scope.scrollerCanvas = element
+        controller:
+          [ '$scope', '$element'
+            (scope, element)->
+              {canvas: element}
+          ]
 
     ])
+
   .directive( 'ngScroll'
     [ '$log', '$injector'
       (console, $injector) ->
+        require: ['?^ngScrollViewport', '?^ngScrollCanvas']
         transclude: 'element'
         priority: 1000
         terminal: true
 
         compile: (element, attr, linker) ->
-          ($scope, $element, $attr) ->
+          ($scope, $element, $attr, controller) ->
 
-            console.log 'here'
+            console.log controller
+
             match = $attr.ngScroll.match /^\s*(\w+)\s+in\s+(\w+)\s*$/
 
             if !match
@@ -44,11 +61,11 @@ angular.module('scroller', [])
 
                 ###
 
-                viewport = angular.element(window)
+                viewport = $scope.scrollerViewport || angular.element(window)
+                console.log 'viewport'
+
+                console.log viewport
                 canvas = $scope.scrollerCanvas || element.parent()
-                console.log element
-                console.log element.parent()
-                console.log canvas
 
                 topPadding = angular.element('<div/>')
                 topPaddingHeight = (value) ->

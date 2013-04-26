@@ -9,6 +9,12 @@
     <script src="scripts/application.js"></script>
 </head>
 <body ng-app="application">
-    <div ng-scroll="item in datasource">*{{item}}*</div>
+<h1>header</h1>
+<div d-nestedd><span d-nestedd></span></div>
+<div ng-scroll-viewport>
+    <div ng-scroll-canvas>
+        <div ng-scroll="item in datasource">*{{item}}*</div>
+    </div>
+</div>
 </body>
 </html>
