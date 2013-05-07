@@ -5,8 +5,7 @@ angular.module('scroller', [])
       (console) ->
         controller:
           [ '$scope', '$element'
-            (scope, element)->
-              {viewport: element}
+            (scope, element) -> element
           ]
 
     ])
@@ -16,8 +15,7 @@ angular.module('scroller', [])
       (console) ->
         controller:
           [ '$scope', '$element'
-            (scope, element)->
-              {canvas: element}
+            (scope, element) -> element
           ]
 
     ])
@@ -51,7 +49,8 @@ angular.module('scroller', [])
 
                 ###
 
-                List of used element methods defined in JQuery but not on JQuery Lite
+                List of used element methods defined in JQuery but not in JQuery Lite
+                in other words if you want to remove dependency on JQuery the following methods are to be implemented:
                 element.height()
                 element.outerHeight(true)
                 element.height(value) = only for Top/Bottom padding elements
@@ -61,11 +60,8 @@ angular.module('scroller', [])
 
                 ###
 
-                viewport = $scope.scrollerViewport || angular.element(window)
-                console.log 'viewport'
-
-                console.log viewport
-                canvas = $scope.scrollerCanvas || element.parent()
+                viewport = controller[0] || angular.element(window)
+                canvas = controller[1] || element.parent()
 
                 topPadding = angular.element('<div/>')
                 topPaddingHeight = (value) ->
@@ -107,22 +103,31 @@ angular.module('scroller', [])
                   #globals.doPositioning && globals.selectedText &&
                   #(buffer.length == 0 || scope.defaultText(buffer[buffer.length-1]).toLowerCase() <= globals.selectedText.toLowerCase()) ||
                   # and we have enough for the scrollbar to show up
-                  !eof &&
-                  canvas.position().top + canvas.height() - bottomPaddingHeight() < viewport.scrollTop() + viewport.height() + bufferPadding()
+                  item = buffer[buffer.length-1]
+
+                  result = !eof &&
+                  (!item ||
+                  item.element.offset().top - canvas.offset().top + item.element.outerHeight(true) <
+                    viewport.scrollTop() + viewport.height() + bufferPadding())
+
+                  console.log 'load bottom ' + result
+                  result
 
                 clipBottom = ->
                     # clip off the invisible items form the bottom
                   position = canvas.position().top + topPaddingHeight()
                   bottomHeight = bottomPaddingHeight()
                   overage = 0
-                  for item in buffer
+
+                  for item in buffer.reverse()
                     itemHeight = item.element.outerHeight(true)
-                    if position - viewport.scrollTop() >= viewport.height() + bufferPadding()
+                    if viewport.scrollTop() + viewport.height() + bufferPadding() < item.element.offset().top - canvas.offset().top
                       bottomHeight += itemHeight
                       overage++
                       eof = false
                     else
-                      position += itemHeight
+                      break
+
                   if overage > 0
                     for i in [buffer.length - overage...buffer.length]
                       buffer[i].scope.$destroy()
@@ -133,8 +138,10 @@ angular.module('scroller', [])
                     console.log "clipped off bottom #{overage} bottom padding #{bottomHeight}"
 
                 shouldLoadTop = ->
-                  first > 1 &&
-                  canvas.position().top + topPaddingHeight() > viewport.scrollTop() - bufferPadding()
+                  result = first > 1 &&
+                    buffer[0].element.offset().top - canvas.offset().top > viewport.scrollTop() - bufferPadding()
+                  console.log 'load top ' + result
+                  result
 
                 clipTop = ->
                   # clip off the invisible items form the top
@@ -142,7 +149,7 @@ angular.module('scroller', [])
                   overage = 0
                   for item in buffer
                     itemHeight = item.element.outerHeight(true)
-                    if viewport.scrollTop() >= canvas.position().top + topHeight + itemHeight + bufferPadding()
+                    if viewport.scrollTop() - bufferPadding() >= item.element.offset().top - canvas.offset().top + itemHeight
                       topHeight += itemHeight
                       overage++
                     else
@@ -165,6 +172,7 @@ angular.module('scroller', [])
                 adjustBuffer = (reloadRequested)->
                   console.log "top {from=#{canvas.position().top + topPaddingHeight()} visible=#{viewport.scrollTop()}}
     bottom {visible=#{viewport.scrollTop() + viewport.height()} to=#{canvas.position().top + canvas.height() - bottomPaddingHeight()}}"
+
                   enqueueFetch(true) if reloadRequested || shouldLoadBottom()
                   enqueueFetch(false) if shouldLoadTop()
 
