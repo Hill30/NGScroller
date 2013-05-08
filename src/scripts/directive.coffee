@@ -31,10 +31,7 @@ angular.module('scroller', [])
         compile: (element, attr, linker) ->
           ($scope, $element, $attr, controller) ->
 
-            console.log controller
-
             match = $attr.ngScroll.match /^\s*(\w+)\s+in\s+(\w+)\s*$/
-
             if !match
               throw Error "Expected ngScroll in form of '_item_ in _datasource_' but got '#{$attr.ngScroll}'"
 
@@ -49,19 +46,28 @@ angular.module('scroller', [])
 
                 ###
 
-                List of used element methods defined in JQuery but not in JQuery Lite
+                List of used element methods available in JQuery but not in JQuery Lite
                 in other words if you want to remove dependency on JQuery the following methods are to be implemented:
+
                 element.height()
                 element.outerHeight(true)
                 element.height(value) = only for Top/Bottom padding elements
                 element.scrollTop()
                 element.scrollTop(value)
-                element.position()
+                element.offset()
 
                 ###
 
                 viewport = controller[0] || angular.element(window)
                 canvas = controller[1] || element.parent()
+                if canvas[0] == viewport[0]
+                  # if canvas and the viewport are the same create a new div to service as canvas
+                  contents = canvas.contents()
+                  canvas = angular.element('<div/>')
+                  viewport.append canvas
+                  canvas.append contents
+
+
 
                 topPadding = angular.element('<div/>')
                 element.before topPadding
@@ -95,14 +101,11 @@ angular.module('scroller', [])
                   #(buffer.length == 0 || scope.defaultText(buffer[buffer.length-1]).toLowerCase() <= globals.selectedText.toLowerCase()) ||
                   # and we have enough for the scrollbar to show up
                   item = buffer[buffer.length-1]
-
-                  result = !eof &&
-                  (!item ||
-                  item.element.offset().top - canvas.offset().top + item.element.outerHeight(true) <
-                    viewport.scrollTop() + viewport.height() + bufferPadding())
-
-                  console.log 'load bottom ' + result
-                  result
+                  if item
+                    !eof && item.element.offset().top - canvas.offset().top + item.element.outerHeight(true) <
+                      viewport.scrollTop() + viewport.height() + bufferPadding()
+                  else
+                    true
 
                 clipBottom = ->
                     # clip off the invisible items form the bottom
@@ -128,10 +131,8 @@ angular.module('scroller', [])
                     console.log "clipped off bottom #{overage} bottom padding #{bottomHeight}"
 
                 shouldLoadTop = ->
-                  result = first > 1 &&
+                  first > 1 &&
                     buffer[0].element.offset().top - canvas.offset().top > viewport.scrollTop() - bufferPadding()
-                  console.log 'load top ' + result
-                  result
 
                 clipTop = ->
                   # clip off the invisible items form the top
@@ -167,18 +168,17 @@ angular.module('scroller', [])
                   enqueueFetch(true) if reloadRequested || shouldLoadBottom()
                   enqueueFetch(false) if shouldLoadTop()
 
+                adjustHeight = (padding, element) ->
+                  padding.height(Math.max(0,padding.height() - element.outerHeight(true)))
+
                 append = (item) ->
-                  if buffer.length > 0
-                    insertAfter = buffer[buffer.length-1].element
-                  else
-                    insertAfter = topPadding
                   itemScope = $scope.$new()
                   itemScope[itemName] = item
                   wrapper =
                     scope: itemScope
                   linker itemScope,
                     (clone) ->
-                      insertAfter.after clone
+                      bottomPadding.before clone
                       wrapper.element = clone
                       buffer.push wrapper
                   # using watch is the only way I found to gather the 'real' height of the thing - the height after the item
@@ -188,14 +188,13 @@ angular.module('scroller', [])
                       bottomPadding.height(Math.max(0,bottomPadding.height() - wrapper.element.outerHeight(true)))
 
                 prepend = (item) ->
-                  insertAfter = topPadding
                   itemScope = $scope.$new()
                   itemScope[itemName] = item
                   wrapper =
                     scope: itemScope
                   linker itemScope,
                   (clone) ->
-                    insertAfter.after clone
+                    topPadding.after clone
                     wrapper.element = clone
                     buffer.unshift wrapper
                   # using watch is the only way I found to gather the 'real' height of the thing - the height after the item
