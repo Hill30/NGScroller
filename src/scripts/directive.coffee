@@ -64,10 +64,10 @@ angular.module('scroller', [])
                 canvas = controller[1] || element.parent()
 
                 topPadding = angular.element('<div/>')
-                canvas.prepend(topPadding)
+                element.before topPadding
 
                 bottomPadding = angular.element('<div/>')
-                canvas.append(bottomPadding)
+                element.after bottomPadding
 
                 first = 1
                 next = 1
