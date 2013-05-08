@@ -67,8 +67,6 @@ angular.module('scroller', [])
                   viewport.append canvas
                   canvas.append contents
 
-
-
                 topPadding = angular.element('<div/>')
                 element.before topPadding
 
@@ -81,7 +79,8 @@ angular.module('scroller', [])
                 pending = []
                 eof = false
                 scrollPos = 0
-                loading = false
+                loading = datasource.loading || (value) ->
+                loading(false)
 
                 reload = ->
                   first = 1
@@ -155,7 +154,7 @@ angular.module('scroller', [])
                     console.log "clipped off top #{overage} top padding #{topHeight}"
 
                 enqueueFetch = (direction)->
-                  loading = true
+                  loading(true)
                   #console.log "Requesting fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
                   if pending.unshift(direction) == 1
                     fetch()
@@ -196,7 +195,7 @@ angular.module('scroller', [])
                 finalize = ->
                   pending.shift()
                   if pending.length == 0
-                    loading = false
+                    loading(false)
                   else
                     fetch()
 
@@ -232,7 +231,7 @@ angular.module('scroller', [])
                       if start < 1
                         size += start - 1
                         start  = 1
-                      console.log "prepending... requested #{size} records starting from #{start}"
+                      #console.log "prepending... requested #{size} records starting from #{start}"
                       datasource.get start, size,
                       (result) ->
                         clipBottom()

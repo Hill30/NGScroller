@@ -1,8 +1,8 @@
 angular.module('application', ['scroller'])
 .factory( 'datasource',
-[ '$log', '$timeout',
+[ '$log', '$timeout', '$rootScope'
 
-  (console, $timeout)->
+  (console, $timeout, $rootScope)->
     get = (index, count, success)->
       $timeout(
         ->
@@ -12,7 +12,10 @@ angular.module('application', ['scroller'])
           success(result)
         100
       )
+    loading = (value) ->
+      $rootScope.loading = value
     {
-    get
+      get
+      loading
     }
 ])
