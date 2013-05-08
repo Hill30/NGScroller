@@ -119,9 +119,9 @@ angular.module('scroller', [])
                   bottomHeight = bottomPaddingHeight()
                   overage = 0
 
-                  for item in buffer.reverse()
-                    itemHeight = item.element.outerHeight(true)
-                    if viewport.scrollTop() + viewport.height() + bufferPadding() < item.element.offset().top - canvas.offset().top
+                  for i in [buffer.length-1..0]
+                    itemHeight = buffer[i].element.outerHeight(true)
+                    if viewport.scrollTop() + viewport.height() + bufferPadding() < buffer[i].element.offset().top - canvas.offset().top
                       bottomHeight += itemHeight
                       overage++
                       eof = false
@@ -170,8 +170,9 @@ angular.module('scroller', [])
                     fetch()
 
                 adjustBuffer = (reloadRequested)->
-                  console.log "top {from=#{canvas.position().top + topPaddingHeight()} visible=#{viewport.scrollTop()}}
-    bottom {visible=#{viewport.scrollTop() + viewport.height()} to=#{canvas.position().top + canvas.height() - bottomPaddingHeight()}}"
+                  if buffer[0]
+                    console.log "top {actual=#{buffer[0].element.offset().top - canvas.offset().top} visible from=#{viewport.scrollTop()}}
+    bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buffer[buffer.length-1].element.offset().top - canvas.offset().top}}"
 
                   enqueueFetch(true) if reloadRequested || shouldLoadBottom()
                   enqueueFetch(false) if shouldLoadTop()
@@ -250,7 +251,7 @@ angular.module('scroller', [])
                       size = bufferSize
                       start = first - bufferSize
                       if start < 1
-                        size -= start + 1
+                        size += start - 1
                         start  = 1
                       console.log "prepending... requested #{size} records starting from #{start}"
                       datasource.get start, size,
