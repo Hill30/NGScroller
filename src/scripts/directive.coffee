@@ -64,18 +64,9 @@ angular.module('scroller', [])
                 canvas = controller[1] || element.parent()
 
                 topPadding = angular.element('<div/>')
-                topPaddingHeight = (value) ->
-                  if arguments.length
-                    topPadding.height(value)
-                  else topPadding.height()
                 canvas.prepend(topPadding)
 
                 bottomPadding = angular.element('<div/>')
-                bottomPaddingHeight = (value) ->
-                  if arguments.length
-                    bottomPadding.height(value)
-                  else
-                    bottomPadding.height()
                 canvas.append(bottomPadding)
 
                 first = 1
@@ -90,8 +81,8 @@ angular.module('scroller', [])
                   first = 1
                   next = 1
                   buffer.splice 0, buffer.length
-                  topPaddingHeight(0)
-                  bottomPaddingHeight(0)
+                  topPadding.height(0)
+                  bottomPadding.height(0)
                   pending = []
                   eof = false
                   scrollPos = 0
@@ -115,8 +106,7 @@ angular.module('scroller', [])
 
                 clipBottom = ->
                     # clip off the invisible items form the bottom
-                  position = canvas.position().top + topPaddingHeight()
-                  bottomHeight = bottomPaddingHeight()
+                  bottomHeight = bottomPadding.height()
                   overage = 0
 
                   for i in [buffer.length-1..0]
@@ -134,7 +124,7 @@ angular.module('scroller', [])
                       buffer[i].element.remove()
                     buffer.splice buffer.length - overage
                     next -= overage
-                    bottomPaddingHeight(bottomHeight)
+                    bottomPadding.height(bottomHeight)
                     console.log "clipped off bottom #{overage} bottom padding #{bottomHeight}"
 
                 shouldLoadTop = ->
@@ -145,7 +135,7 @@ angular.module('scroller', [])
 
                 clipTop = ->
                   # clip off the invisible items form the top
-                  topHeight = topPaddingHeight()
+                  topHeight = topPadding.height()
                   overage = 0
                   for item in buffer
                     itemHeight = item.element.outerHeight(true)
@@ -159,7 +149,7 @@ angular.module('scroller', [])
                       buffer[i].scope.$destroy()
                       buffer[i].element.remove()
                     buffer.splice 0, overage
-                    topPaddingHeight(topHeight)
+                    topPadding.height(topHeight)
                     first += overage
                     console.log "clipped off top #{overage} top padding #{topHeight}"
 
@@ -195,7 +185,7 @@ angular.module('scroller', [])
                   # template was processed and values inserted.
                   itemScope.$watch "whatever",
                     ->
-                      bottomPaddingHeight(Math.max(0,bottomPaddingHeight() - wrapper.element.outerHeight(true)))
+                      bottomPadding.height(Math.max(0,bottomPadding.height() - wrapper.element.outerHeight(true)))
 
                 prepend = (item) ->
                   insertAfter = topPadding
@@ -212,7 +202,7 @@ angular.module('scroller', [])
                   # template was processed and values inserted.
                   itemScope.$watch "whatever",
                   ->
-                    topPaddingHeight(Math.max(0,topPaddingHeight() - wrapper.element.outerHeight(true)))
+                    topPadding.height(Math.max(0,topPadding.height() - wrapper.element.outerHeight(true)))
 
                 finalize = ->
                   pending.shift()
