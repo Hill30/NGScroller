@@ -168,40 +168,30 @@ angular.module('scroller', [])
                   enqueueFetch(true) if reloadRequested || shouldLoadBottom()
                   enqueueFetch(false) if shouldLoadTop()
 
-                adjustHeight = (padding, element) ->
-                  padding.height(Math.max(0,padding.height() - element.outerHeight(true)))
-
-                append = (item) ->
+                insert = (item, top) ->
                   itemScope = $scope.$new()
                   itemScope[itemName] = item
                   wrapper =
                     scope: itemScope
+                  padding =
+                    if top
+                      topPadding
+                    else
+                      bottomPadding
                   linker itemScope,
-                    (clone) ->
+                  (clone) ->
+                    wrapper.element = clone
+                    if top
+                      topPadding.after clone
+                      buffer.unshift wrapper
+                    else
                       bottomPadding.before clone
-                      wrapper.element = clone
                       buffer.push wrapper
                   # using watch is the only way I found to gather the 'real' height of the thing - the height after the item
                   # template was processed and values inserted.
                   itemScope.$watch "whatever",
-                    ->
-                      bottomPadding.height(Math.max(0,bottomPadding.height() - wrapper.element.outerHeight(true)))
-
-                prepend = (item) ->
-                  itemScope = $scope.$new()
-                  itemScope[itemName] = item
-                  wrapper =
-                    scope: itemScope
-                  linker itemScope,
-                  (clone) ->
-                    topPadding.after clone
-                    wrapper.element = clone
-                    buffer.unshift wrapper
-                  # using watch is the only way I found to gather the 'real' height of the thing - the height after the item
-                  # template was processed and values inserted.
-                  itemScope.$watch "whatever",
                   ->
-                    topPadding.height(Math.max(0,topPadding.height() - wrapper.element.outerHeight(true)))
+                    padding.height(Math.max(0,padding.height() - wrapper.element.outerHeight(true)))
 
                 finalize = ->
                   pending.shift()
@@ -227,7 +217,7 @@ angular.module('scroller', [])
                           finalize()
                           return
                         for item in result
-                          append item
+                          insert item, false
                         next += result.length
                         console.log "appended: #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
                         finalize()
@@ -247,7 +237,7 @@ angular.module('scroller', [])
                       (result) ->
                         clipBottom()
                         for item in result.reverse()
-                          prepend item
+                          insert item, true
                         first = start
                         console.log "prepended #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
                         finalize()
