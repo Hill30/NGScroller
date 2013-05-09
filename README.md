@@ -17,7 +17,13 @@ them if they become visible again.
 
 The ngScroll directive is similar to the ngRepeat. Like the ngRepeat, ngScroll directive instantiates a template once per item from a collection.
 Each template instance gets its own scope, where the given loop variable is set to the current collection item. The collection content is provided by
-the datasource. The datasource name is specified in the scroll_expression
+the datasource. The datasource name is specified in the scroll_expression.
+
+As the template for an item is instantiated it is placed on the canvas. Its height is determined by the list of items currently instantiated.
+Unless overridden by the ngScrollCanvas directive (see below) the immediate parent of the element with the directive will be used as canvas.
+
+The viewport is an element representing the space where the content of the canvas is to be shown. Unless specified explicitly with the
+ngScrollViewport directive (see below), browser window will be used as viewport.
 
 ###Usage
 
@@ -57,6 +63,37 @@ the directive to access the data:
 
     #### Description
     this is an optional method. If supplied this function will be called with a value indicating whether there is data loading request pending
+
+ngScrollCanvas directive
+-------------------
+###Description
+
+The ngScrollCanvas directive indicates a particular element as canvas for the ngScroll directive. If no parent of the ngScroll directive is
+marked with ngScrollCanvas directive, the immediate parent of the ngScroll directive will be used as canvas
+
+###Usage
+
+```html
+<ANY ng-scroll-canvas>
+      ...
+</ANY>
+```
+
+ngScrollViewport directive
+-------------------
+###Description
+
+The ngScrollViewport directive indicates a particular element as viewport for the ngScroll directive. If no parent of the ngScroll directive is
+marked with ngScrollViewport directive, the browser window object will be used as viewport
+
+###Usage
+
+```html
+<ANY ng-scroll-viewport>
+      ...
+</ANY>
+```
+
 
 ###Examples
 See index.html
