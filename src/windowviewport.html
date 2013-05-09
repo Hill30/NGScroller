@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Scroller Demo</title>
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
+    <script src="scripts/directive.js"></script>
+    <script src="scripts/application.js"></script>
+</head>
+<body ng-app="application">
+    <h2 style="position: fixed; left: 200px; top: 0;">  <a href="index.html">Browse examples</a><br/><br/>is loading: {{loading}} </h2>
+    <div ng-scroll="item in datasource">*{{item}}*</div>
+</body>
+</html>

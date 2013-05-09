@@ -3,20 +3,12 @@
 <head>
     <meta charset="utf-8">
     <title>Scroller Demo</title>
-    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
-    <script src="scripts/directive.js"></script>
-    <script src="scripts/application.js"></script>
 </head>
-<body ng-app="application">
-<h1>loading {{loading}}</h1>
-<div ng-scroll-viewport style="height:200px; overflow: auto">
-    <div ng-scroll="item in datasource">*one {{item}}*</div>
-</div>
-<p></p>
-<div ng-scroll-viewport style="height:200px; overflow: auto">
-    <div ng-scroll="item in datasource">*two {{item}}*</div>
-</div>
-
+<body>
+<h1>Scroller Examples</h1>
+<ul>
+    <li><a href="windowviewport.html">Entire window scrollable</a></li>
+    <li><a href="customviewport.html">Independent scrollable lists</a></li>
+</ul>
 </body>
 </html>

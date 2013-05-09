@@ -80,7 +80,7 @@ angular.module('scroller', [])
                 eof = false
                 scrollPos = 0
                 loading = datasource.loading || (value) ->
-                loading(false)
+                isLoading = false
 
                 reload = ->
                   first = 1
@@ -154,7 +154,9 @@ angular.module('scroller', [])
                     console.log "clipped off top #{overage} top padding #{topHeight}"
 
                 enqueueFetch = (direction)->
-                  loading(true)
+                  if (!isLoading)
+                    isLoading = true
+                    loading(true)
                   #console.log "Requesting fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
                   if pending.unshift(direction) == 1
                     fetch()
@@ -195,6 +197,7 @@ angular.module('scroller', [])
                 finalize = ->
                   pending.shift()
                   if pending.length == 0
+                    isLoading = false
                     loading(false)
                   else
                     fetch()
