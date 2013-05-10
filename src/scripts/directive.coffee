@@ -21,8 +21,8 @@ angular.module('scroller', [])
     ])
 
   .directive( 'ngScroll'
-    [ '$log', '$injector', '$timeout'
-      (console, $injector, $timeout) ->
+    [ '$log', '$injector'
+      (console, $injector) ->
         require: ['?^ngScrollViewport', '?^ngScrollCanvas']
         transclude: 'element'
         priority: 1000
@@ -101,22 +101,19 @@ angular.module('scroller', [])
                   #globals.doPositioning && globals.selectedText &&
                   #(buffer.length == 0 || scope.defaultText(buffer[buffer.length-1]).toLowerCase() <= globals.selectedText.toLowerCase()) ||
                   # and we have enough for the scrollbar to show up
+
                   item = buffer[buffer.length-1]
-                  if item
-                    !eof && item.element.offset().top - canvas.offset().top + item.element.outerHeight(true) <
-                      viewport.scrollTop() + viewport.height() + bufferPadding()
-                  else
-                    true
+                  !eof && item.element.offset().top - canvas.offset().top + item.element.outerHeight(true) <
+                    viewport.scrollTop() + viewport.height() + bufferPadding()
 
                 clipBottom = ->
-                    # clip off the invisible items form the bottom
+                    # clip the invisible items off the bottom
                   bottomHeight = bottomPadding.height()
                   overage = 0
 
-                  for i in [buffer.length-1..0]
-                    itemHeight = buffer[i].element.outerHeight(true)
-                    if viewport.scrollTop() + viewport.height() + bufferPadding() < buffer[i].element.offset().top - canvas.offset().top
-                      bottomHeight += itemHeight
+                  for item in buffer[..].reverse()
+                    if viewport.scrollTop() + viewport.height() + bufferPadding() < item.element.offset().top - canvas.offset().top
+                      bottomHeight += item.element.outerHeight(true)
                       overage++
                       eof = false
                     else
@@ -136,7 +133,7 @@ angular.module('scroller', [])
                     buffer[0].element.offset().top - canvas.offset().top > viewport.scrollTop() - bufferPadding()
 
                 clipTop = ->
-                  # clip off the invisible items form the top
+                  # clip the invisible items off the top
                   topHeight = topPadding.height()
                   overage = 0
                   for item in buffer
@@ -161,7 +158,7 @@ angular.module('scroller', [])
                     isLoading = true
                     loading(true)
                   #console.log "Requesting fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
-                  if pending.unshift(direction) == 1
+                  if pending.push(direction) == 1
                     fetch()
 
                 adjustBuffer = (reloadRequested)->
@@ -210,7 +207,7 @@ angular.module('scroller', [])
                   direction = pending[0]
                   #console.log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
                   if direction
-                    if !shouldLoadBottom()
+                    if buffer.length && !shouldLoadBottom()
                       finalize()
                     else
                       #console.log "appending... requested #{bufferSize} records starting from #{next}"
@@ -230,7 +227,7 @@ angular.module('scroller', [])
                         adjustBuffer()
 
                   else
-                    if !shouldLoadTop()
+                    if buffer.length && !shouldLoadTop()
                       finalize()
                     else
                       #console.log "prepending... requested #{size} records starting from #{start}"
