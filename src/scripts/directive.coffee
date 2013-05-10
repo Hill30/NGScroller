@@ -21,8 +21,8 @@ angular.module('scroller', [])
     ])
 
   .directive( 'ngScroll'
-    [ '$log', '$injector'
-      (console, $injector) ->
+    [ '$log', '$injector', '$timeout'
+      (console, $injector, $timeout) ->
         require: ['?^ngScrollViewport', '?^ngScrollCanvas']
         transclude: 'element'
         priority: 1000
@@ -78,6 +78,7 @@ angular.module('scroller', [])
                 buffer = []
                 pending = []
                 eof = false
+                bof = false
                 scrollPos = 0
                 loading = datasource.loading || (value) ->
                 isLoading = false
@@ -90,6 +91,7 @@ angular.module('scroller', [])
                   bottomPadding.height(0)
                   pending = []
                   eof = false
+                  bof = false
                   scrollPos = 0
                   adjustBuffer(true)
 
@@ -130,7 +132,7 @@ angular.module('scroller', [])
                     console.log "clipped off bottom #{overage} bottom padding #{bottomHeight}"
 
                 shouldLoadTop = ->
-                  first > 1 &&
+                  !bof &&
                     buffer[0].element.offset().top - canvas.offset().top > viewport.scrollTop() - bufferPadding()
 
                 clipTop = ->
@@ -142,6 +144,7 @@ angular.module('scroller', [])
                     if viewport.scrollTop() - bufferPadding() >= item.element.offset().top - canvas.offset().top + itemHeight
                       topHeight += itemHeight
                       overage++
+                      bof = false
                     else
                       break
                   if overage > 0
@@ -167,18 +170,13 @@ angular.module('scroller', [])
     bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buffer[buffer.length-1].element.offset().top - canvas.offset().top}}"
 
                   enqueueFetch(true) if reloadRequested || shouldLoadBottom()
-                  enqueueFetch(false) if shouldLoadTop()
+                  enqueueFetch(false) if reloadRequested || shouldLoadTop()
 
                 insert = (item, top) ->
                   itemScope = $scope.$new()
                   itemScope[itemName] = item
                   wrapper =
                     scope: itemScope
-                  padding =
-                    if top
-                      topPadding
-                    else
-                      bottomPadding
                   linker itemScope,
                   (clone) ->
                     wrapper.element = clone
@@ -190,9 +188,15 @@ angular.module('scroller', [])
                       buffer.push wrapper
                   # using watch is the only way I found to gather the 'real' height of the thing - the height after the item
                   # template was processed and values inserted.
-                  itemScope.$watch "whatever",
-                  ->
-                    padding.height(Math.max(0,padding.height() - wrapper.element.outerHeight(true)))
+                  itemScope.$watch 'whatever', ->
+                    if top
+                      newHeight = topPadding.height() - wrapper.element.outerHeight(true)
+                      if newHeight >= 0
+                        topPadding.height(newHeight)
+                      else
+                        viewport.scrollTop(viewport.scrollTop() - newHeight)
+                    else
+                      bottomPadding.height(Math.max(0,bottomPadding.height() - wrapper.element.outerHeight(true)))
 
                 finalize = ->
                   pending.shift()
@@ -229,18 +233,18 @@ angular.module('scroller', [])
                     if !shouldLoadTop()
                       finalize()
                     else
-                      size = bufferSize
-                      start = first - bufferSize
-                      if start < 1
-                        size += start - 1
-                        start  = 1
                       #console.log "prepending... requested #{size} records starting from #{start}"
-                      datasource.get start, size,
+                      datasource.get first-bufferSize, bufferSize,
                       (result) ->
                         clipBottom()
+                        if result.length == 0
+                          bof = true
+                          console.log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: eof"
+                          finalize()
+                          return
                         for item in result.reverse()
                           insert item, true
-                        first = start
+                        first -= result.length
                         console.log "prepended #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
                         finalize()
                         adjustBuffer()
