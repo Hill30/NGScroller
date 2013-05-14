@@ -68,7 +68,7 @@ ngScrollCanvas directive
 -------------------
 ###Description
 
-The ngScrollCanvas directive indicates a particular element as canvas for the ngScroll directive. If no parent of the ngScroll directive is
+The ngScrollCanvas directive marks a particular element as canvas for the ngScroll directive. If no parent of the ngScroll directive is
 marked with ngScrollCanvas directive, the immediate parent of the ngScroll directive will be used as canvas
 
 ###Usage
@@ -83,7 +83,7 @@ ngScrollViewport directive
 -------------------
 ###Description
 
-The ngScrollViewport directive indicates a particular element as viewport for the ngScroll directive. If no parent of the ngScroll directive is
+The ngScrollViewport directive marks a particular element as viewport for the ngScroll directive. If no parent of the ngScroll directive is
 marked with ngScrollViewport directive, the browser window object will be used as viewport
 
 ###Usage

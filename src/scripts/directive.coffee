@@ -58,6 +58,19 @@ angular.module('scroller', [])
 
                 ###
 
+                # builder for DIV based scrollers
+                builder =
+                  canvas: (proposed) ->
+                    proposed || element.parent()
+                  topPadding: (element) ->
+                    if !element
+                      element = angular.element('<div></div>')
+                    element
+                  bottomPadding: (element) ->
+                    if !element
+                      element = angular.element('<div></div>')
+                    element
+
                 viewport = controller[0] || angular.element(window)
                 canvas = controller[1] || element.parent()
                 if canvas[0] == viewport[0]
@@ -107,7 +120,7 @@ angular.module('scroller', [])
                     viewport.scrollTop() + viewport.height() + bufferPadding()
 
                 clipBottom = ->
-                    # clip the invisible items off the bottom
+                  # clip the invisible items off the bottom
                   bottomHeight = bottomPadding.height()
                   overage = 0
 
