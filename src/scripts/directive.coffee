@@ -167,7 +167,7 @@ angular.module('scroller', [])
     bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buffer[buffer.length-1].element.offset().top - canvas.offset().top}}"
 
                   enqueueFetch(true) if reloadRequested || shouldLoadBottom()
-                  enqueueFetch(false) if reloadRequested || shouldLoadTop()
+                  enqueueFetch(false) if !reloadRequested && shouldLoadTop()
 
                 insert = (item, top) ->
                   itemScope = $scope.$new()
@@ -185,15 +185,22 @@ angular.module('scroller', [])
                       buffer.push wrapper
                   # using watch is the only way I found to gather the 'real' height of the thing - the height after the item
                   # template was processed and values inserted.
-                  itemScope.$watch 'whatever', ->
+                  itemScope.$watch 'heightAdjustment', ->
                     if top
                       newHeight = topPadding.height() - wrapper.element.outerHeight(true)
                       if newHeight >= 0
                         topPadding.height(newHeight)
                       else
-                        viewport.scrollTop(viewport.scrollTop() - newHeight)
+                        scrollTop = viewport.scrollTop() + wrapper.element.outerHeight(true)
+                        if viewport.height() + scrollTop > canvas.height()
+                          bottomPadding.height(bottomPadding.height() + viewport.height() + scrollTop - canvas.height())
+                        viewport.scrollTop(scrollTop)
                     else
                       bottomPadding.height(Math.max(0,bottomPadding.height() - wrapper.element.outerHeight(true)))
+                    console.log "item = " + wrapper.element.text()
+
+                  itemScope
+
 
                 finalize = ->
                   pending.shift()
@@ -206,6 +213,7 @@ angular.module('scroller', [])
                 fetch = () ->
                   direction = pending[0]
                   #console.log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
+                  lastScope = null
                   if direction
                     if buffer.length && !shouldLoadBottom()
                       finalize()
@@ -220,11 +228,12 @@ angular.module('scroller', [])
                           finalize()
                           return
                         for item in result
-                          insert item, false
+                          lastScope = insert item, false
                         next += result.length
                         console.log "appended: #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
                         finalize()
-                        adjustBuffer()
+                        lastScope.$watch 'adjustBuffer', ->
+                          adjustBuffer()
 
                   else
                     if buffer.length && !shouldLoadTop()
@@ -240,11 +249,12 @@ angular.module('scroller', [])
                           finalize()
                           return
                         for item in result.reverse()
-                          insert item, true
+                          lastScope = insert item, true
                         first -= result.length
                         console.log "prepended #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
                         finalize()
-                        adjustBuffer()
+                        lastScope.$watch 'adjustBuffer', ->
+                          adjustBuffer()
 
                 viewport.bind 'resize', ->
                   adjustBuffer()
