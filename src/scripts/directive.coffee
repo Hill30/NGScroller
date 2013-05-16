@@ -29,7 +29,7 @@ angular.module('scroller', [])
         terminal: true
 
         compile: (element, attr, linker) ->
-          ($scope, $element, $attr, controller) ->
+          ($scope, $element, $attr, controllers) ->
 
             match = $attr.ngScroll.match /^\s*(\w+)\s+in\s+(\w+)\s*$/
             if !match
@@ -59,32 +59,83 @@ angular.module('scroller', [])
                 ###
 
                 # builder for DIV based scrollers
-                builder =
-                  canvas: (proposed) ->
-                    proposed || element.parent()
-                  topPadding: (element) ->
-                    if !element
-                      element = angular.element('<div></div>')
-                    element
-                  bottomPadding: (element) ->
-                    if !element
-                      element = angular.element('<div></div>')
-                    element
+                divController = (element, controllers) ->
+                  viewport = controllers[0] || angular.element(window)
+                  canvas = controllers[1] || element.parent()
+                  if canvas[0] == viewport[0]
+                    # if canvas and the viewport are the same create a new div to service as canvas
+                    contents = canvas.contents()
+                    canvas = angular.element('<div/>')
+                    viewport.append canvas
+                    canvas.append contents
 
-                viewport = controller[0] || angular.element(window)
-                canvas = controller[1] || element.parent()
-                if canvas[0] == viewport[0]
-                  # if canvas and the viewport are the same create a new div to service as canvas
-                  contents = canvas.contents()
-                  canvas = angular.element('<div/>')
-                  viewport.append canvas
-                  canvas.append contents
+                  topPadding = angular.element('<div/>')
+                  element.before topPadding
 
-                topPadding = angular.element('<div/>')
-                element.before topPadding
+                  bottomPadding = angular.element('<div/>')
+                  element.after bottomPadding
+                  {
+                    viewport: viewport
+                    canvas: canvas
+                    topPadding: (value) ->
+                      if arguments.length
+                        topPadding.height(value)
+                      else
+                        topPadding.height()
+                    bottomPadding: (value) ->
+                      if arguments.length
+                        bottomPadding.height(value)
+                      else
+                        bottomPadding.height()
+                    append: (element) -> bottomPadding.before element
+                    prepend: (element) -> topPadding.after element
+                  }
 
-                bottomPadding = angular.element('<div/>')
-                element.after bottomPadding
+                # builder for LI based scrollers
+                liController = (element, controllers) ->
+                  viewport = controllers[0] || angular.element(window)
+                  canvas = controllers[1] || element.parent()
+                  if canvas[0] == viewport[0]
+                    # if canvas and the viewport are the same create a new div to service as canvas
+                    contents = canvas.contents()
+                    canvas = angular.element('<div/>')
+                    viewport.append canvas
+                    canvas.append contents
+
+                  topPadding = angular.element('<li/>')
+                  element.before topPadding
+
+                  bottomPadding = angular.element('<li/>')
+                  element.after bottomPadding
+                  {
+                  viewport: viewport
+                  canvas: canvas
+                  topPadding: (value) ->
+                    if arguments.length
+                      topPadding.height(value)
+                    else
+                      topPadding.height()
+                  bottomPadding: (value) ->
+                    if arguments.length
+                      bottomPadding.height(value)
+                    else
+                      bottomPadding.height()
+                  append: (element) -> bottomPadding.before element
+                  prepend: (element) -> topPadding.after element
+                  }
+
+                controller = null
+
+                linker temp = $scope.$new(), (template) ->
+                  controller =
+                    switch template[0].localName
+                      when 'div' then divController(element, controllers)
+                      when 'li' then liController(element, controllers)
+                      else throw Error "#{tag} as a repeating tag is not supported : #{template[0].outerHtml}"
+                  temp.$destroy()
+
+                viewport = controller.viewport
+                canvas = controller.canvas
 
                 first = 1
                 next = 1
@@ -92,7 +143,6 @@ angular.module('scroller', [])
                 pending = []
                 eof = false
                 bof = false
-                scrollPos = 0
                 loading = datasource.loading || (value) ->
                 isLoading = false
 
@@ -100,12 +150,11 @@ angular.module('scroller', [])
                   first = 1
                   next = 1
                   buffer.splice 0, buffer.length
-                  topPadding.height(0)
-                  bottomPadding.height(0)
+                  controller.topPadding(0)
+                  controller.bottomPadding(0)
                   pending = []
                   eof = false
                   bof = false
-                  scrollPos = 0
                   adjustBuffer(true)
 
                 shouldLoadBottom = ->
@@ -121,7 +170,7 @@ angular.module('scroller', [])
 
                 clipBottom = ->
                   # clip the invisible items off the bottom
-                  bottomHeight = bottomPadding.height()
+                  bottomHeight = controller.bottomPadding()
                   overage = 0
 
                   for item in buffer[..].reverse()
@@ -138,7 +187,7 @@ angular.module('scroller', [])
                       buffer[i].element.remove()
                     buffer.splice buffer.length - overage
                     next -= overage
-                    bottomPadding.height(bottomHeight)
+                    controller.bottomPadding(bottomHeight)
                     console.log "clipped off bottom #{overage} bottom padding #{bottomHeight}"
 
                 shouldLoadTop = ->
@@ -147,7 +196,7 @@ angular.module('scroller', [])
 
                 clipTop = ->
                   # clip the invisible items off the top
-                  topHeight = topPadding.height()
+                  topHeight = controller.topPadding()
                   overage = 0
                   for item in buffer
                     itemHeight = item.element.outerHeight(true)
@@ -162,7 +211,7 @@ angular.module('scroller', [])
                       buffer[i].scope.$destroy()
                       buffer[i].element.remove()
                     buffer.splice 0, overage
-                    topPadding.height(topHeight)
+                    controller.topPadding(topHeight)
                     first += overage
                     console.log "clipped off top #{overage} top padding #{topHeight}"
 
@@ -191,26 +240,25 @@ angular.module('scroller', [])
                   (clone) ->
                     wrapper.element = clone
                     if top
-                      topPadding.after clone
+                      controller.prepend clone
                       buffer.unshift wrapper
                     else
-                      bottomPadding.before clone
+                      controller.append clone
                       buffer.push wrapper
-                  # using watch is the only way I found to gather the 'real' height of the thing - the height after the item
-                  # template was processed and values inserted.
+                  # this watch fires once per item inserted after the item template has been processed and values inserted
+                  # which allows to gather the 'real' height of the thing
                   itemScope.$watch 'heightAdjustment', ->
                     if top
-                      newHeight = topPadding.height() - wrapper.element.outerHeight(true)
+                      newHeight = controller.topPadding() - wrapper.element.outerHeight(true)
                       if newHeight >= 0
-                        topPadding.height(newHeight)
+                        controller.topPadding(newHeight)
                       else
                         scrollTop = viewport.scrollTop() + wrapper.element.outerHeight(true)
                         if viewport.height() + scrollTop > canvas.height()
-                          bottomPadding.height(bottomPadding.height() + viewport.height() + scrollTop - canvas.height())
+                          controller.bottomPadding(controller.bottomPadding() + viewport.height() + scrollTop - canvas.height())
                         viewport.scrollTop(scrollTop)
                     else
-                      bottomPadding.height(Math.max(0,bottomPadding.height() - wrapper.element.outerHeight(true)))
-                    console.log "item = " + wrapper.element.text()
+                      controller.bottomPadding(Math.max(0,controller.bottomPadding() - wrapper.element.outerHeight(true)))
 
                   itemScope
 
@@ -274,7 +322,6 @@ angular.module('scroller', [])
                   $scope.$apply()
 
                 viewport.bind 'scroll', ->
-                  # if scrolling was requested disable positioning
                   adjustBuffer()
                   $scope.$apply()
 
