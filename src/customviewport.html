@@ -11,11 +11,11 @@
 <body ng-app="application">
 <h2 style="position: fixed; left: 150px; top: 0;">is loading: {{loading}}; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="index.html"> browse sample code</a></h2>
 <h2> The list </h2>
-<div ng-scroll-viewport style="height:200px; overflow: auto">
+<div ng-scroll-viewport style="height:200px">
     <div ng-scroll="item in datasource">*one {{item}}*</div>
 </div>
 <h2> One more list </h2>
-<div ng-scroll-viewport style="height:200px; overflow: auto">
+<div ng-scroll-viewport style="height:200px">
     <div ng-scroll="item in datasource">*two {{item}}*</div>
 </div>
 

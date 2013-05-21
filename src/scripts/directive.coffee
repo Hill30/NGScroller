@@ -69,6 +69,8 @@ angular.module('scroller', [])
                     viewport.append canvas
                     canvas.append contents
 
+                  viewport.css('overflow-y', 'auto')
+
                   topPadding = angular.element('<div/>')
                   element.before topPadding
 
@@ -97,10 +99,9 @@ angular.module('scroller', [])
                   canvas = controllers[1] || element.parent()
                   if canvas[0] == viewport[0]
                     # if canvas and the viewport are the same create a new div to service as canvas
-                    contents = canvas.contents()
-                    canvas = angular.element('<div/>')
-                    viewport.append canvas
-                    canvas.append contents
+                    throw Error "element cannot be used as both viewport and canvas: #{canvas[0].outerHTML}"
+
+                  viewport.css('overflow-y', 'auto')
 
                   topPadding = angular.element('<li/>')
                   element.before topPadding
@@ -108,21 +109,22 @@ angular.module('scroller', [])
                   bottomPadding = angular.element('<li/>')
                   element.after bottomPadding
                   {
-                  viewport: viewport
-                  canvas: canvas
-                  topPadding: (value) ->
-                    if arguments.length
-                      topPadding.height(value)
-                    else
-                      topPadding.height()
-                  bottomPadding: (value) ->
-                    if arguments.length
-                      bottomPadding.height(value)
-                    else
-                      bottomPadding.height()
-                  append: (element) -> bottomPadding.before element
-                  prepend: (element) -> topPadding.after element
+                    viewport: viewport
+                    canvas: canvas
+                    topPadding: (value) ->
+                      if arguments.length
+                        topPadding.height(value)
+                      else
+                        topPadding.height()
+                    bottomPadding: (value) ->
+                      if arguments.length
+                        bottomPadding.height(value)
+                      else
+                        bottomPadding.height()
+                    append: (element) -> bottomPadding.before element
+                    prepend: (element) -> topPadding.after element
                   }
+
 
                 controller = null
 
@@ -131,7 +133,7 @@ angular.module('scroller', [])
                     switch template[0].localName
                       when 'div' then divController(element, controllers)
                       when 'li' then liController(element, controllers)
-                      else throw Error "#{tag} as a repeating tag is not supported : #{template[0].outerHtml}"
+                      else throw Error "ng-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
                   temp.$destroy()
 
                 viewport = controller.viewport

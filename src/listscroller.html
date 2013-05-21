@@ -2,16 +2,23 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Scroller Demo (entire window)</title>
+    <title>Scroller Demo (list based)</title>
     <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
     <script src="scripts/directive.js"></script>
     <script src="scripts/application.js"></script>
+    <style>
+        .viewport{
+            height:400px;
+        }
+    </style>
 </head>
 <body ng-app="application">
-    <h2 style="position: fixed; left: 150px; top: 0;">is loading: {{loading}}; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="index.html"> browse sample code</a></h2>
-    <ul ng-scroll-viewport style="height:300px; overflow: auto">
-        <li ng-scroll="item in datasource" >*{{item}}*</li>
-<   /ul>
+    <h2 style="position: fixed; left: 150px; top: 0;">is loading: {{loading}}; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="index.html"> browse sample code</a></h2>
+    <div ng-scroll-viewport class="viewport">
+        <ul>
+            <li ng-scroll="item in datasource" >*{{item}}*</li>
+        </ul>
+    </div>
 </body>
 </html>
