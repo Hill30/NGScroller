@@ -96,4 +96,9 @@ marked with ngScrollViewport directive, the browser window object will be used a
 
 
 ###Examples
+
+Currently examples consist of a sample datasource service (called 'datasource' see application.coffee) and 3 separate pages with 3 different ways the ng-scroll can be used.
+I intentionally broke every rule of proper html/css structure (i.e. embedded styles). This is done to keep the html as bare bones as possible and leave
+it to you to do it properly - whatever properly means in your book.
+
 See index.html
