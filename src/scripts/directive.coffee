@@ -41,8 +41,8 @@ angular.module('scroller', [])
             $injector.invoke([ datasourceName,
               (datasource) ->
 
-                bufferSize = Math.max(3, $attr.bufferSize || 10)
-                bufferPadding = -> viewport.height() * Math.max(.2, $attr.bufferPadding || .5) # some extra space to initate preload in advance
+                bufferSize = Math.max(3, +$attr.bufferSize || 10)
+                bufferPadding = -> viewport.height() * Math.max(.2, +$attr.padding || .5) # some extra space to initate preload in advance
 
                 ###
 
@@ -98,7 +98,6 @@ angular.module('scroller', [])
                   viewport = controllers[0] || angular.element(window)
                   canvas = controllers[1] || element.parent()
                   if canvas[0] == viewport[0]
-                    # if canvas and the viewport are the same create a new div to service as canvas
                     throw Error "element cannot be used as both viewport and canvas: #{canvas[0].outerHTML}"
 
                   viewport.css('overflow-y', 'auto')
