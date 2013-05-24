@@ -58,82 +58,52 @@ angular.module('scroller', [])
 
                 ###
 
-                # builder for DIV based scrollers
-                divController = (element, controllers) ->
-                  viewport = controllers[0] || angular.element(window)
-                  canvas = controllers[1] || element.parent()
-                  if canvas[0] == viewport[0]
-                    # if canvas and the viewport are the same create a new div to service as canvas
-                    contents = canvas.contents()
-                    canvas = angular.element('<div/>')
-                    viewport.append canvas
-                    canvas.append contents
-
-                  viewport.css('overflow-y', 'auto')
-
-                  topPadding = angular.element('<div/>')
-                  element.before topPadding
-
-                  bottomPadding = angular.element('<div/>')
-                  element.after bottomPadding
-                  {
-                    viewport: viewport
-                    canvas: canvas
-                    topPadding: (value) ->
-                      if arguments.length
-                        topPadding.height(value)
-                      else
-                        topPadding.height()
-                    bottomPadding: (value) ->
-                      if arguments.length
-                        bottomPadding.height(value)
-                      else
-                        bottomPadding.height()
-                    append: (element) -> bottomPadding.before element
-                    prepend: (element) -> topPadding.after element
-                  }
-
-                # builder for LI based scrollers
-                liController = (element, controllers) ->
-                  viewport = controllers[0] || angular.element(window)
-                  canvas = controllers[1] || element.parent()
-                  if canvas[0] == viewport[0]
-                    throw Error "element cannot be used as both viewport and canvas: #{canvas[0].outerHTML}"
-
-                  viewport.css('overflow-y', 'auto')
-
-                  topPadding = angular.element('<li/>')
-                  element.before topPadding
-
-                  bottomPadding = angular.element('<li/>')
-                  element.after bottomPadding
-                  {
-                    viewport: viewport
-                    canvas: canvas
-                    topPadding: (value) ->
-                      if arguments.length
-                        topPadding.height(value)
-                      else
-                        topPadding.height()
-                    bottomPadding: (value) ->
-                      if arguments.length
-                        bottomPadding.height(value)
-                      else
-                        bottomPadding.height()
-                    append: (element) -> bottomPadding.before element
-                    prepend: (element) -> topPadding.after element
-                  }
-
-
                 controller = null
 
-                linker temp = $scope.$new(), (template) ->
-                  controller =
+                linker temp = $scope.$new(),
+                  (template) ->
+                    temp.$destroy()
+
+                    viewport = controllers[0] || angular.element(window)
+                    canvas = controllers[1] || element.parent()
+
                     switch template[0].localName
-                      when 'div' then divController(element, controllers)
-                      when 'li' then liController(element, controllers)
-                      else throw Error "ng-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
-                  temp.$destroy()
+                      when 'li'
+                        if canvas[0] == viewport[0]
+                          throw Error "element cannot be used as both viewport and canvas: #{canvas[0].outerHTML}"
+                        topPadding = angular.element('<li/>')
+                        bottomPadding = angular.element('<li/>')
+                      when 'tr','dl' then throw Error "ng-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
+                      else
+                        if canvas[0] == viewport[0]
+                          # if canvas and the viewport are the same create a new div to service as canvas
+                          contents = canvas.contents()
+                          canvas = angular.element('<div/>')
+                          viewport.append canvas
+                          canvas.append contents
+                        topPadding = angular.element('<div/>')
+                        bottomPadding = angular.element('<div/>')
+
+                    viewport.css({'overflow-y': 'auto', 'display': 'block'})
+                    canvas.css({'overflow-y': 'visible', 'display': 'block'})
+                    element.before topPadding
+                    element.after bottomPadding
+
+                    controller =
+                      viewport: viewport
+                      canvas: canvas
+                      topPadding: (value) ->
+                        if arguments.length
+                          topPadding.height(value)
+                        else
+                          topPadding.height()
+                      bottomPadding: (value) ->
+                        if arguments.length
+                          bottomPadding.height(value)
+                        else
+                          bottomPadding.height()
+                      append: (element) -> bottomPadding.before element
+                      prepend: (element) -> topPadding.after element
 
                 viewport = controller.viewport
                 canvas = controller.canvas
@@ -156,7 +126,6 @@ angular.module('scroller', [])
                 reload = ->
                   first = 1
                   next = 1
-#                  buffer.splice 0, buffer.length
                   removeFromBuffer(0, buffer.length)
                   controller.topPadding(0)
                   controller.bottomPadding(0)
