@@ -9,7 +9,7 @@
     <script src="scripts/application.js"></script>
 </head>
 <body ng-app="application">
-    <h2 style="position: fixed; left: 150px; top: 0;"> is loading: {{loading}}; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="index.html"> browse sample code</a></h2>
-    <div ng-scroll="item in datasource" >*{{item}}*</div>
+<h2 style="position: fixed; left: 150px; top: 0;"> <input type=button ng-click="update()" value="update list"/> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="index.html"> browse sample code</a></h2>
+<div ng-scroll="item in datasource" >*{{item}}*</div>
 </body>
 </html>

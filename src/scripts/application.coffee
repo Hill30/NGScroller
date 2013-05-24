@@ -8,14 +8,23 @@ angular.module('application', ['scroller'])
         ->
           result = []
           for i in [index..index + count-1]
-            result.push 'item ' + i
+            result.push "item r#{current} ##{i}"
           success(result)
         100
       )
     loading = (value) ->
       $rootScope.loading = value
+
+    current = 0
+    $rootScope.update = ->
+      current += 1
+
+    revision = -> current
+
     {
       get
       loading
+      revision
     }
+
 ])

@@ -147,10 +147,17 @@ angular.module('scroller', [])
                 loading = datasource.loading || (value) ->
                 isLoading = false
 
+                removeFromBuffer = (start, stop)->
+                  for i in [start...stop]
+                    buffer[i].scope.$destroy()
+                    buffer[i].element.remove()
+                  buffer.splice start, stop - start
+
                 reload = ->
                   first = 1
                   next = 1
-                  buffer.splice 0, buffer.length
+#                  buffer.splice 0, buffer.length
+                  removeFromBuffer(0, buffer.length)
                   controller.topPadding(0)
                   controller.bottomPadding(0)
                   pending = []
@@ -159,12 +166,6 @@ angular.module('scroller', [])
                   adjustBuffer(true)
 
                 shouldLoadBottom = ->
-                  # we have to keep reading more to the bottom until
-                  # we loaded past the item originally selected
-                  #globals.doPositioning && globals.selectedText &&
-                  #(buffer.length == 0 || scope.defaultText(buffer[buffer.length-1]).toLowerCase() <= globals.selectedText.toLowerCase()) ||
-                  # and we have enough for the scrollbar to show up
-
                   item = buffer[buffer.length-1]
                   !eof && item.element.offset().top - canvas.offset().top + item.element.outerHeight(true) <
                     viewport.scrollTop() + viewport.height() + bufferPadding()
@@ -183,10 +184,7 @@ angular.module('scroller', [])
                       break
 
                   if overage > 0
-                    for i in [buffer.length - overage...buffer.length]
-                      buffer[i].scope.$destroy()
-                      buffer[i].element.remove()
-                    buffer.splice buffer.length - overage
+                    removeFromBuffer(buffer.length - overage, buffer.length)
                     next -= overage
                     controller.bottomPadding(bottomHeight)
                     console.log "clipped off bottom #{overage} bottom padding #{bottomHeight}"
@@ -208,10 +206,7 @@ angular.module('scroller', [])
                     else
                       break
                   if overage > 0
-                    for i in [0...overage]
-                      buffer[i].scope.$destroy()
-                      buffer[i].element.remove()
-                    buffer.splice 0, overage
+                    removeFromBuffer(0, overage)
                     controller.topPadding(topHeight)
                     first += overage
                     console.log "clipped off top #{overage} top padding #{topHeight}"
@@ -326,7 +321,9 @@ angular.module('scroller', [])
                   adjustBuffer()
                   $scope.$apply()
 
-                reload()
+                $scope.$watch datasource.revision,
+                  -> reload()
+
             ])
 
     ])

@@ -67,6 +67,13 @@ the directive to access the data:
     #### Description
     this is an optional method. If supplied this function will be called with a value indicating whether there is data loading request pending
 
+* Method `revision`
+
+        revision()
+
+    #### Description
+    this is an optional method. If supplied the scroller will $watch its value and will refresh the content if the value has changed
+
 ngScrollCanvas directive
 -------------------
 ###Description
@@ -100,7 +107,7 @@ marked with ngScrollViewport directive, the browser window object will be used a
 
 ###Examples
 
-Currently examples consist of a sample datasource service (called 'datasource' see application.coffee) and 3 separate pages with 3 different ways the ng-scroll can be used.
+Currently examples consist of a sample datasource service (called 'datasource' see application.coffee) and several pages with different ways the ng-scroll can be used.
 I intentionally broke every rule of proper html/css structure (i.e. embedded styles). This is done to keep the html as bare bones as possible and leave
 it to you to do it properly - whatever properly means in your book.
 
