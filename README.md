@@ -25,6 +25,10 @@ Unless overridden by the ngScrollCanvas directive (see below) the immediate pare
 The viewport is an element representing the space where the content of the canvas is to be shown. Unless specified explicitly with the
 ngScrollViewport directive (see below), browser window will be used as viewport.
 
+Either way the viewport height has to be constrained because the directive will stop asking the datasource for more elements when it has enough
+to fill out the viewport. If the height of the viewport is not constrained (style="height:auto") this will never happen and the directive will
+try to pull the entire content of the datasource.
+
 ###Usage
 
 ```html
