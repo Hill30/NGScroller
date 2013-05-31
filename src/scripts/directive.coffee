@@ -196,9 +196,10 @@ angular.module('scroller', [])
                   enqueueFetch(true) if reloadRequested || shouldLoadBottom()
                   enqueueFetch(false) if !reloadRequested && shouldLoadTop()
 
-                insert = (item, top) ->
+                insert = (index, item, top) ->
                   itemScope = $scope.$new()
                   itemScope[itemName] = item
+                  itemScope.$index = index
                   wrapper =
                     scope: itemScope
                   linker itemScope,
@@ -254,8 +255,8 @@ angular.module('scroller', [])
                           finalize()
                           return
                         for item in result
-                          lastScope = insert item, false
-                        next += result.length
+                          lastScope = insert ++next, item, false
+
                         console.log "appended: #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
                         finalize()
                         lastScope.$watch 'adjustBuffer', ->
@@ -275,7 +276,7 @@ angular.module('scroller', [])
                           finalize()
                           return
                         for item in result.reverse()
-                          lastScope = insert item, true
+                          lastScope = insert first--, item, true
                         first -= result.length
                         console.log "prepended #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
                         finalize()
