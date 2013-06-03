@@ -116,3 +116,18 @@ I intentionally broke every rule of proper html/css structure (i.e. embedded sty
 it to you to do it properly - whatever properly means in your book.
 
 See index.html
+
+###Deployment
+
+To use the directive in your application just deploy the directive.coffee file using whatever deployment process you use for the rest of your coffescript.
+
+To see the sample code in action:
+* install [Git](http://git-scm.com/) installed
+* install [node.js (at least v0.8.1)](http://nodejs.org/) installed with npm (Node Package Manager)
+* install [Grunt](https://github.com/gruntjs/grunt) node package installed globally.  `npm install -g grunt-cli`
+* clone the NGScroller repository to you hard drive `git clone git@github.com:Hill30/NGScroller.git`
+* `cd NGScroller`
+* install nodejs dependencies `npm install`
+* compile the app `grunt`
+* run the server `grunt server`
+* open the sample app in the browser: http://localhost:3005
