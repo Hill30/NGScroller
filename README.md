@@ -131,3 +131,6 @@ To see the sample code in action:
 * compile the app `grunt`
 * run the server `grunt server`
 * open the sample app in the browser: http://localhost:3005
+
+The server side part of the sample code is based on excellent [Angular application template](https://github.com/CaryLandholt/AngularFun) by Cary Landholt.
+Steps provided above give just one of many possible ways to work with it. See the reference above for more details.
