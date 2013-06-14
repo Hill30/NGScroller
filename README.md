@@ -121,7 +121,7 @@ See index.html
 
 To use the directive in your application just deploy the directive.coffee file using whatever deployment process you use for the rest of your coffescript.
 
-To see the sample code in action look at the plunk [here](http://run.plnkr.co/plunks/AHufRvR4XNua6MEV4OnH/index.html) or, to run it locally, follow the steps below:
+To see the sample code in action look at the plunk [here](http://plnkr.co/edit/P4G9Xc?p=preview) or, to run it locally, follow the steps below:
 * install [Git](http://git-scm.com/)
 * install [node.js (at least v0.8.1)](http://nodejs.org/) with npm (Node Package Manager)
 * install [Grunt](https://github.com/gruntjs/grunt) node package globally.  `npm install -g grunt-cli`
