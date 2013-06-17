@@ -278,7 +278,6 @@ angular.module('ui.scroll', [])
                           return
                         for item in result.reverse()
                           lastScope = insert first--, item, true
-                        first -= result.length
                         console.log "prepended #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
                         finalize()
                         lastScope.$watch 'adjustBuffer', ->
