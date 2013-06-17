@@ -12,7 +12,7 @@ globals: angular, window
     element.offset()
 
 ###
-angular.module('scroller', [])
+angular.module('ui.scroll', [])
 
   .directive( 'ngScrollViewport'
     [ '$log'

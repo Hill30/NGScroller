@@ -1,4 +1,4 @@
-angular.module('application', ['scroller'])
+angular.module('application', ['ui.scroll'])
 .factory( 'datasource',
 [ '$log', '$timeout', '$rootScope'
 
