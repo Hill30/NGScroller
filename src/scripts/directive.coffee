@@ -1,3 +1,17 @@
+###
+globals: angular, window
+
+  List of used element methods available in JQuery but not in JQuery Lite
+    in other words if you want to remove dependency on JQuery the following methods are to be implemented:
+
+    element.height()
+    element.outerHeight(true)
+    element.height(value) = only for Top/Bottom padding elements
+    element.scrollTop()
+    element.scrollTop(value)
+    element.offset()
+
+###
 angular.module('scroller', [])
 
   .directive( 'ngScrollViewport'
@@ -33,7 +47,7 @@ angular.module('scroller', [])
 
             match = $attr.ngScroll.match /^\s*(\w+)\s+in\s+(\w+)\s*$/
             if !match
-              throw Error "Expected ngScroll in form of '_item_ in _datasource_' but got '#{$attr.ngScroll}'"
+              throw new Error "Expected ngScroll in form of '_item_ in _datasource_' but got '#{$attr.ngScroll}'"
 
             itemName = match[1]
             datasourceName = match[2]
@@ -43,20 +57,6 @@ angular.module('scroller', [])
 
                 bufferSize = Math.max(3, +$attr.bufferSize || 10)
                 bufferPadding = -> viewport.height() * Math.max(.2, +$attr.padding || .5) # some extra space to initate preload in advance
-
-                ###
-
-                List of used element methods available in JQuery but not in JQuery Lite
-                in other words if you want to remove dependency on JQuery the following methods are to be implemented:
-
-                element.height()
-                element.outerHeight(true)
-                element.height(value) = only for Top/Bottom padding elements
-                element.scrollTop()
-                element.scrollTop(value)
-                element.offset()
-
-                ###
 
                 controller = null
 
@@ -70,10 +70,11 @@ angular.module('scroller', [])
                     switch template[0].localName
                       when 'li'
                         if canvas[0] == viewport[0]
-                          throw Error "element cannot be used as both viewport and canvas: #{canvas[0].outerHTML}"
+                          throw new Error "element cannot be used as both viewport and canvas: #{canvas[0].outerHTML}"
                         topPadding = angular.element('<li/>')
                         bottomPadding = angular.element('<li/>')
-                      when 'tr','dl' then throw Error "ng-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
+                      when 'tr','dl'
+                        throw new Error "ng-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
                       else
                         if canvas[0] == viewport[0]
                           # if canvas and the viewport are the same create a new div to service as canvas
