@@ -56,7 +56,7 @@ angular.module('ui.scroll', [])
               (datasource) ->
 
                 bufferSize = Math.max(3, +$attr.bufferSize || 10)
-                bufferPadding = -> viewport.height() * Math.max(.2, +$attr.padding || .5) # some extra space to initate preload in advance
+                bufferPadding = -> viewport.height() * Math.max(0.2, +$attr.padding || 0.5) # some extra space to initate preload in advance
 
                 controller = null
 
