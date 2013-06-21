@@ -200,7 +200,7 @@ angular.module('ui.scroll', [])
                 insert = (index, item, top) ->
                   itemScope = $scope.$new()
                   itemScope[itemName] = item
-                  itemScope.$index = index
+                  itemScope.$index = index-1
                   wrapper =
                     scope: itemScope
                   linker itemScope,
