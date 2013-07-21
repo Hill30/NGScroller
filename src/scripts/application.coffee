@@ -1,4 +1,4 @@
-angular.module('application', ['ui.scroll'])
+angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 .factory( 'datasource',
 [ '$log', '$timeout', '$rootScope'
 
