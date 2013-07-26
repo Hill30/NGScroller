@@ -4,12 +4,13 @@ globals: angular, window
   List of used element methods available in JQuery but not in JQuery Lite
     in other words if you want to remove dependency on JQuery the following methods are to be implemented:
 
+    element.before(elem)
     element.height()
+    element.offset()
     element.outerHeight(true)
     element.height(value) = only for Top/Bottom padding elements
     element.scrollTop()
     element.scrollTop(value)
-    element.offset()
 
 ###
 angular.module('ui.scroll', [])
