@@ -32,25 +32,24 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 					height: (value) ->
 						self = this
 						if angular.isDefined value
-							#TODO: support string, function as the value
-							css.call(self, 'height', value + 'px')
+							if angular.isNumber value
+								value = value + 'px'
+							css.call(self, 'height', value)
+
 						else
 							elem = self[0]
-
-							if isWindow elem
-								elem.document.documentElement.clientHeight;
-							else
-								parseInt(
+							parseInt(
+								if isWindow elem
+									elem.document.documentElement.clientHeight;
+								else
 									if window.getComputedStyle
-										window.getComputedStyle(self[0]).getPropertyValue('height')
-									# TODO: the code below ony works if the height is set in pixels
-									else self[0].currentStyle.height # for IE8
-								)
+										window.getComputedStyle(elem).getPropertyValue('height')
+									else elem.clientHeight # for IE8
+							)
 
 				outerHeight: (option) ->
 					self = this
 					# TODO: add padding, border and margins
-
 					self.height.call(self)
 
 				offset: (option)->
@@ -97,7 +96,7 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 							if (prop of elem)
 								elem[ prop ]
 							else
-								win.document.documentElement[ method ]
+								window.document.documentElement[ method ]
 						else
 							elem[ method ]
 
