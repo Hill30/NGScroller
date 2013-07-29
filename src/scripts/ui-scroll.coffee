@@ -288,12 +288,12 @@ angular.module('ui.scroll', [])
 													adjustBuffer()
 
 								viewport.bind 'resize', ->
-									if !$rootScope.$$phase
+									if !$rootScope.$$phase && !isLoading
 										adjustBuffer()
 										$scope.$apply()
 
 								viewport.bind 'scroll', ->
-									if !$rootScope.$$phase
+									if !$rootScope.$$phase && !isLoading
 										adjustBuffer()
 										$scope.$apply()
 

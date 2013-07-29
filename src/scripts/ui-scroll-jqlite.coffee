@@ -5,27 +5,30 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 
 			unless window.jQuery
 
+				# angular implementation blows up if elem is the window
 				css = angular.element.prototype.css
 				angular.element.prototype.css = (name, value) ->
 					self = this
 					elem = self[0]
 					css.call(self, name, value) unless !elem || elem.nodeType == 3 || elem.nodeType == 8 || !elem.style
 
+				# copied from angularjs v1.0.5
 				isWindow = (obj) ->
 					obj && obj.document && obj.location && obj.alert && obj.setInterval;
 
 				angular.forEach {
 
-					before: (elem) ->
+					before: (newElem) ->
 						self = this
+						elem = self[0]
 						parent = self.parent()
 						children = parent.contents()
-						if children[0] == self
-							parent.prepend elem
+						if children[0] == elem
+							parent.prepend newElem
 						else
-							for i in [0..children.length-1]
-								if children[i] == self[0]
-									angular.element(children[i-1]).after elem
+							for i in [1..children.length-1]
+								if children[i] == elem
+									angular.element(children[i-1]).after newElem
 									return
 							throw new Error 'invalid DOM structure ' + self
 
@@ -44,7 +47,8 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 								else
 									if window.getComputedStyle
 										window.getComputedStyle(elem).getPropertyValue('height')
-									else elem.clientHeight # for IE8
+									#IE<9 does not support getComputedStyle
+									else elem.clientHeight
 							)
 
 				outerHeight: (option) ->
@@ -85,6 +89,20 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 					method = 'scrollTop'
 					prop = 'pageYOffset'
 
+					if isWindow elem
+						if angular.isDefined value
+							elem.scrollTo self.scrollTop.call(self), value
+						else
+							if (prop of elem)
+								elem[ prop ]
+							else
+								elem.document.documentElement[ method ]
+					else
+						if angular.isDefined value
+							elem[method] = value
+						else
+							elem[method]
+					###
 					isWin = isWindow elem
 					if angular.isDefined value
 						if isWin
@@ -99,7 +117,7 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 								window.document.documentElement[ method ]
 						else
 							elem[ method ]
-
+          ###
 				}, (value, key) ->
 					angular.element.prototype[key] = value unless angular.element.prototype[key]
 
