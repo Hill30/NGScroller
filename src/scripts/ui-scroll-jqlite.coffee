@@ -43,22 +43,21 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 					else
 						elem.currentStyle
 
-				#// returns width/height of element, refactored getWH from jQuery
-				getWidthHeight = ( elem, measure, isOuter ) ->
+				convertToPx = (elem, value) ->
+					parseFloat(value)
 
+				getMeasurements = (elem, measure) ->
 					# Start with offset property
-					isWidth = measure != 'height'
-
-					[val, dirA, dirB] = {
-						width:  [elem.offsetWidth, 'Left', 'Right']
-						height: [elem.offsetHeight, 'Top', 'Bottom']
+					[value, dirA, dirB] = {
+					width:  [elem.offsetWidth, 'Left', 'Right']
+					height: [elem.offsetHeight, 'Top', 'Bottom']
 					}[measure]
 
 					computedStyle = getStyle( elem )
-					paddingA = parseFloat( computedStyle[ 'padding' + dirA ] ) || 0
-					paddingB = parseFloat( computedStyle[ 'padding' + dirB ] ) || 0
-					borderA = parseFloat( computedStyle[ 'border' + dirA + 'Width' ] ) || 0
-					borderB = parseFloat( computedStyle[ 'border' + dirB + 'Width' ] ) || 0
+					paddingA = convertToPx(elem, computedStyle[ 'padding' + dirA ] ) || 0
+					paddingB = convertToPx(elem, computedStyle[ 'padding' + dirB ] ) || 0
+					borderA = convertToPx(elem, computedStyle[ 'border' + dirA + 'Width' ] ) || 0
+					borderB = convertToPx(elem, computedStyle[ 'border' + dirB + 'Width' ] ) || 0
 					computedMarginA = computedStyle[ 'margin' + dirA ]
 					computedMarginB = computedStyle[ 'margin' + dirB ]
 
@@ -66,27 +65,40 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 						#computedMarginA = hackPercentMargin( elem, computedStyle, computedMarginA )
 						#computedMarginB = hackPercentMargin( elem, computedStyle, computedMarginB )
 
-					marginA = parseFloat( computedMarginA ) || 0;
-					marginB = parseFloat( computedMarginB ) || 0;
+					marginA = convertToPx(elem, computedMarginA ) || 0;
+					marginB = convertToPx(elem, computedMarginB ) || 0;
 
-					if ( val > 0 )
-						val += marginA + marginB if isOuter
+					height: value
+					padding: paddingA + paddingB
+					border: borderA + borderB
+					margin: marginA + marginB
 
+
+				getWidthHeight = ( elem, direction, measure ) ->
+
+					measurements = getMeasurements(elem, direction)
+					if measurements.height > 0
+						{
+							height: measurements.height - measurements.padding - measurements.border
+							outer: measurements.height
+							outerfull: measurements.height + measurements.margin
+						}[measure]
 					else
+
 						#// Fall back to computed then uncomputed css if necessary
-						val = computedStyle[ measure ]
-						if ( val < 0 || val == null )
-							val = elem.style[ measure ] || 0
+						computedStyle = getStyle( elem )
+						result = computedStyle[ direction ]
+						if ( result < 0 || result == null )
+							result = elem.style[ direction ] || 0
 
 						#// Normalize "", auto, and prepare for extra
-						val = parseFloat( val ) || 0;
+						result = parseFloat( result ) || 0;
 
-						if ( isOuter )
-							#// Add padding, border, margin
-							val += paddingA + paddingB + marginA + marginB + borderA + borderB;
-
-					return val;
-
+						{
+							height: result - measurements.padding - measurements.border
+							outer: result
+							outerfull: result + measurements.padding + measurements.border + measurements.margin
+						}[measure]
 
 				# define missing methods
 				angular.forEach {
@@ -113,6 +125,7 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 						css.call(self, 'height', value)
 
 					else
+						#getWidthHeight(this[0], 'height', 'height')
 						elem = self[0]
 						parseInt(
 							if isWindow elem
@@ -125,7 +138,7 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 						)
 
 				outerHeight: (option) ->
-					getWidthHeight(this[0], 'height', option)
+					getWidthHeight(this[0], 'height', if option then 'outerfull' else 'outer')
 
 				offset: (option)->
 					self = this

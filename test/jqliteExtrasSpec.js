@@ -1,4 +1,3 @@
-debugger
 describe('\njqLite: testing against jQuery\n', function () {
 	'use strict';
 
@@ -25,7 +24,9 @@ describe('\njqLite: testing against jQuery\n', function () {
 				'<div style="height:30em">some text (height in em)</div>',
 				'<div style="height:30px">some text height in px</div>',
 				'<div style="border-width: 3px; border-style: solid; border-color: red">some text w border</div>',
+				'<div style="border-width: 3em; border-style: solid; border-color: red">some text w border</div>',
 				'<div style="padding: 3px">some text w padding</div>',
+				'<div style="padding: 3em">some text w padding</div>',
 				'<div style="margin: 3px">some text w margin</div>',
 				'<div style="margin: 3em">some text w margin</div>'
 			], function(element) {
@@ -37,14 +38,17 @@ describe('\njqLite: testing against jQuery\n', function () {
 				}
 
 				function validateHeight(element) {
+					debugger
 					expect(extras.prototype.height.call(element)).toBe(element.height())
 				}
 
 				function validateOuterHeight(element, options) {
 					if (options)
 						expect(extras.prototype.outerHeight.call(element, options)).toBe(element.outerHeight(options))
-					else
+					else {
 						expect(extras.prototype.outerHeight.call(element)).toBe(element.outerHeight())
+						console.log('extras=' + extras.prototype.outerHeight.call(element, true) + ' height=' + element.outerHeight(true) )
+					}
 				}
 				it('height() for ' + element, function() {
 						validateHeight(createElement(element))
