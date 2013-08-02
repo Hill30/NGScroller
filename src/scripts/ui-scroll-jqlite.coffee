@@ -37,14 +37,31 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 						else
 							elem[method]
 
-				getStyle = (elem) ->
-					if window.getComputedStyle
-						window.getComputedStyle(elem, null)
-					else
-						elem.currentStyle
 
-				convertToPx = (elem, value) ->
-					parseFloat(value)
+				if window.getComputedStyle
+					getStyle = (elem) -> window.getComputedStyle(elem, null)
+					convertToPx = (elem, value) -> parseFloat value
+				else
+					getStyle = (elem) -> elem.currentStyle
+					convertToPx = (elem, value) ->
+						core_pnum = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source
+						rnumnonpx = new RegExp( "^(" + core_pnum + ")(?!px)[a-z%]+$", "i" )
+						if !rnumnonpx.test(value)
+							parseFloat value
+						else
+							# ported from JQuery
+							style = elem.style
+							left = style.left
+							rs = elem.runtimeStyle
+							rsLeft = rs && rs.left
+							# put in the new values to get a computed style out
+							rs.left = style.left if rs
+							currentStyle.left = value
+							result = style.pixelLeft
+							style.left = left
+							rs.left = rsLeft if rsLeft
+							result
+
 
 				getMeasurements = (elem, measure) ->
 					# Start with offset property
@@ -61,6 +78,7 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 					computedMarginA = computedStyle[ 'margin' + dirA ]
 					computedMarginB = computedStyle[ 'margin' + dirB ]
 
+					# I do not care for width for now, so this hack is irrelevant
 					#if ( !supportsPercentMargin )
 						#computedMarginA = hackPercentMargin( elem, computedStyle, computedMarginA )
 						#computedMarginB = hackPercentMargin( elem, computedStyle, computedMarginB )
@@ -125,17 +143,7 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 						css.call(self, 'height', value)
 
 					else
-						#getWidthHeight(this[0], 'height', 'height')
-						elem = self[0]
-						parseInt(
-							if isWindow elem
-								elem.document.documentElement.clientHeight;
-							else
-								if window.getComputedStyle
-									window.getComputedStyle(elem).getPropertyValue('height')
-									#IE<9 does not support getComputedStyle
-								else elem.clientHeight
-						)
+						getWidthHeight(this[0], 'height', 'height')
 
 				outerHeight: (option) ->
 					getWidthHeight(this[0], 'height', if option then 'outerfull' else 'outer')

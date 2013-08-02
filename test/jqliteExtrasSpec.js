@@ -38,7 +38,6 @@ describe('\njqLite: testing against jQuery\n', function () {
 				}
 
 				function validateHeight(element) {
-					debugger
 					expect(extras.prototype.height.call(element)).toBe(element.height())
 				}
 
@@ -47,7 +46,7 @@ describe('\njqLite: testing against jQuery\n', function () {
 						expect(extras.prototype.outerHeight.call(element, options)).toBe(element.outerHeight(options))
 					else {
 						expect(extras.prototype.outerHeight.call(element)).toBe(element.outerHeight())
-						console.log('extras=' + extras.prototype.outerHeight.call(element, true) + ' height=' + element.outerHeight(true) )
+//						console.log('extras=' + extras.prototype.outerHeight.call(element, true) + ' height=' + element.outerHeight(true) )
 					}
 				}
 				it('height() for ' + element, function() {
