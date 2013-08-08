@@ -56,7 +56,7 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 							rsLeft = rs && rs.left
 							# put in the new values to get a computed style out
 							rs.left = style.left if rs
-							currentStyle.left = value
+							style.left = value
 							result = style.pixelLeft
 							style.left = left
 							rs.left = rsLeft if rsLeft
@@ -64,8 +64,17 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 
 
 				getMeasurements = (elem, measure) ->
+					if isWindow elem
+						base = document.documentElement[{height: 'clientHeight', width: 'clientWidth'}[measure]]
+						return {
+							base: base
+							padding: 0
+							border: 0
+							margin: 0
+						}
+
 					# Start with offset property
-					[value, dirA, dirB] = {
+					[base, dirA, dirB] = {
 					width:  [elem.offsetWidth, 'Left', 'Right']
 					height: [elem.offsetHeight, 'Top', 'Bottom']
 					}[measure]
@@ -86,20 +95,19 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 					marginA = convertToPx(elem, computedMarginA ) || 0;
 					marginB = convertToPx(elem, computedMarginB ) || 0;
 
-					height: value
+					base: base
 					padding: paddingA + paddingB
 					border: borderA + borderB
 					margin: marginA + marginB
 
 
 				getWidthHeight = ( elem, direction, measure ) ->
-
 					measurements = getMeasurements(elem, direction)
-					if measurements.height > 0
+					if measurements.base > 0
 						{
-							height: measurements.height - measurements.padding - measurements.border
-							outer: measurements.height
-							outerfull: measurements.height + measurements.margin
+							base: measurements.base - measurements.padding - measurements.border
+							outer: measurements.base
+							outerfull: measurements.base + measurements.margin
 						}[measure]
 					else
 
@@ -113,7 +121,7 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 						result = parseFloat( result ) || 0;
 
 						{
-							height: result - measurements.padding - measurements.border
+							base: result - measurements.padding - measurements.border
 							outer: result
 							outerfull: result + measurements.padding + measurements.border + measurements.margin
 						}[measure]
@@ -143,7 +151,7 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 						css.call(self, 'height', value)
 
 					else
-						getWidthHeight(this[0], 'height', 'height')
+						getWidthHeight(this[0], 'height', 'base')
 
 				outerHeight: (option) ->
 					getWidthHeight(this[0], 'height', if option then 'outerfull' else 'outer')

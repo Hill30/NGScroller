@@ -16,6 +16,13 @@ describe('\njqLite: testing against jQuery\n', function () {
 
 	afterEach(function() {sandbox.remove();});
 
+	describe('height() getter for window\n', function() {
+		it('height() should work for window element', function() {
+			var element = angular.element(window);
+			expect(extras.prototype.height.call(element)).toBe(element.height())
+		})
+	})
+
 	describe('height() getter and outerHeight() getter\n', function () {
 
 		angular.forEach(
@@ -46,7 +53,6 @@ describe('\njqLite: testing against jQuery\n', function () {
 						expect(extras.prototype.outerHeight.call(element, options)).toBe(element.outerHeight(options))
 					else {
 						expect(extras.prototype.outerHeight.call(element)).toBe(element.outerHeight())
-//						console.log('extras=' + extras.prototype.outerHeight.call(element, true) + ' height=' + element.outerHeight(true) )
 					}
 				}
 				it('height() for ' + element, function() {
@@ -68,5 +74,46 @@ describe('\njqLite: testing against jQuery\n', function () {
 		)
 	})
 
+	describe('height(value) setter\n', function () {
 
+		angular.forEach(
+			[
+				'<div>some text</div>',
+				'<div style="height:30em">some text (height in em)</div>',
+				'<div style="height:30px">some text height in px</div>',
+				'<div style="border-width: 3px; border-style: solid; border-color: red">some text w border</div>',
+				'<div style="border-width: 3em; border-style: solid; border-color: red">some text w border</div>',
+				'<div style="padding: 3px">some text w padding</div>',
+				'<div style="padding: 3em">some text w padding</div>',
+				'<div style="margin: 3px">some text w margin</div>',
+				'<div style="margin: 3em">some text w margin</div>'
+			], function(element) {
+
+				function createElement(element) {
+					var result = angular.element(element);
+					sandbox.append(result);
+					return result;
+				}
+
+				function setHeight(element, height) {
+					extras.prototype.height.call(element, height);
+				}
+
+				function validateHeight(element) {
+					expect(extras.prototype.height.call(element)).toBe(element.height());
+					var h = element.height();
+					extras.prototype.height.call(element, h*2);
+					expect(extras.prototype.height.call(element)).toBe(h*2);
+				}
+
+				it('height(value) for ' + element, function() {
+						validateHeight(createElement(element))
+					}
+				)
+
+			}
+
+		)
 	})
+
+})
