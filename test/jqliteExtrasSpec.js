@@ -17,13 +17,19 @@ describe('\njqLite: testing against jQuery\n', function () {
 	afterEach(function() {sandbox.remove();});
 
 	describe('height() getter for window\n', function() {
-		it('height() should work for window element', function() {
+		it('should work for window element', function() {
 			var element = angular.element(window);
 			expect(extras.prototype.height.call(element)).toBe(element.height())
 		})
 	})
 
-	describe('height() getter and outerHeight() getter\n', function () {
+	describe('getters height() and outerHeight()\n', function () {
+
+		function createElement(element) {
+			var result = angular.element(element);
+			sandbox.append(result);
+			return result;
+		}
 
 		angular.forEach(
 			[
@@ -38,37 +44,61 @@ describe('\njqLite: testing against jQuery\n', function () {
 				'<div style="margin: 3em">some text w margin</div>'
 			], function(element) {
 
-				function createElement(element) {
-					var result = angular.element(element);
-					sandbox.append(result);
-					return result;
-				}
-
-				function validateHeight(element) {
-					expect(extras.prototype.height.call(element)).toBe(element.height())
-				}
-
-				function validateOuterHeight(element, options) {
-					if (options)
-						expect(extras.prototype.outerHeight.call(element, options)).toBe(element.outerHeight(options))
-					else {
-						expect(extras.prototype.outerHeight.call(element)).toBe(element.outerHeight())
-					}
-				}
-				it('height() for ' + element, function() {
-						validateHeight(createElement(element))
+				it('should be the same as jQuery height() for ' + element, function() {
+						(function(element) {
+							expect(extras.prototype.height.call(element)).toBe(element.height())
+						})(createElement(element))
 					}
 				)
 
-				it('outerHeight() for ' + element, function() {
-						validateOuterHeight(createElement(element))
+				it ('should be the same as jQuery outerHeight() for ' + element, function() {
+						(function(element) {
+							expect(extras.prototype.outerHeight.call(element)).toBe(element.outerHeight())
+						})(createElement(element))
 					}
 				)
 
-				it('outerHeight(true) for ' + element, function() {
-						validateOuterHeight(createElement(element), true)
+				it ('should be the same as jQuery outerHeight(true) for ' + element, function() {
+						(function(element) {
+							expect(extras.prototype.outerHeight.call(element, true)).toBe(element.outerHeight(true))
+						})(createElement(element))
 					}
 				)
+
+			}
+
+		)
+	})
+
+	describe('offset() getter\n', function () {
+
+		function createElement(element) {
+			var result = angular.element(element);
+			sandbox.append(result);
+			return result;
+		}
+
+		angular.forEach(
+			[
+				'<div><div>some text</div></div>',
+				'<div style="height:30em"><div>some text (height in em)</div></div>',
+				'<div style="height:30px">some text height in px</div>',
+				'<div style="border-width: 3px; border-style: solid; border-color: red">some text w border</div>',
+				'<div style="border-width: 3em; border-style: solid; border-color: red">some text w border</div>',
+				'<div style="padding: 3px">some text w padding</div>',
+				'<div style="padding: 3em">some text w padding</div>',
+				'<div style="margin: 3px">some text w margin</div>',
+				'<div style="margin: 3em">some text w margin</div>'
+			], function(element) {
+
+				it('should be the same as jQuery offset() for ' + element, function() {
+						(function (element) {
+							var target = $(element.contents()[0]);
+							expect(extras.prototype.offset.call(target)).toEqual(element.offset());
+						})(createElement(element))
+					}
+				)
+
 			}
 
 		)
@@ -76,6 +106,12 @@ describe('\njqLite: testing against jQuery\n', function () {
 
 	describe('height(value) setter\n', function () {
 
+		function createElement(element) {
+			var result = angular.element(element);
+			sandbox.append(result);
+			return result;
+		}
+
 		angular.forEach(
 			[
 				'<div>some text</div>',
@@ -88,16 +124,6 @@ describe('\njqLite: testing against jQuery\n', function () {
 				'<div style="margin: 3px">some text w margin</div>',
 				'<div style="margin: 3em">some text w margin</div>'
 			], function(element) {
-
-				function createElement(element) {
-					var result = angular.element(element);
-					sandbox.append(result);
-					return result;
-				}
-
-				function setHeight(element, height) {
-					extras.prototype.height.call(element, height);
-				}
 
 				function validateHeight(element) {
 					expect(extras.prototype.height.call(element)).toBe(element.height());
@@ -107,7 +133,12 @@ describe('\njqLite: testing against jQuery\n', function () {
 				}
 
 				it('height(value) for ' + element, function() {
-						validateHeight(createElement(element))
+						(function (element) {
+							expect(extras.prototype.height.call(element)).toBe(element.height());
+							var h = element.height();
+							extras.prototype.height.call(element, h*2);
+							expect(extras.prototype.height.call(element)).toBe(h*2);
+						})(createElement(element))
 					}
 				)
 
