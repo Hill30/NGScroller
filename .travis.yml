@@ -11,3 +11,6 @@ before_install:
 script: 
 - grunt
 - karma start --single-run
+branches:
+  only:
+    - none
