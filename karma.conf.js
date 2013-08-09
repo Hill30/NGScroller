@@ -47,7 +47,7 @@ colors = false;
 
 // level of logging
 // possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
-logLevel = LOG_INFO;
+logLevel = karma.LOG_INFO;
 
 
 // enable / disable watching file and executing tests whenever any file changes
@@ -62,8 +62,8 @@ autoWatch = true;
 // - Safari (only Mac)
 // - PhantomJS
 // - IE (only Windows)
-browsers = ['Chrome','IE'];
-//browsers = ['Chrome'];
+//browsers = ['Chrome','IE'];
+browsers = ['Chrome'];
 //browsers = ['IE'];
 
 
