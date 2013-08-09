@@ -6,10 +6,14 @@
 basePath = '';
 
 
+frameworks=[
+  'jasmine'
+];
+
 // list of files / patterns to load in the browser
 files = [
-  JASMINE,
-  JASMINE_ADAPTER,
+//  JASMINE,
+//  JASMINE_ADAPTER,
   'http://code.jquery.com/jquery-1.9.1.js',
   'http://code.angularjs.org/1.0.6/angular.js',
   'http://code.angularjs.org/1.0.6/angular-mocks.js',
