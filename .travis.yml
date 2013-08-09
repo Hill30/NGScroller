@@ -8,4 +8,4 @@ before_install:
 - npm install -g bower grunt-cli
 - npm install
 - bower install
-script: grunt
+script: karma start --single-run
