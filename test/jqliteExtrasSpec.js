@@ -174,7 +174,7 @@ describe('\njqLite: testing against jQuery\n', function () {
 				element.scrollTop(100);
 				expect(extras.prototype.scrollTop.call(element)).toBe(element.scrollTop());
 				extras.prototype.scrollTop.call(element, 200);
-				expect(extras.prototype.scrollTop.call(element)).toBe(element.scrollTop() + 1);
+				expect(extras.prototype.scrollTop.call(element)).toBe(element.scrollTop());
 			}
 		)
 
