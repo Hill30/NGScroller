@@ -10,6 +10,8 @@ complexity can easily introduce 20 watchers per row. Which for a list of 100 row
 ngScroll directive
 -------------------
 
+[![Build Status](https://travis-ci.org/Hill30/NGScroller.png?branch=master)](https://travis-ci.org/Hill30/NGScroller)
+
 **ngScroll** directive solves this problem by dynamically destroying elements as they become invisible and recreating
 them if they become visible again.
 
