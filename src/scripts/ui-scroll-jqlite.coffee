@@ -15,7 +15,7 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 
 				# as defined in angularjs v1.0.5
 				isWindow = (obj) ->
-					obj && obj.document && obj.location && obj.alert && obj.setInterval;
+					obj && obj.document && obj.location && obj.alert && obj.setInterval
 
 				scrollTo = (self, direction, value) ->
 					elem = self[0]
@@ -92,8 +92,8 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 						#computedMarginA = hackPercentMargin( elem, computedStyle, computedMarginA )
 						#computedMarginB = hackPercentMargin( elem, computedStyle, computedMarginB )
 
-					marginA = convertToPx(elem, computedMarginA ) || 0;
-					marginB = convertToPx(elem, computedMarginB ) || 0;
+					marginA = convertToPx(elem, computedMarginA ) || 0
+					marginB = convertToPx(elem, computedMarginB ) || 0
 
 					base: base
 					padding: paddingA + paddingB
@@ -118,7 +118,7 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 							result = elem.style[ direction ] || 0
 
 						#// Normalize "", auto, and prepare for extra
-						result = parseFloat( result ) || 0;
+						result = parseFloat( result ) || 0
 
 						{
 							base: result - measurements.padding - measurements.border
