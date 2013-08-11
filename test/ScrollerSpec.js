@@ -104,15 +104,15 @@ describe('uiScroll', function () {
 
                 var row1 = sandbox.children()[1];
                 expect(row1.tagName.toLowerCase()).toBe('div');
-                expect(row1.innerText).toBe('1: one');
+                expect(row1.innerHTML).toBe('1: one');
 
                 var row2 = sandbox.children()[2];
                 expect(row2.tagName.toLowerCase()).toBe('div');
-                expect(row2.innerText).toBe('2: two');
+                expect(row2.innerHTML).toBe('2: two');
 
                 var row3 = sandbox.children()[3];
                 expect(row3.tagName.toLowerCase()).toBe('div');
-                expect(row3.innerText).toBe('3: three');
+                expect(row3.innerHTML).toBe('3: three');
 
             }));
 

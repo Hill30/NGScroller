@@ -62,7 +62,8 @@ autoWatch = true;
 // - Safari (only Mac)
 // - PhantomJS
 // - IE (only Windows)
-browsers = ['Chrome','IE'];
+browsers = ['Chrome','IE', 'Firefox'];
+//browsers = ['Firefox'];
 //browsers = ['Chrome'];
 //browsers = ['IE'];
 
