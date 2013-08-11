@@ -156,10 +156,10 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 				outerHeight: (option) ->
 					getWidthHeight(this[0], 'height', if option then 'outerfull' else 'outer')
 
-				offset: (option)->
+				offset: (value)->
 					self = this
 					if arguments.length
-						return if option == undefined
+						return if value == undefined
 							self
 						else
 							# TODO:

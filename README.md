@@ -38,6 +38,24 @@ try to pull the entire content of the datasource.
       ...
 </ANY>
 ```
+### Dependencies
+
+To use the directive make sure the ui-scroll.js (as transpiled out of ui-scroll.coffee) is loaded in your page. You also have to include
+module name 'ui.scroll' on the list of your application module dependencies.
+
+The code in this file relies on a few DOM element methods of jQuery which are currently not implemented in jQlite, namely
+* before(elem)
+* height() and height(value)
+* outerHeight() and outerHeight(true)
+* offset()
+* scrollTop() and scrollTop(value)
+file ui-scroll-jqlite houses implementations of the above methods and also has to be loaded in your page. Please note that the methods are implemented in a separate module
+'ui.scroll.jqlite' and this name should also be included in the dependency list of the main module. The implementation currently supports missing methods
+only as necessary for the directive, in particular setting offset through the offset method is not supported. It is tested on IE8 and up as
+well as on the Chrome 28 and Firefox 20.
+  
+This module is only necessary if you plan to use ng-scroll without jQuery. If jQuery implementation is present it will not override them.
+If you plan to use ng-scroll over jQuery feel free to skip ui-scroll-jqlite.
 
 ###Directive info
 * This directive creates a new scope
