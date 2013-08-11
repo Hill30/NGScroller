@@ -13,4 +13,4 @@ script:
 - karma start --single-run
 branches:
   only:
-    - none
+    - master
