@@ -13,7 +13,7 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 						for i in [index..index + count-1]
 							result.push "item r#{current} ##{i}"
 						success(result)
-					100
+					1000
 				)
 
 		loading = (value) ->

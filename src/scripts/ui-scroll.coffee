@@ -2,7 +2,6 @@
 globals: angular, window
 
 	List of used element methods available in JQuery but not in JQuery Lite
-		in other words if you want to remove dependency on JQuery the following methods are to be implemented:
 
 		element.before(elem)
 		element.height()
@@ -62,7 +61,7 @@ angular.module('ui.scroll', [])
 							throw new Error "#{datasourceName} is not a valid datasource" unless isDatasource datasource
 
 						bufferSize = Math.max(3, +$attr.bufferSize || 10)
-						bufferPadding = -> viewport.height() * Math.max(0.2, +$attr.padding || 0.5) # some extra space to initate preload in advance
+						bufferPadding = -> viewport.height() * Math.max(0.2, +$attr.padding || 0.5) # some extra space to initate preload
 
 						controller = null
 
@@ -96,6 +95,9 @@ angular.module('ui.scroll', [])
 								element.before topPadding
 								element.after bottomPadding
 
+								scrollHeight = (elem)->
+									elem[0].scrollHeight || elem[0].document.documentElement.scrollHeight
+
 								controller =
 									viewport: viewport
 									canvas: canvas
@@ -111,6 +113,11 @@ angular.module('ui.scroll', [])
 											bottomPadding.height()
 									append: (element) -> bottomPadding.before element
 									prepend: (element) -> topPadding.after element
+									bottomDataPos: ->
+										scrollHeight(viewport) - bottomPadding.height()
+									topDataPos: ->
+										#viewport.scrollTop() -
+										topPadding.height()
 
 						viewport = controller.viewport
 						canvas = controller.canvas
@@ -141,22 +148,26 @@ angular.module('ui.scroll', [])
 							bof = false
 							adjustBuffer(true)
 
+						bottomVisiblePos = ->
+							viewport.scrollTop() + viewport.height()
+
+						topVisiblePos = ->
+							viewport.scrollTop()
+
 						shouldLoadBottom = ->
-							if buffer.length
-								item = buffer[buffer.length-1]
-								!eof && item.element.offset().top - canvas.offset().top + item.element.outerHeight(true) <
-								viewport.scrollTop() + viewport.height() + bufferPadding()
-							else
-								!eof
+							console.log "*** load bottom=#{controller.bottomDataPos() < bottomVisiblePos() + bufferPadding()}"
+							!eof && controller.bottomDataPos() < bottomVisiblePos() + bufferPadding()
 
 						clipBottom = ->
 							# clip the invisible items off the bottom
-							bottomHeight = controller.bottomPadding()
+							bottomHeight = 0 #controller.bottomPadding()
 							overage = 0
 
 							for item in buffer[..].reverse()
-								if viewport.scrollTop() + viewport.height() + bufferPadding() < item.element.offset().top - canvas.offset().top
-									bottomHeight += item.element.outerHeight(true)
+								itemHeight = item.element.outerHeight(true)
+								if controller.bottomDataPos() - bottomHeight - itemHeight > bottomVisiblePos() + bufferPadding()
+									# top boundary of the element is below the bottom of the visible area
+									bottomHeight += itemHeight
 									overage++
 									eof = false
 								else
@@ -165,20 +176,20 @@ angular.module('ui.scroll', [])
 							if overage > 0
 								removeFromBuffer(buffer.length - overage, buffer.length)
 								next -= overage
-								controller.bottomPadding(bottomHeight)
-								console.log "clipped off bottom #{overage} bottom padding #{bottomHeight}"
+								controller.bottomPadding(controller.bottomPadding() + bottomHeight)
+								console.log "clipped off bottom #{overage} bottom padding #{controller.bottomPadding()}"
 
 						shouldLoadTop = ->
-							!bof &&
-							(!buffer.length || buffer[0].element.offset().top - canvas.offset().top > viewport.scrollTop() - bufferPadding())
+							console.log "*** load top=#{(controller.topDataPos() > topVisiblePos() - bufferPadding())}"
+							!bof && (controller.topDataPos() > topVisiblePos() - bufferPadding())
 
 						clipTop = ->
 							# clip the invisible items off the top
-							topHeight = controller.topPadding()
+							topHeight = 0
 							overage = 0
 							for item in buffer
 								itemHeight = item.element.outerHeight(true)
-								if viewport.scrollTop() - bufferPadding() >= item.element.offset().top - canvas.offset().top + itemHeight
+								if controller.topDataPos() + topHeight + itemHeight < topVisiblePos() - bufferPadding()
 									topHeight += itemHeight
 									overage++
 									bof = false
@@ -186,9 +197,9 @@ angular.module('ui.scroll', [])
 									break
 							if overage > 0
 								removeFromBuffer(0, overage)
-								controller.topPadding(topHeight)
+								controller.topPadding(controller.topPadding() + topHeight)
 								first += overage
-								console.log "clipped off top #{overage} top padding #{topHeight}"
+								console.log "clipped off top #{overage} top padding #{controller.topPadding() + topHeight}"
 
 						enqueueFetch = (direction)->
 							if (!isLoading)
@@ -199,9 +210,7 @@ angular.module('ui.scroll', [])
 								fetch()
 
 						adjustBuffer = (reloadRequested)->
-							if buffer[0]
-								console.log "top {actual=#{buffer[0].element.offset().top - canvas.offset().top} visible from=#{viewport.scrollTop()}}
-bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buffer[buffer.length-1].element.offset().top - canvas.offset().top}}"
+							console.log "top {actual=#{controller.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{controller.bottomDataPos()}}"
 
 							enqueueFetch(true) if reloadRequested || shouldLoadBottom()
 							enqueueFetch(false) if !reloadRequested && shouldLoadTop()
@@ -221,6 +230,7 @@ bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buf
 								else
 									controller.append clone
 									buffer.push wrapper
+
 							# this watch fires once per item inserted after the item template has been processed and values inserted
 							# which allows to gather the 'real' height of the thing
 							itemScope.$watch 'heightAdjustment', ->
@@ -258,7 +268,6 @@ bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buf
 									#console.log "appending... requested #{bufferSize} records starting from #{next}"
 									datasource.get next, bufferSize,
 									(result) ->
-										clipTop()
 										if result.length == 0
 											eof = true
 											console.log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
@@ -268,6 +277,7 @@ bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buf
 											lastScope = insert ++next, item, false
 
 										console.log "appended: #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+										clipTop()
 										finalize()
 										lastScope.$watch 'adjustBuffer', ->
 											adjustBuffer()
@@ -279,7 +289,6 @@ bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buf
 									#console.log "prepending... requested #{size} records starting from #{start}"
 									datasource.get first-bufferSize, bufferSize,
 									(result) ->
-										clipBottom()
 										if result.length == 0
 											bof = true
 											console.log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: eof"
@@ -288,6 +297,7 @@ bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buf
 										for item in result.reverse()
 											lastScope = insert first--, item, true
 										console.log "prepended #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+										clipBottom()
 										finalize()
 										lastScope.$watch 'adjustBuffer', ->
 											adjustBuffer()
