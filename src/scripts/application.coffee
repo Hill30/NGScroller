@@ -10,10 +10,13 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 			$timeout(
 					->
 						result = []
-						for i in [index..index + count-1]
-							result.push "item r#{current} ##{i}"
-						success(result)
-					1000
+						if index > 100000
+							success []
+						else
+							for i in [index..index + count-1]
+								result.push "item r#{current} ##{i}"
+							success(result)
+					100
 				)
 
 		loading = (value) ->

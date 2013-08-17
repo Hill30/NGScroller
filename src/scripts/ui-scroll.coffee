@@ -235,13 +235,19 @@ angular.module('ui.scroll', [])
 							# which allows to gather the 'real' height of the thing
 							itemScope.$watch 'heightAdjustment', ->
 								if top
+									# an element is inserted at the top
 									newHeight = controller.topPadding() - wrapper.element.outerHeight(true)
+									# adjust padding to prevent it from visually pushing everything down
 									if newHeight >= 0
+										# if possible, reduce topPadding
 										controller.topPadding(newHeight)
 									else
+										# if not, increment scrollTop
 										scrollTop = viewport.scrollTop() + wrapper.element.outerHeight(true)
-										if viewport.height() + scrollTop > canvas.height()
-											controller.bottomPadding(controller.bottomPadding() + viewport.height() + scrollTop - canvas.height())
+										# below is an attempt to ensure that the scrollbar is always there even if
+										# there is not enough data. But now I am not sure it is necessary. Commenting out for now
+										#if viewport.height() + scrollTop > canvas.height()
+											#controller.bottomPadding(controller.bottomPadding() + viewport.height() + scrollTop - canvas.height())
 										viewport.scrollTop(scrollTop)
 								else
 									controller.bottomPadding(Math.max(0,controller.bottomPadding() - wrapper.element.outerHeight(true)))
@@ -299,6 +305,8 @@ angular.module('ui.scroll', [])
 										console.log "prepended #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										clipBottom()
 										finalize()
+#										lastScope.$watch 'adjustBuffer', ->
+#											adjustBuffer()
 										lastScope.$watch 'adjustBuffer', ->
 											adjustBuffer()
 
