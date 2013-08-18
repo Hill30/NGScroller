@@ -24,20 +24,10 @@ angular.module('ui.scroll', [])
 
 		])
 
-	.directive( 'ngScrollCanvas'
-		[ '$log'
-			(console) ->
-				controller:
-					[ '$scope', '$element'
-						(scope, element) -> element
-					]
-
-		])
-
 	.directive( 'ngScroll'
 		[ '$log', '$injector', '$rootScope'
 			(console, $injector, $rootScope) ->
-				require: ['?^ngScrollViewport', '?^ngScrollCanvas']
+				require: ['?^ngScrollViewport']
 				transclude: 'element'
 				priority: 1000
 				terminal: true
@@ -69,58 +59,50 @@ angular.module('ui.scroll', [])
 							(template) ->
 								temp.$destroy()
 
+								repeaterType = template[0].localName
+								if repeaterType in ['dl']
+									throw new Error "ng-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
+								repeaterType = 'div' if repeaterType not in ['li', 'tr']
+
 								viewport = controllers[0] || angular.element(window)
-								canvas = controllers[1] || element.parent()
-
-								switch template[0].localName
-									when 'li'
-										if canvas[0] == viewport[0]
-											throw new Error "element cannot be used as both viewport and canvas: #{canvas[0].outerHTML}"
-										topPadding = angular.element('<li/>')
-										bottomPadding = angular.element('<li/>')
-									when 'tr','dl'
-										throw new Error "ng-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
-									else
-										if canvas[0] == viewport[0]
-											# if canvas and the viewport are the same create a new div to service as canvas
-											contents = canvas.contents()
-											canvas = angular.element('<div/>')
-											viewport.append canvas
-											canvas.append contents
-										topPadding = angular.element('<div/>')
-										bottomPadding = angular.element('<div/>')
-
 								viewport.css({'overflow-y': 'auto', 'display': 'block'})
-								canvas.css({'overflow-y': 'visible', 'display': 'block'})
-								element.before topPadding
-								element.after bottomPadding
+
+								padding = (repeaterType)->
+									switch repeaterType
+										when 'tr'
+											table = angular.element('<table><tr><td><div></div></td></tr></table>')
+											div = table.find('div')
+											result = table.find('tr')
+											result.paddingHeight = -> div.height.apply(div, arguments)
+											result
+										else
+											result = angular.element("<#{repeaterType}></#{repeaterType}>")
+											result.paddingHeight = result.height
+											result
+
+								createPadding = (padding, element, direction) ->
+									element[{top:'before',bottom:'after'}[direction]] padding
+									paddingHeight: -> padding.paddingHeight.apply(padding, arguments)
+									insert: (element) -> padding[{top:'after',bottom:'before'}[direction]] element
+
+								topPadding = createPadding(padding(repeaterType), element, 'top')
+								bottomPadding = createPadding(padding(repeaterType), element, 'bottom')
 
 								scrollHeight = (elem)->
 									elem[0].scrollHeight || elem[0].document.documentElement.scrollHeight
 
 								controller =
 									viewport: viewport
-									canvas: canvas
-									topPadding: (value) ->
-										if arguments.length
-											topPadding.height(value)
-										else
-											topPadding.height()
-									bottomPadding: (value) ->
-										if arguments.length
-											bottomPadding.height(value)
-										else
-											bottomPadding.height()
-									append: (element) -> bottomPadding.before element
-									prepend: (element) -> topPadding.after element
+									topPadding: topPadding.paddingHeight
+									bottomPadding: bottomPadding.paddingHeight
+									append: bottomPadding.insert
+									prepend: topPadding.insert
 									bottomDataPos: ->
-										scrollHeight(viewport) - bottomPadding.height()
+										scrollHeight(viewport) - bottomPadding.paddingHeight()
 									topDataPos: ->
-										#viewport.scrollTop() -
-										topPadding.height()
+										topPadding.paddingHeight()
 
 						viewport = controller.viewport
-						canvas = controller.canvas
 
 						first = 1
 						next = 1
@@ -155,7 +137,7 @@ angular.module('ui.scroll', [])
 							viewport.scrollTop()
 
 						shouldLoadBottom = ->
-							console.log "*** load bottom=#{controller.bottomDataPos() < bottomVisiblePos() + bufferPadding()}"
+#							console.log "*** load bottom=#{controller.bottomDataPos() < bottomVisiblePos() + bufferPadding()}"
 							!eof && controller.bottomDataPos() < bottomVisiblePos() + bufferPadding()
 
 						clipBottom = ->
@@ -180,7 +162,7 @@ angular.module('ui.scroll', [])
 								console.log "clipped off bottom #{overage} bottom padding #{controller.bottomPadding()}"
 
 						shouldLoadTop = ->
-							console.log "*** load top=#{(controller.topDataPos() > topVisiblePos() - bufferPadding())}"
+#							console.log "*** load top=#{(controller.topDataPos() > topVisiblePos() - bufferPadding())}"
 							!bof && (controller.topDataPos() > topVisiblePos() - bufferPadding())
 
 						clipTop = ->
