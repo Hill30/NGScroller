@@ -2,7 +2,6 @@
 globals: angular, window
 
 	List of used element methods available in JQuery but not in JQuery Lite
-		in other words if you want to remove dependency on JQuery the following methods are to be implemented:
 
 		element.before(elem)
 		element.height()
@@ -25,20 +24,10 @@ angular.module('ui.scroll', [])
 
 		])
 
-	.directive( 'ngScrollCanvas'
-		[ '$log'
-			(console) ->
-				controller:
-					[ '$scope', '$element'
-						(scope, element) -> element
-					]
-
-		])
-
 	.directive( 'ngScroll'
 		[ '$log', '$injector', '$rootScope'
 			(console, $injector, $rootScope) ->
-				require: ['?^ngScrollViewport', '?^ngScrollCanvas']
+				require: ['?^ngScrollViewport']
 				transclude: 'element'
 				priority: 1000
 				terminal: true
@@ -62,7 +51,7 @@ angular.module('ui.scroll', [])
 							throw new Error "#{datasourceName} is not a valid datasource" unless isDatasource datasource
 
 						bufferSize = Math.max(3, +$attr.bufferSize || 10)
-						bufferPadding = -> viewport.height() * Math.max(0.2, +$attr.padding || 0.5) # some extra space to initate preload in advance
+						bufferPadding = -> viewport.height() * Math.max(0.2, +$attr.padding || 0.5) # some extra space to initate preload
 
 						controller = null
 
@@ -70,50 +59,50 @@ angular.module('ui.scroll', [])
 							(template) ->
 								temp.$destroy()
 
+								repeaterType = template[0].localName
+								if repeaterType in ['dl']
+									throw new Error "ng-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
+								repeaterType = 'div' if repeaterType not in ['li', 'tr']
+
 								viewport = controllers[0] || angular.element(window)
-								canvas = controllers[1] || element.parent()
-
-								switch template[0].localName
-									when 'li'
-										if canvas[0] == viewport[0]
-											throw new Error "element cannot be used as both viewport and canvas: #{canvas[0].outerHTML}"
-										topPadding = angular.element('<li/>')
-										bottomPadding = angular.element('<li/>')
-									when 'tr','dl'
-										throw new Error "ng-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
-									else
-										if canvas[0] == viewport[0]
-											# if canvas and the viewport are the same create a new div to service as canvas
-											contents = canvas.contents()
-											canvas = angular.element('<div/>')
-											viewport.append canvas
-											canvas.append contents
-										topPadding = angular.element('<div/>')
-										bottomPadding = angular.element('<div/>')
-
 								viewport.css({'overflow-y': 'auto', 'display': 'block'})
-								canvas.css({'overflow-y': 'visible', 'display': 'block'})
-								element.before topPadding
-								element.after bottomPadding
+
+								padding = (repeaterType)->
+									switch repeaterType
+										when 'tr'
+											table = angular.element('<table><tr><td><div></div></td></tr></table>')
+											div = table.find('div')
+											result = table.find('tr')
+											result.paddingHeight = -> div.height.apply(div, arguments)
+											result
+										else
+											result = angular.element("<#{repeaterType}></#{repeaterType}>")
+											result.paddingHeight = result.height
+											result
+
+								createPadding = (padding, element, direction) ->
+									element[{top:'before',bottom:'after'}[direction]] padding
+									paddingHeight: -> padding.paddingHeight.apply(padding, arguments)
+									insert: (element) -> padding[{top:'after',bottom:'before'}[direction]] element
+
+								topPadding = createPadding(padding(repeaterType), element, 'top')
+								bottomPadding = createPadding(padding(repeaterType), element, 'bottom')
+
+								scrollHeight = (elem)->
+									elem[0].scrollHeight || elem[0].document.documentElement.scrollHeight
 
 								controller =
 									viewport: viewport
-									canvas: canvas
-									topPadding: (value) ->
-										if arguments.length
-											topPadding.height(value)
-										else
-											topPadding.height()
-									bottomPadding: (value) ->
-										if arguments.length
-											bottomPadding.height(value)
-										else
-											bottomPadding.height()
-									append: (element) -> bottomPadding.before element
-									prepend: (element) -> topPadding.after element
+									topPadding: topPadding.paddingHeight
+									bottomPadding: bottomPadding.paddingHeight
+									append: bottomPadding.insert
+									prepend: topPadding.insert
+									bottomDataPos: ->
+										scrollHeight(viewport) - bottomPadding.paddingHeight()
+									topDataPos: ->
+										topPadding.paddingHeight()
 
 						viewport = controller.viewport
-						canvas = controller.canvas
 
 						first = 1
 						next = 1
@@ -141,22 +130,26 @@ angular.module('ui.scroll', [])
 							bof = false
 							adjustBuffer(true)
 
+						bottomVisiblePos = ->
+							viewport.scrollTop() + viewport.height()
+
+						topVisiblePos = ->
+							viewport.scrollTop()
+
 						shouldLoadBottom = ->
-							if buffer.length
-								item = buffer[buffer.length-1]
-								!eof && item.element.offset().top - canvas.offset().top + item.element.outerHeight(true) <
-								viewport.scrollTop() + viewport.height() + bufferPadding()
-							else
-								!eof
+#							console.log "*** load bottom=#{controller.bottomDataPos() < bottomVisiblePos() + bufferPadding()}"
+							!eof && controller.bottomDataPos() < bottomVisiblePos() + bufferPadding()
 
 						clipBottom = ->
 							# clip the invisible items off the bottom
-							bottomHeight = controller.bottomPadding()
+							bottomHeight = 0 #controller.bottomPadding()
 							overage = 0
 
 							for item in buffer[..].reverse()
-								if viewport.scrollTop() + viewport.height() + bufferPadding() < item.element.offset().top - canvas.offset().top
-									bottomHeight += item.element.outerHeight(true)
+								itemHeight = item.element.outerHeight(true)
+								if controller.bottomDataPos() - bottomHeight - itemHeight > bottomVisiblePos() + bufferPadding()
+									# top boundary of the element is below the bottom of the visible area
+									bottomHeight += itemHeight
 									overage++
 									eof = false
 								else
@@ -165,20 +158,20 @@ angular.module('ui.scroll', [])
 							if overage > 0
 								removeFromBuffer(buffer.length - overage, buffer.length)
 								next -= overage
-								controller.bottomPadding(bottomHeight)
-								console.log "clipped off bottom #{overage} bottom padding #{bottomHeight}"
+								controller.bottomPadding(controller.bottomPadding() + bottomHeight)
+								console.log "clipped off bottom #{overage} bottom padding #{controller.bottomPadding()}"
 
 						shouldLoadTop = ->
-							!bof &&
-							(!buffer.length || buffer[0].element.offset().top - canvas.offset().top > viewport.scrollTop() - bufferPadding())
+#							console.log "*** load top=#{(controller.topDataPos() > topVisiblePos() - bufferPadding())}"
+							!bof && (controller.topDataPos() > topVisiblePos() - bufferPadding())
 
 						clipTop = ->
 							# clip the invisible items off the top
-							topHeight = controller.topPadding()
+							topHeight = 0
 							overage = 0
 							for item in buffer
 								itemHeight = item.element.outerHeight(true)
-								if viewport.scrollTop() - bufferPadding() >= item.element.offset().top - canvas.offset().top + itemHeight
+								if controller.topDataPos() + topHeight + itemHeight < topVisiblePos() - bufferPadding()
 									topHeight += itemHeight
 									overage++
 									bof = false
@@ -186,9 +179,9 @@ angular.module('ui.scroll', [])
 									break
 							if overage > 0
 								removeFromBuffer(0, overage)
-								controller.topPadding(topHeight)
+								controller.topPadding(controller.topPadding() + topHeight)
 								first += overage
-								console.log "clipped off top #{overage} top padding #{topHeight}"
+								console.log "clipped off top #{overage} top padding #{controller.topPadding() + topHeight}"
 
 						enqueueFetch = (direction)->
 							if (!isLoading)
@@ -199,9 +192,7 @@ angular.module('ui.scroll', [])
 								fetch()
 
 						adjustBuffer = (reloadRequested)->
-							if buffer[0]
-								console.log "top {actual=#{buffer[0].element.offset().top - canvas.offset().top} visible from=#{viewport.scrollTop()}}
-bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buffer[buffer.length-1].element.offset().top - canvas.offset().top}}"
+							console.log "top {actual=#{controller.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{controller.bottomDataPos()}}"
 
 							enqueueFetch(true) if reloadRequested || shouldLoadBottom()
 							enqueueFetch(false) if !reloadRequested && shouldLoadTop()
@@ -221,17 +212,24 @@ bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buf
 								else
 									controller.append clone
 									buffer.push wrapper
+
 							# this watch fires once per item inserted after the item template has been processed and values inserted
 							# which allows to gather the 'real' height of the thing
 							itemScope.$watch 'heightAdjustment', ->
 								if top
+									# an element is inserted at the top
 									newHeight = controller.topPadding() - wrapper.element.outerHeight(true)
+									# adjust padding to prevent it from visually pushing everything down
 									if newHeight >= 0
+										# if possible, reduce topPadding
 										controller.topPadding(newHeight)
 									else
+										# if not, increment scrollTop
 										scrollTop = viewport.scrollTop() + wrapper.element.outerHeight(true)
-										if viewport.height() + scrollTop > canvas.height()
-											controller.bottomPadding(controller.bottomPadding() + viewport.height() + scrollTop - canvas.height())
+										# below is an attempt to ensure that the scrollbar is always there even if
+										# there is not enough data. But now I am not sure it is necessary. Commenting out for now
+										#if viewport.height() + scrollTop > canvas.height()
+											#controller.bottomPadding(controller.bottomPadding() + viewport.height() + scrollTop - canvas.height())
 										viewport.scrollTop(scrollTop)
 								else
 									controller.bottomPadding(Math.max(0,controller.bottomPadding() - wrapper.element.outerHeight(true)))
@@ -258,7 +256,6 @@ bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buf
 									#console.log "appending... requested #{bufferSize} records starting from #{next}"
 									datasource.get next, bufferSize,
 									(result) ->
-										clipTop()
 										if result.length == 0
 											eof = true
 											console.log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
@@ -268,6 +265,7 @@ bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buf
 											lastScope = insert ++next, item, false
 
 										console.log "appended: #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+										clipTop()
 										finalize()
 										lastScope.$watch 'adjustBuffer', ->
 											adjustBuffer()
@@ -279,7 +277,6 @@ bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buf
 									#console.log "prepending... requested #{size} records starting from #{start}"
 									datasource.get first-bufferSize, bufferSize,
 									(result) ->
-										clipBottom()
 										if result.length == 0
 											bof = true
 											console.log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: eof"
@@ -288,7 +285,10 @@ bottom {visible through #{viewport.scrollTop() + viewport.height()} actual=#{buf
 										for item in result.reverse()
 											lastScope = insert first--, item, true
 										console.log "prepended #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+										clipBottom()
 										finalize()
+#										lastScope.$watch 'adjustBuffer', ->
+#											adjustBuffer()
 										lastScope.$watch 'adjustBuffer', ->
 											adjustBuffer()
 
