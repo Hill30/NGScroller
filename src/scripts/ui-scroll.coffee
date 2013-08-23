@@ -159,9 +159,9 @@ angular.module('ui.scroll', [])
 									break
 
 							if overage > 0
+								handler.bottomPadding(handler.bottomPadding() + bottomHeight)
 								removeFromBuffer(buffer.length - overage, buffer.length)
 								next -= overage
-								handler.bottomPadding(handler.bottomPadding() + bottomHeight)
 								console.log "clipped off bottom #{overage} bottom padding #{handler.bottomPadding()}"
 
 						shouldLoadTop = ->
@@ -180,8 +180,8 @@ angular.module('ui.scroll', [])
 								else
 									break
 							if overage > 0
-								removeFromBuffer(0, overage)
 								handler.topPadding(handler.topPadding() + topHeight)
+								removeFromBuffer(0, overage)
 								first += overage
 								console.log "clipped off top #{overage} top padding #{handler.topPadding()}"
 
