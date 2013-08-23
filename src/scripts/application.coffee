@@ -23,10 +23,15 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 			$rootScope.loading = value
 
 		current = 0
+		$rootScope.refresh = ->
+			current += 1
+
+		$rootScope.delete = ->
+			scope.$broadcast 'delete.items', (scope) ->
+				scope.item[9] == '1'
+
 		$rootScope.update = ->
-			#current += 1
-			#scope.$broadcast 'update.item', 1, "item r0 #0 updated"
-			scope.$broadcast 'update.item', (scope) ->
+			scope.$broadcast 'update.items', (scope) ->
 				if scope.item[9] == '1'
 					scope.item = scope.item + ' update'
 

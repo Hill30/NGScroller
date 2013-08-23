@@ -117,6 +117,7 @@ angular.module('ui.scroll', [])
 						loading = datasource.loading || (value) ->
 						isLoading = false
 
+						#removes items from start trhough stop. start included stop is excluded
 						removeFromBuffer = (start, stop)->
 							for i in [start...stop]
 								buffer[i].scope.$destroy()
@@ -312,7 +313,7 @@ angular.module('ui.scroll', [])
 							eventListener = $scope.$new()
 						$scope.$on '$destroy', -> eventListener.$destroy()
 
-						eventListener.$on "update.item", (event, locator, newItem)->
+						eventListener.$on "update.items", (event, locator, newItem)->
 							if angular.isFunction locator
 								((wrapper)->
 									locator wrapper.scope
@@ -320,6 +321,22 @@ angular.module('ui.scroll', [])
 							else
 								if 0 <= locator-first-1 < buffer.length
 									buffer[locator-first-1].scope[itemName] = newItem
+							undefined
+
+						eventListener.$on "delete.items", (event, locator)->
+							temp = []
+							temp.unshift item for item in buffer
+							if angular.isFunction locator
+								((wrapper)->
+									if locator wrapper.scope
+										removeFromBuffer temp.length-1-i, temp.length-i
+								) wrapper for wrapper,i in temp
+							else
+								if 0 <= locator-first-1 < buffer.length
+									removeFromBuffer locator-first-1, locator-first
+
+							item.scope.$index = first + i for item,i in buffer
+
 							undefined
 
 		])
