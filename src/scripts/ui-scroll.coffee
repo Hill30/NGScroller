@@ -53,11 +53,13 @@ angular.module('ui.scroll', [])
 						bufferSize = Math.max(3, +$attr.bufferSize || 10)
 						bufferPadding = -> viewport.height() * Math.max(0.2, +$attr.padding || 0.5) # some extra space to initate preload
 
-						controller = null
+						handler = null
 
-						linker temp = $scope.$new(),
+						# Calling linker is the only way I found to get access to the tag name of the template
+						# to prevent the directive scope from pollution a new scope is created and destroyed
+						# right after the repeaterHandler creation is completed
+						linker tempScope = $scope.$new(),
 							(template) ->
-								temp.$destroy()
 
 								repeaterType = template[0].localName
 								if repeaterType in ['dl']
@@ -91,7 +93,9 @@ angular.module('ui.scroll', [])
 								scrollHeight = (elem)->
 									elem[0].scrollHeight || elem[0].document.documentElement.scrollHeight
 
-								controller =
+								tempScope.$destroy()
+
+								handler =
 									viewport: viewport
 									topPadding: topPadding.paddingHeight
 									bottomPadding: bottomPadding.paddingHeight
@@ -102,7 +106,7 @@ angular.module('ui.scroll', [])
 									topDataPos: ->
 										topPadding.paddingHeight()
 
-						viewport = controller.viewport
+						viewport = handler.viewport
 
 						first = 1
 						next = 1
@@ -123,8 +127,8 @@ angular.module('ui.scroll', [])
 							first = 1
 							next = 1
 							removeFromBuffer(0, buffer.length)
-							controller.topPadding(0)
-							controller.bottomPadding(0)
+							handler.topPadding(0)
+							handler.bottomPadding(0)
 							pending = []
 							eof = false
 							bof = false
@@ -137,17 +141,16 @@ angular.module('ui.scroll', [])
 							viewport.scrollTop()
 
 						shouldLoadBottom = ->
-#							console.log "*** load bottom=#{controller.bottomDataPos() < bottomVisiblePos() + bufferPadding()}"
-							!eof && controller.bottomDataPos() < bottomVisiblePos() + bufferPadding()
+							!eof && handler.bottomDataPos() < bottomVisiblePos() + bufferPadding()
 
 						clipBottom = ->
 							# clip the invisible items off the bottom
-							bottomHeight = 0 #controller.bottomPadding()
+							bottomHeight = 0 #handler.bottomPadding()
 							overage = 0
 
 							for item in buffer[..].reverse()
 								itemHeight = item.element.outerHeight(true)
-								if controller.bottomDataPos() - bottomHeight - itemHeight > bottomVisiblePos() + bufferPadding()
+								if handler.bottomDataPos() - bottomHeight - itemHeight > bottomVisiblePos() + bufferPadding()
 									# top boundary of the element is below the bottom of the visible area
 									bottomHeight += itemHeight
 									overage++
@@ -158,12 +161,11 @@ angular.module('ui.scroll', [])
 							if overage > 0
 								removeFromBuffer(buffer.length - overage, buffer.length)
 								next -= overage
-								controller.bottomPadding(controller.bottomPadding() + bottomHeight)
-								console.log "clipped off bottom #{overage} bottom padding #{controller.bottomPadding()}"
+								handler.bottomPadding(handler.bottomPadding() + bottomHeight)
+								console.log "clipped off bottom #{overage} bottom padding #{handler.bottomPadding()}"
 
 						shouldLoadTop = ->
-#							console.log "*** load top=#{(controller.topDataPos() > topVisiblePos() - bufferPadding())}"
-							!bof && (controller.topDataPos() > topVisiblePos() - bufferPadding())
+							!bof && (handler.topDataPos() > topVisiblePos() - bufferPadding())
 
 						clipTop = ->
 							# clip the invisible items off the top
@@ -171,7 +173,7 @@ angular.module('ui.scroll', [])
 							overage = 0
 							for item in buffer
 								itemHeight = item.element.outerHeight(true)
-								if controller.topDataPos() + topHeight + itemHeight < topVisiblePos() - bufferPadding()
+								if handler.topDataPos() + topHeight + itemHeight < topVisiblePos() - bufferPadding()
 									topHeight += itemHeight
 									overage++
 									bof = false
@@ -179,9 +181,9 @@ angular.module('ui.scroll', [])
 									break
 							if overage > 0
 								removeFromBuffer(0, overage)
-								controller.topPadding(controller.topPadding() + topHeight)
+								handler.topPadding(handler.topPadding() + topHeight)
 								first += overage
-								console.log "clipped off top #{overage} top padding #{controller.topPadding() + topHeight}"
+								console.log "clipped off top #{overage} top padding #{handler.topPadding()}"
 
 						enqueueFetch = (direction)->
 							if (!isLoading)
@@ -192,7 +194,8 @@ angular.module('ui.scroll', [])
 								fetch()
 
 						adjustBuffer = (reloadRequested)->
-							console.log "top {actual=#{controller.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{controller.bottomDataPos()}}"
+							console.log "top {actual=#{handler.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{handler.bottomDataPos()}}"
+							#console.log "should be #{(first-1)*29} is #{handler.topPadding()}"
 
 							enqueueFetch(true) if reloadRequested || shouldLoadBottom()
 							enqueueFetch(false) if !reloadRequested && shouldLoadTop()
@@ -207,10 +210,10 @@ angular.module('ui.scroll', [])
 							(clone) ->
 								wrapper.element = clone
 								if top
-									controller.prepend clone
+									handler.prepend clone
 									buffer.unshift wrapper
 								else
-									controller.append clone
+									handler.append clone
 									buffer.push wrapper
 
 							# this watch fires once per item inserted after the item template has been processed and values inserted
@@ -218,21 +221,21 @@ angular.module('ui.scroll', [])
 							itemScope.$watch 'heightAdjustment', ->
 								if top
 									# an element is inserted at the top
-									newHeight = controller.topPadding() - wrapper.element.outerHeight(true)
+									newHeight = handler.topPadding() - wrapper.element.outerHeight(true)
 									# adjust padding to prevent it from visually pushing everything down
 									if newHeight >= 0
 										# if possible, reduce topPadding
-										controller.topPadding(newHeight)
+										handler.topPadding(newHeight)
 									else
 										# if not, increment scrollTop
 										scrollTop = viewport.scrollTop() + wrapper.element.outerHeight(true)
 										# below is an attempt to ensure that the scrollbar is always there even if
 										# there is not enough data. But now I am not sure it is necessary. Commenting out for now
 										#if viewport.height() + scrollTop > canvas.height()
-											#controller.bottomPadding(controller.bottomPadding() + viewport.height() + scrollTop - canvas.height())
+										#handler.bottomPadding(handler.bottomPadding() + viewport.height() + scrollTop - canvas.height())
 										viewport.scrollTop(scrollTop)
 								else
-									controller.bottomPadding(Math.max(0,controller.bottomPadding() - wrapper.element.outerHeight(true)))
+									handler.bottomPadding(Math.max(0,handler.bottomPadding() - wrapper.element.outerHeight(true)))
 
 							itemScope
 
@@ -261,11 +264,11 @@ angular.module('ui.scroll', [])
 											console.log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
 											finalize()
 											return
+										clipTop()
 										for item in result
 											lastScope = insert ++next, item, false
 
-										console.log "appended: #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										clipTop()
+										console.log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize()
 										lastScope.$watch 'adjustBuffer', ->
 											adjustBuffer()
@@ -279,16 +282,14 @@ angular.module('ui.scroll', [])
 									(result) ->
 										if result.length == 0
 											bof = true
-											console.log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: eof"
+											console.log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
 											finalize()
 											return
+										clipBottom()
 										for item in result.reverse()
 											lastScope = insert first--, item, true
-										console.log "prepended #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										clipBottom()
+										console.log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize()
-#										lastScope.$watch 'adjustBuffer', ->
-#											adjustBuffer()
 										lastScope.$watch 'adjustBuffer', ->
 											adjustBuffer()
 

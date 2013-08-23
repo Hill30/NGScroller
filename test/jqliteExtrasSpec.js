@@ -88,7 +88,9 @@ describe('\njqLite: testing against jQuery\n', function () {
 				'<div style="padding: 3px">some text w padding</div>',
 				'<div style="padding: 3em">some text w padding</div>',
 				'<div style="margin: 3px">some text w margin</div>',
-				'<div style="margin: 3em">some text w margin</div>'
+				'<div style="margin: 3em">some text w margin</div>',
+				'<div style="margin: 3pt">some text w margin</div>',
+				'<div style="line-height: 1.1em">some text w line height</div>'
 			], function(element) {
 
 				function validateHeight(element) {
