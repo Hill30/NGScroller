@@ -306,21 +306,20 @@ angular.module('ui.scroll', [])
 						$scope.$watch datasource.revision,
 							-> reload()
 
-						eventListener = null
-
 						if datasource.scope
 							eventListener = datasource.scope.$new()
-							$scope.$on '$destroy', -> eventListener.$destroy()
-							eventListener.$on "update.item", (event, locator, newItem)->
-								if angular.isFunction locator
-									((wrapper)->
-										newItem = locator wrapper.scope[itemName]
-										if newItem
-											wrapper.scope[itemName] = newItem
-									) wrapper,i for wrapper,i in buffer
-								else
-									if 0 <= locator-first-1 < buffer.length
-										buffer[locator-first-1].scope[itemName] = newItem
-								undefined
+						else
+							eventListener = $scope.$new()
+						$scope.$on '$destroy', -> eventListener.$destroy()
+
+						eventListener.$on "update.item", (event, locator, newItem)->
+							if angular.isFunction locator
+								((wrapper)->
+									locator wrapper.scope
+								) wrapper for wrapper in buffer
+							else
+								if 0 <= locator-first-1 < buffer.length
+									buffer[locator-first-1].scope[itemName] = newItem
+							undefined
 
 		])

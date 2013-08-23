@@ -26,9 +26,9 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 		$rootScope.update = ->
 			#current += 1
 			#scope.$broadcast 'update.item', 1, "item r0 #0 updated"
-			scope.$broadcast 'update.item', (item) ->
-				if item[9] == '1'
-					item + ' update'
+			scope.$broadcast 'update.item', (scope) ->
+				if scope.item[9] == '1'
+					scope.item = scope.item + ' update'
 
 		revision = -> current
 
