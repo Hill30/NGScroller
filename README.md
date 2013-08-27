@@ -21,13 +21,10 @@ The ngScroll directive is similar to the ngRepeat. Like the ngRepeat, ngScroll d
 Each template instance gets its own scope, where the given loop variable is set to the current collection item. The collection content is provided by
 the datasource. The datasource name is specified in the scroll_expression.
 
-As the template for an item is instantiated it is placed on the canvas. Its height is determined by the list of items currently instantiated.
-Unless overridden by the ngScrollCanvas directive (see below) the immediate parent of the element with the directive will be used as canvas.
-
-The viewport is an element representing the space where the content of the canvas is to be shown. Unless specified explicitly with the
+The viewport is an element representing the space where the items from the collection are to be shown. Unless specified explicitly with the
 ngScrollViewport directive (see below), browser window will be used as viewport.
 
-Either way the viewport height has to be constrained because the directive will stop asking the datasource for more elements when it has enough
+**Important:** The viewport height has to be constrained because the directive will stop asking the datasource for more elements only when it has enough
 to fill out the viewport. If the height of the viewport is not constrained (style="height:auto") this will never happen and the directive will
 try to pull the entire content of the datasource.
 
@@ -47,13 +44,11 @@ The code in this file relies on a few DOM element methods of jQuery which are cu
 * before(elem)
 * height() and height(value)
 * outerHeight() and outerHeight(true)
-* offset()
 * scrollTop() and scrollTop(value)
 
 File ui-scroll-jqlite.coffee houses implementations of the above methods and also has to be loaded in your page. Please note that the methods are implemented in a separate module
 'ui.scroll.jqlite' and this name should also be included in the dependency list of the main module. The implementation currently supports missing methods
-only as necessary for the directive, in particular setting offset through the offset method is not supported. It is tested on IE8 and up as
-well as on the Chrome 28 and Firefox 20.
+only as necessary for the directive. It is tested on IE8 and up as well as on the Chrome 28 and Firefox 20.
 
 This module is only necessary if you plan to use ng-scroll without jQuery. If jQuery implementation is present it will not override them.
 If you plan to use ng-scroll over jQuery feel free to skip ui-scroll-jqlite.
@@ -99,20 +94,6 @@ the directive to access the data:
     #### Description
     this is an optional method. If supplied the scroller will $watch its value and will refresh the content if the value has changed
 
-ngScrollCanvas directive
--------------------
-###Description
-
-The ngScrollCanvas directive marks a particular element as canvas for the ngScroll directive. If no parent of the ngScroll directive is
-marked with ngScrollCanvas directive, the immediate parent of the ngScroll directive will be used as canvas
-
-###Usage
-
-```html
-<ANY ng-scroll-canvas>
-      ...
-</ANY>
-```
 
 ngScrollViewport directive
 -------------------
