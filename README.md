@@ -28,13 +28,6 @@ ngScrollViewport directive (see below), browser window will be used as viewport.
 to fill out the viewport. If the height of the viewport is not constrained (style="height:auto") this will never happen and the directive will
 try to pull the entire content of the datasource.
 
-###Usage
-
-```html
-<ANY ng-scroll="{scroll_expression}" buffer-size="value" padding="value">
-      ...
-</ANY>
-```
 ### Dependencies
 
 To use the directive make sure the ui-scroll.js (as transpiled out of ui-scroll.coffee) is loaded in your page. You also have to include
@@ -52,6 +45,19 @@ only as necessary for the directive. It is tested on IE8 and up as well as on th
 
 This module is only necessary if you plan to use ng-scroll without jQuery. If jQuery implementation is present it will not override them.
 If you plan to use ng-scroll over jQuery feel free to skip ui-scroll-jqlite.
+
+###Usage
+
+```html
+<ANY ng-scroll="{scroll_expression}" buffer-size="value" padding="value">
+      ...
+</ANY>
+```
+Listing `ANY` for the tag the directive can be applied to stretches the truth - a little bit. The directive works well with majority of
+the 'usual' tags - divs, spans, a, inputs, etc. For all of them the viewport should be a div (unless it is the window). Some other tags
+require special treatment. If the repeated tag is a li, it is best to use ul or ol as a viewport. For a tr as a rpeated tag the
+viewport has to be the tbody.  
+dl as a repeated tag is not supported.
 
 ###Directive info
 * This directive creates a new scope
