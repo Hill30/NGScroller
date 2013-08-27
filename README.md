@@ -64,9 +64,13 @@ If you plan to use ng-scroll over jQuery feel free to skip ui-scroll-jqlite.
 * **padding - value**, optional - extra height added to the visible area for the purpose of determining when the items should be created/destroyed.
 The value is relative to the visible height of the area, the default is 0.5 and the minimal value is 0.3
 
-###Data Source service
-Data source service is an angular service to be used by the ngScroll directive to access the data. The service implements methods to be used by
-the directive to access the data:
+###Data Source 
+Data source is an object to be used by the ngScroll directive to access the data. 
+
+The directive will locate the object using the provided data source name. It will first look for a property with the given name on its $scope.
+If none found it will try to get an angular service with the provided name.
+
+The datasource object implements methods and properties to be used by the directive to access the data:
 
 * Method `get`
 
