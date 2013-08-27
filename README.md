@@ -55,7 +55,7 @@ If you plan to use ng-scroll over jQuery feel free to skip ui-scroll-jqlite.
 ```
 Listing `ANY` for the tag the directive can be applied to stretches the truth - a little bit. The directive works well with majority of
 the 'usual' tags - divs, spans, a, inputs, etc. For all of them the viewport should be a div (unless it is the window). Some other tags
-require special treatment. If the repeated tag is a li, it is best to use ul or ol as a viewport. For a tr as a rpeated tag the
+require special treatment. If the repeated tag is a li, it is best to use ul or ol as a viewport. For a tr as a repeated tag the
 viewport has to be the tbody.  
 dl as a repeated tag is not supported.
 
