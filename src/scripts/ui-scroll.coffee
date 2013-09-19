@@ -211,33 +211,35 @@ angular.module('ui.scroll', [])
 							linker itemScope,
 								(clone) ->
 									wrapper.element = clone
-									switch
-										when index == next
+									if index > first + 1
+										if index == next
 											handler.append clone
 											buffer.push wrapper
-											# this watch fires once per item inserted after the item template has been processed and values inserted
-											# which allows to gather the 'real' height of the thing
-											dereg = itemScope.$watch 'heightAdjustment', ->
-												handler.bottomPadding(Math.max(0,handler.bottomPadding() - wrapper.element.outerHeight(true)))
-												dereg()
-										when index == first+1
-											handler.prepend clone
-											buffer.unshift wrapper
-											# this watch fires once per item inserted after the item template has been processed and values inserted
-											# which allows to gather the 'real' height of the thing
-											dereg = itemScope.$watch 'heightAdjustment', ->
-												# an element is inserted at the top
-												newHeight = handler.topPadding() - wrapper.element.outerHeight(true)
-												# adjust padding to prevent it from visually pushing everything down
-												if newHeight >= 0
-													# if possible, reduce topPadding
-													handler.topPadding(newHeight)
-												else
-													# if not, increment scrollTop
-													scrollTop = viewport.scrollTop() + wrapper.element.outerHeight(true)
-													viewport.scrollTop(scrollTop)
-												dereg()
 										else
+											buffer[index-first].element.after clone
+											buffer.splice index-first+1, 0, wrapper
+										# this watch fires once per item inserted after the item template has been processed and values inserted
+										# which allows to gather the 'real' height of the thing
+										dereg = itemScope.$watch 'heightAdjustment', ->
+											handler.bottomPadding(Math.max(0,handler.bottomPadding() - wrapper.element.outerHeight(true)))
+											dereg()
+									else
+										handler.prepend clone
+										buffer.unshift wrapper
+										# this watch fires once per item inserted after the item template has been processed and values inserted
+										# which allows to gather the 'real' height of the thing
+										dereg = itemScope.$watch 'heightAdjustment', ->
+											# an element is inserted at the top
+											newHeight = handler.topPadding() - wrapper.element.outerHeight(true)
+											# adjust padding to prevent it from visually pushing everything down
+											if newHeight >= 0
+												# if possible, reduce topPadding
+												handler.topPadding(newHeight)
+											else
+												# if not, increment scrollTop
+												scrollTop = viewport.scrollTop() + wrapper.element.outerHeight(true)
+												viewport.scrollTop(scrollTop)
+											dereg()
 
 							itemScope
 
@@ -325,9 +327,9 @@ angular.module('ui.scroll', [])
 									buffer[locator-first-1].scope[itemName] = newItem
 
 						eventListener.$on "delete.items", (event, locator)->
-							temp = []
-							temp.unshift item for item in buffer
 							if angular.isFunction locator
+								temp = []
+								temp.unshift item for item in buffer
 								((wrapper)->
 									if locator wrapper.scope
 										removeFromBuffer temp.length-1-i, temp.length-i
@@ -337,6 +339,16 @@ angular.module('ui.scroll', [])
 								if 0 <= locator-first-1 < buffer.length
 									removeFromBuffer locator-first-1, locator-first
 									next--
+
+							item.scope.$index = first + i for item,i in buffer
+							adjustBuffer(false)
+
+						eventListener.$on "insert.item", (event, locator, item)->
+							if angular.isFunction locator
+							else
+								if 0 <= locator-first-1 < buffer.length
+									insert locator, item
+									next++
 
 							item.scope.$index = first + i for item,i in buffer
 							adjustBuffer(false)

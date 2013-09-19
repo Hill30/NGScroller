@@ -35,6 +35,9 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 				if scope.item[9] == '1'
 					scope.item = scope.item + ' update'
 
+		$rootScope.insert = ->
+			scope.$broadcast 'insert.item', 2, "inserted value"
+
 		revision = -> current
 
 		{
