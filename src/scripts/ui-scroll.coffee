@@ -117,7 +117,7 @@ angular.module('ui.scroll', [])
 						loading = datasource.loading || (value) ->
 						isLoading = false
 
-						#removes items from start trhough stop. start included stop is excluded
+						#removes items from start (including) through stop (excluding)
 						removeFromBuffer = (start, stop)->
 							for i in [start...stop]
 								buffer[i].scope.$destroy()
@@ -149,8 +149,8 @@ angular.module('ui.scroll', [])
 							bottomHeight = 0 #handler.bottomPadding()
 							overage = 0
 
-							for item in buffer[..].reverse()
-								itemHeight = item.element.outerHeight(true)
+							for i in [buffer.length-1..0]
+								itemHeight = buffer[i].element.outerHeight(true)
 								if handler.bottomDataPos() - bottomHeight - itemHeight > bottomVisiblePos() + bufferPadding()
 									# top boundary of the element is below the bottom of the visible area
 									bottomHeight += itemHeight
@@ -196,7 +196,6 @@ angular.module('ui.scroll', [])
 
 						adjustBuffer = (reloadRequested)->
 							console.log "top {actual=#{handler.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{handler.bottomDataPos()}}"
-							#console.log "should be #{(first-1)*29} is #{handler.topPadding()}"
 
 							enqueueFetch(true) if reloadRequested || shouldLoadBottom()
 							enqueueFetch(false) if !reloadRequested && shouldLoadTop()
@@ -287,8 +286,8 @@ angular.module('ui.scroll', [])
 											finalize()
 											return
 										clipBottom()
-										for item in result.reverse()
-											lastScope = insert first--, item, true
+										for i in [result.length-1..0]
+											lastScope = insert first--, result[i], true
 										console.log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize()
 										lastScope.$watch 'adjustBuffer', ->
