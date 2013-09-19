@@ -201,43 +201,45 @@ angular.module('ui.scroll', [])
 							else
 								enqueueFetch(false, scrolling) if shouldLoadTop()
 
-						insert = (index, item, top) ->
+						insert = (index, item) ->
 							itemScope = $scope.$new()
 							itemScope[itemName] = item
 							itemScope.$index = index-1
 							wrapper =
 								scope: itemScope
-							linker itemScope,
-							(clone) ->
-								wrapper.element = clone
-								if top
-									handler.prepend clone
-									buffer.unshift wrapper
-								else
-									handler.append clone
-									buffer.push wrapper
 
-							# this watch fires once per item inserted after the item template has been processed and values inserted
-							# which allows to gather the 'real' height of the thing
-							dereg = itemScope.$watch 'heightAdjustment', ->
-								if top
-									# an element is inserted at the top
-									newHeight = handler.topPadding() - wrapper.element.outerHeight(true)
-									# adjust padding to prevent it from visually pushing everything down
-									if newHeight >= 0
-										# if possible, reduce topPadding
-										handler.topPadding(newHeight)
-									else
-										# if not, increment scrollTop
-										scrollTop = viewport.scrollTop() + wrapper.element.outerHeight(true)
-										viewport.scrollTop(scrollTop)
-								else
-									handler.bottomPadding(Math.max(0,handler.bottomPadding() - wrapper.element.outerHeight(true)))
-								# deregister itself after first execution
-								dereg()
+							linker itemScope,
+								(clone) ->
+									wrapper.element = clone
+									switch
+										when index == next
+											handler.append clone
+											buffer.push wrapper
+											# this watch fires once per item inserted after the item template has been processed and values inserted
+											# which allows to gather the 'real' height of the thing
+											dereg = itemScope.$watch 'heightAdjustment', ->
+												handler.bottomPadding(Math.max(0,handler.bottomPadding() - wrapper.element.outerHeight(true)))
+												dereg()
+										when index == first+1
+											handler.prepend clone
+											buffer.unshift wrapper
+											# this watch fires once per item inserted after the item template has been processed and values inserted
+											# which allows to gather the 'real' height of the thing
+											dereg = itemScope.$watch 'heightAdjustment', ->
+												# an element is inserted at the top
+												newHeight = handler.topPadding() - wrapper.element.outerHeight(true)
+												# adjust padding to prevent it from visually pushing everything down
+												if newHeight >= 0
+													# if possible, reduce topPadding
+													handler.topPadding(newHeight)
+												else
+													# if not, increment scrollTop
+													scrollTop = viewport.scrollTop() + wrapper.element.outerHeight(true)
+													viewport.scrollTop(scrollTop)
+												dereg()
+										else
 
 							itemScope
-
 
 						finalize = (scrolling)->
 							pending.shift()
@@ -265,7 +267,7 @@ angular.module('ui.scroll', [])
 											return
 										clipTop()
 										for item in result
-											lastScope = insert ++next, item, false
+											lastScope = insert ++next, item
 
 										console.log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize(scrolling)
@@ -287,7 +289,7 @@ angular.module('ui.scroll', [])
 											return
 										clipBottom()
 										for i in [result.length-1..0]
-											lastScope = insert first--, result[i], true
+											lastScope = insert first--, result[i]
 										console.log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize(scrolling)
 										dereg = lastScope.$watch 'adjustBuffer', ->
