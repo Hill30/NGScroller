@@ -51,7 +51,10 @@ angular.module('ui.scroll', [])
 							throw new Error "#{datasourceName} is not a valid datasource" unless isDatasource datasource
 
 						bufferSize = Math.max(3, +$attr.bufferSize || 10)
-						bufferPadding = -> viewport.height() * Math.max(0.2, +$attr.padding || 0.5) # some extra space to initate preload
+						bufferPadding = -> viewport.height() * Math.max(0.1, +$attr.padding || 0.1) # some extra space to initate preload
+
+						scrollHeight = (elem)->
+							elem[0].scrollHeight || elem[0].document.documentElement.scrollHeight
 
 						handler = null
 
@@ -89,9 +92,6 @@ angular.module('ui.scroll', [])
 
 								topPadding = createPadding(padding(repeaterType), element, 'top')
 								bottomPadding = createPadding(padding(repeaterType), element, 'bottom')
-
-								scrollHeight = (elem)->
-									elem[0].scrollHeight || elem[0].document.documentElement.scrollHeight
 
 								tempScope.$destroy()
 
@@ -133,7 +133,7 @@ angular.module('ui.scroll', [])
 							pending = []
 							eof = false
 							bof = false
-							adjustBuffer(true)
+							adjustBuffer(false)
 
 						bottomVisiblePos = ->
 							viewport.scrollTop() + viewport.height()
@@ -186,19 +186,20 @@ angular.module('ui.scroll', [])
 								first += overage
 								console.log "clipped off top #{overage} top padding #{handler.topPadding()}"
 
-						enqueueFetch = (direction)->
+						enqueueFetch = (direction, scrolling)->
 							if (!isLoading)
 								isLoading = true
 								loading(true)
-							#console.log "Requesting fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
 							if pending.push(direction) == 1
-								fetch()
+								fetch(scrolling)
 
-						adjustBuffer = (reloadRequested)->
+						adjustBuffer = (scrolling)->
+
 							console.log "top {actual=#{handler.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{handler.bottomDataPos()}}"
-
-							enqueueFetch(true) if reloadRequested || shouldLoadBottom()
-							enqueueFetch(false) if !reloadRequested && shouldLoadTop()
+							if shouldLoadBottom()
+								enqueueFetch(true, scrolling)
+							else
+								enqueueFetch(false, scrolling) if shouldLoadTop()
 
 						insert = (index, item, top) ->
 							itemScope = $scope.$new()
@@ -218,7 +219,7 @@ angular.module('ui.scroll', [])
 
 							# this watch fires once per item inserted after the item template has been processed and values inserted
 							# which allows to gather the 'real' height of the thing
-							itemScope.$watch 'heightAdjustment', ->
+							dereg = itemScope.$watch 'heightAdjustment', ->
 								if top
 									# an element is inserted at the top
 									newHeight = handler.topPadding() - wrapper.element.outerHeight(true)
@@ -229,32 +230,30 @@ angular.module('ui.scroll', [])
 									else
 										# if not, increment scrollTop
 										scrollTop = viewport.scrollTop() + wrapper.element.outerHeight(true)
-										# below is an attempt to ensure that the scrollbar is always there even if
-										# there is not enough data. But now I am not sure it is necessary. Commenting out for now
-										#if viewport.height() + scrollTop > canvas.height()
-										#handler.bottomPadding(handler.bottomPadding() + viewport.height() + scrollTop - canvas.height())
 										viewport.scrollTop(scrollTop)
 								else
 									handler.bottomPadding(Math.max(0,handler.bottomPadding() - wrapper.element.outerHeight(true)))
+								# deregister itself after first execution
+								dereg()
 
 							itemScope
 
 
-						finalize = ->
+						finalize = (scrolling)->
 							pending.shift()
 							if pending.length == 0
 								isLoading = false
 								loading(false)
 							else
-								fetch()
+								fetch(scrolling)
 
-						fetch = () ->
+						fetch = (scrolling) ->
 							direction = pending[0]
 							#console.log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
 							lastScope = null
 							if direction
 								if buffer.length && !shouldLoadBottom()
-									finalize()
+									finalize(scrolling)
 								else
 									#console.log "appending... requested #{bufferSize} records starting from #{next}"
 									datasource.get next, bufferSize,
@@ -262,20 +261,21 @@ angular.module('ui.scroll', [])
 										if result.length == 0
 											eof = true
 											console.log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
-											finalize()
+											finalize(scrolling)
 											return
 										clipTop()
 										for item in result
 											lastScope = insert ++next, item, false
 
 										console.log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize()
-										lastScope.$watch 'adjustBuffer', ->
-											adjustBuffer()
+										finalize(scrolling)
+										dereg = lastScope.$watch 'adjustBuffer', ->
+											adjustBuffer(scrolling)
+											dereg()
 
 							else
 								if buffer.length && !shouldLoadTop()
-									finalize()
+									finalize(scrolling)
 								else
 									#console.log "prepending... requested #{size} records starting from #{start}"
 									datasource.get first-bufferSize, bufferSize,
@@ -283,24 +283,25 @@ angular.module('ui.scroll', [])
 										if result.length == 0
 											bof = true
 											console.log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
-											finalize()
+											finalize(scrolling)
 											return
 										clipBottom()
 										for i in [result.length-1..0]
 											lastScope = insert first--, result[i], true
 										console.log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize()
-										lastScope.$watch 'adjustBuffer', ->
-											adjustBuffer()
+										finalize(scrolling)
+										dereg = lastScope.$watch 'adjustBuffer', ->
+											adjustBuffer(scrolling)
+											dereg()
 
 						viewport.bind 'resize', ->
 							if !$rootScope.$$phase && !isLoading
-								adjustBuffer()
+								adjustBuffer(false)
 								$scope.$apply()
 
 						viewport.bind 'scroll', ->
 							if !$rootScope.$$phase && !isLoading
-								adjustBuffer()
+								adjustBuffer(true)
 								$scope.$apply()
 
 						$scope.$watch datasource.revision,
@@ -320,7 +321,6 @@ angular.module('ui.scroll', [])
 							else
 								if 0 <= locator-first-1 < buffer.length
 									buffer[locator-first-1].scope[itemName] = newItem
-							undefined
 
 						eventListener.$on "delete.items", (event, locator)->
 							temp = []
@@ -329,13 +329,14 @@ angular.module('ui.scroll', [])
 								((wrapper)->
 									if locator wrapper.scope
 										removeFromBuffer temp.length-1-i, temp.length-i
+										next--
 								) wrapper for wrapper,i in temp
 							else
 								if 0 <= locator-first-1 < buffer.length
 									removeFromBuffer locator-first-1, locator-first
+									next--
 
 							item.scope.$index = first + i for item,i in buffer
-
-							undefined
+							adjustBuffer(false)
 
 		])
