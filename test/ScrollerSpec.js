@@ -77,17 +77,16 @@ describe('uiScroll', function () {
 
         it('should call get on the datasource 1 time ', inject(
             function ($rootScope, $compile, myEmptyDatasource) {
-
                 var spy = spyOn(myEmptyDatasource, 'get').andCallThrough();
                 var scroller = angular.element('<div ng-scroll="item in myEmptyDatasource">{{$index}}: {{item}}</div>');
                 sandbox.append(scroller);
                 $compile(scroller)($rootScope);
                 $rootScope.$apply();
 
-                expect(spy.calls.length).toBe(1);
+                expect(spy.calls.length).toBe(2);
 
                 expect(spy.calls[0].args[0]).toBe(1);
-//                expect(spy.calls[1].args[0]).toBe(-9);
+                expect(spy.calls[1].args[0]).toBe(-9);
 
             }));
     });

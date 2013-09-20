@@ -5,7 +5,6 @@ globals: angular, window
 
 		element.before(elem)
 		element.height()
-		element.offset()
 		element.outerHeight(true)
 		element.height(value) = only for Top/Bottom padding elements
 		element.scrollTop()
@@ -244,6 +243,7 @@ angular.module('ui.scroll', [])
 							itemScope
 
 						finalize = (scrolling)->
+							adjustBuffer(scrolling)
 							pending.shift()
 							if pending.length == 0
 								isLoading = false
@@ -254,7 +254,6 @@ angular.module('ui.scroll', [])
 						fetch = (scrolling) ->
 							direction = pending[0]
 							#console.log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
-							lastScope = null
 							if direction
 								if buffer.length && !shouldLoadBottom()
 									finalize(scrolling)
@@ -264,17 +263,16 @@ angular.module('ui.scroll', [])
 									(result) ->
 										if result.length == 0
 											eof = true
+											lastScope = $scope
 											console.log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
-											finalize(scrolling)
-											return
-										clipTop()
-										for item in result
-											lastScope = insert ++next, item
+										else
+											clipTop()
+											for item in result
+												lastScope = insert ++next, item
+											console.log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 
-										console.log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize(scrolling)
 										dereg = lastScope.$watch 'adjustBuffer', ->
-											adjustBuffer(scrolling)
+											finalize(scrolling)
 											dereg()
 
 							else
@@ -286,16 +284,15 @@ angular.module('ui.scroll', [])
 									(result) ->
 										if result.length == 0
 											bof = true
+											lastScope = $scope
 											console.log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
-											finalize(scrolling)
-											return
-										clipBottom()
-										for i in [result.length-1..0]
-											lastScope = insert first--, result[i]
-										console.log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize(scrolling)
+										else
+											clipBottom()
+											for i in [result.length-1..0]
+												lastScope = insert first--, result[i]
+											console.log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										dereg = lastScope.$watch 'adjustBuffer', ->
-											adjustBuffer(scrolling)
+											finalize(scrolling)
 											dereg()
 
 						viewport.bind 'resize', ->
