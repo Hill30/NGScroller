@@ -53,7 +53,7 @@ angular.module('ui.scroll', [])
 						bufferPadding = -> viewport.height() * Math.max(0.1, +$attr.padding || 0.1) # some extra space to initate preload
 
 						scrollHeight = (elem)->
-							elem[0].scrollHeight || elem[0].document.documentElement.scrollHeight
+							elem[0].scrollHeight ? elem[0].document.documentElement.scrollHeight
 
 						handler = null
 

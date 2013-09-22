@@ -151,10 +151,13 @@ describe('uiScroll', function () {
             }));
     });
 
-    describe('datasource with 20 elements default buffer size (10)', function () {
+    describe('datasource with 20 elements default buffer size (10) - unconstrained viewport', function () {
+
+        var HTML = '<div ng-scroll="item in myMultipageDatasource">{{$index}}: {{item}}</div>';
+
         it('should create 20 divs with data (+ 2 padding divs)', inject(
             function ($rootScope, $compile) {
-                var scroller = angular.element('<div ng-scroll="item in myMultipageDatasource">{{$index}}: {{item}}</div>');
+                var scroller = angular.element(HTML);
                 sandbox.append(scroller);
                 $compile(scroller)($rootScope);
                 $rootScope.$apply();
@@ -173,7 +176,7 @@ describe('uiScroll', function () {
             function ($rootScope, $compile, myMultipageDatasource) {
 
                 var spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
-                var scroller = angular.element('<div ng-scroll="item in myMultipageDatasource">{{$index}}: {{item}}</div>');
+                var scroller = angular.element(HTML);
                 sandbox.append(scroller);
                 $compile(scroller)($rootScope);
                 $rootScope.$apply();
@@ -188,10 +191,13 @@ describe('uiScroll', function () {
             }));
     });
 
-    describe('datasource with 20 elements buffer size 7', function () {
+    describe('datasource with 20 elements buffer size 7 - unconstrained viewport', function () {
+
+        var HTML = '<div ng-scroll="item in myMultipageDatasource" buffer-size="7">{{$index}}: {{item}}</div>';
+
         it('should create 20 divs with data (+ 2 padding divs)', inject(
             function ($rootScope, $compile) {
-                var scroller = angular.element('<div ng-scroll="item in myMultipageDatasource" buffer-size="7">{{$index}}: {{item}}</div>');
+                var scroller = angular.element(HTML);
                 sandbox.append(scroller);
                 $compile(scroller)($rootScope);
                 $rootScope.$apply();
@@ -210,7 +216,7 @@ describe('uiScroll', function () {
             function ($rootScope, $compile, myMultipageDatasource) {
 
                 var spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
-                var scroller = angular.element('<div ng-scroll="item in myMultipageDatasource" buffer-size="7">{{$index}}: {{item}}</div>');
+                var scroller = angular.element(HTML);
                 sandbox.append(scroller);
                 $compile(scroller)($rootScope);
                 $rootScope.$apply();
@@ -224,6 +230,47 @@ describe('uiScroll', function () {
                 expect(spy.calls[4].args[0]).toBe(-6);
 
             }));
+    });
+    describe('datasource with 20 elements default buffer size (10) - constrained viewport', function () {
+
+        var HTML = '<div ng-scroll-viewport style="height:200px"><div style="height:40px" ng-scroll="item in myMultipageDatasource" buffer-size="3">{{$index}}: {{item}}</div></div>';
+
+        it('should create 6 divs with data (+ 2 padding divs)', inject(
+
+            function ($rootScope, $compile) {
+
+                var scroller = angular.element(HTML);
+                sandbox.append(scroller);
+                $compile(scroller)($rootScope);
+                $rootScope.$apply();
+
+                expect(sandbox.children().children().length).toBe(8);
+
+                for (var i = 1; i< 7; i++) {
+                    var row = sandbox.children().children()[i];
+                    expect(row.tagName.toLowerCase()).toBe('div');
+                    expect(row.innerHTML).toBe(i + ': item' + i);
+                }
+
+            }));
+
+        it('should call get on the datasource 3 times ', inject(
+            function ($rootScope, $compile, myMultipageDatasource) {
+
+                var spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
+                var scroller = angular.element(HTML);
+                sandbox.append(scroller);
+                $compile(scroller)($rootScope);
+                $rootScope.$apply();
+
+                expect(spy.calls.length).toBe(3);
+
+                expect(spy.calls[0].args[0]).toBe(1);
+                expect(spy.calls[1].args[0]).toBe(4);
+                expect(spy.calls[2].args[0]).toBe(-2);
+
+            }));
+
     });
 
 })
