@@ -30,6 +30,24 @@ describe('uiScroll', function () {
                     get: get
                 };
             }
+        ])
+
+        .factory('myMultipageDatasource', [
+            '$log', '$timeout', '$rootScope', function(console, $timeout, $rootScope) {
+                var current, get, loading, revision;
+                get = function(index, count, success) {
+                    var result = [];
+                    if (index > 0 && index <= 20) {
+                        for (var i = index; i<index+count && i<=20; i++)
+                            result.push('item' + i);
+                    }
+                    success(result);
+                };
+
+                return {
+                    get: get
+                };
+            }
         ]);
 
     var sandbox = angular.element('<div/>');
@@ -129,6 +147,81 @@ describe('uiScroll', function () {
                 expect(spy.calls[0].args[0]).toBe(1);
                 expect(spy.calls[1].args[0]).toBe(4);
                 expect(spy.calls[2].args[0]).toBe(-9);
+
+            }));
+    });
+
+    describe('datasource with 20 elements default buffer size (10)', function () {
+        it('should create 20 divs with data (+ 2 padding divs)', inject(
+            function ($rootScope, $compile) {
+                var scroller = angular.element('<div ng-scroll="item in myMultipageDatasource">{{$index}}: {{item}}</div>');
+                sandbox.append(scroller);
+                $compile(scroller)($rootScope);
+                $rootScope.$apply();
+
+                expect(sandbox.children().length).toBe(22);
+
+                for (var i = 1; i< 21; i++) {
+                    var row = sandbox.children()[i];
+                    expect(row.tagName.toLowerCase()).toBe('div');
+                    expect(row.innerHTML).toBe(i + ': item' + i);
+                }
+
+            }));
+
+        it('should call get on the datasource 4 times ', inject(
+            function ($rootScope, $compile, myMultipageDatasource) {
+
+                var spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
+                var scroller = angular.element('<div ng-scroll="item in myMultipageDatasource">{{$index}}: {{item}}</div>');
+                sandbox.append(scroller);
+                $compile(scroller)($rootScope);
+                $rootScope.$apply();
+
+                expect(spy.calls.length).toBe(4);
+
+                expect(spy.calls[0].args[0]).toBe(1);
+                expect(spy.calls[1].args[0]).toBe(11);
+                expect(spy.calls[2].args[0]).toBe(21);
+                expect(spy.calls[3].args[0]).toBe(-9);
+
+            }));
+    });
+
+    describe('datasource with 20 elements buffer size 7', function () {
+        it('should create 20 divs with data (+ 2 padding divs)', inject(
+            function ($rootScope, $compile) {
+                var scroller = angular.element('<div ng-scroll="item in myMultipageDatasource" buffer-size="7">{{$index}}: {{item}}</div>');
+                sandbox.append(scroller);
+                $compile(scroller)($rootScope);
+                $rootScope.$apply();
+
+                expect(sandbox.children().length).toBe(22);
+
+                for (var i = 1; i< 21; i++) {
+                    var row = sandbox.children()[i];
+                    expect(row.tagName.toLowerCase()).toBe('div');
+                    expect(row.innerHTML).toBe(i + ': item' + i);
+                }
+
+            }));
+
+        it('should call get on the datasource 4 times ', inject(
+            function ($rootScope, $compile, myMultipageDatasource) {
+
+                var spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
+                var scroller = angular.element('<div ng-scroll="item in myMultipageDatasource" buffer-size="7">{{$index}}: {{item}}</div>');
+                sandbox.append(scroller);
+                $compile(scroller)($rootScope);
+                $rootScope.$apply();
+
+                expect(spy.calls.length).toBe(5);
+
+                expect(spy.calls[0].args[0]).toBe(1);
+                expect(spy.calls[1].args[0]).toBe(8);
+                expect(spy.calls[2].args[0]).toBe(15);
+                expect(spy.calls[3].args[0]).toBe(21);
+                expect(spy.calls[4].args[0]).toBe(-6);
 
             }));
     });

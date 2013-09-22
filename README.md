@@ -66,7 +66,7 @@ dl as a repeated tag is not supported.
 ###Parameters
 * **ngScroll – {scroll_expression}** – The expression indicating how to enumerate a collection. Only one format is currently supported:
     * **variable in datasource** – where variable is the user defined loop variable and datasource is the name of the data source service to enumerate.
-* **bufferSize - value**, optional - number of items requested from the datasource in a single request. The default is 10 and the minimal value is 3
+* **buffer-size - value**, optional - number of items requested from the datasource in a single request. The default is 10 and the minimal value is 3
 * **padding - value**, optional - extra height added to the visible area for the purpose of determining when the items should be created/destroyed.
 The value is relative to the visible height of the area, the default is 0.5 and the minimal value is 0.3
 
