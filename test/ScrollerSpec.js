@@ -153,6 +153,8 @@ describe('uiScroll', function () {
 
     describe('datasource with 20 elements default buffer size (10) - unconstrained viewport', function () {
 
+        return;
+
         var HTML = '<div ng-scroll="item in myMultipageDatasource">{{$index}}: {{item}}</div>';
 
         it('should create 20 divs with data (+ 2 padding divs)', inject(
@@ -193,6 +195,8 @@ describe('uiScroll', function () {
 
     describe('datasource with 20 elements buffer size 7 - unconstrained viewport', function () {
 
+        return;
+
         var HTML = '<div ng-scroll="item in myMultipageDatasource" buffer-size="7">{{$index}}: {{item}}</div>';
 
         it('should create 20 divs with data (+ 2 padding divs)', inject(
@@ -232,6 +236,8 @@ describe('uiScroll', function () {
             }));
     });
     describe('datasource with 20 elements default buffer size (10) - constrained viewport', function () {
+
+        //return;
 
         var HTML = '<div ng-scroll-viewport style="height:200px"><div style="height:40px" ng-scroll="item in myMultipageDatasource" buffer-size="3">{{$index}}: {{item}}</div></div>';
 
