@@ -217,28 +217,23 @@ angular.module('ui.scroll', [])
 										else
 											buffer[index-first].element.after clone
 											buffer.splice index-first+1, 0, wrapper
-										# this watch fires once per item inserted after the item template has been processed and values inserted
-										# which allows to gather the 'real' height of the thing
-										dereg = itemScope.$watch 'heightAdjustment', ->
-											handler.bottomPadding(Math.max(0,handler.bottomPadding() - wrapper.element.outerHeight(true)))
-											dereg()
 									else
 										handler.prepend clone
 										buffer.unshift wrapper
-										# this watch fires once per item inserted after the item template has been processed and values inserted
-										# which allows to gather the 'real' height of the thing
-										dereg = itemScope.$watch 'heightAdjustment', ->
-											# an element is inserted at the top
-											newHeight = handler.topPadding() - wrapper.element.outerHeight(true)
-											# adjust padding to prevent it from visually pushing everything down
-											if newHeight >= 0
-												# if possible, reduce topPadding
-												handler.topPadding(newHeight)
-											else
-												# if not, increment scrollTop
-												scrollTop = viewport.scrollTop() + wrapper.element.outerHeight(true)
-												viewport.scrollTop(scrollTop)
-											dereg()
+
+							if index > first
+								handler.bottomPadding(Math.max(0,handler.bottomPadding() - wrapper.element.outerHeight(true)))
+							else
+								# an element is inserted at the top
+								newHeight = handler.topPadding() - wrapper.element.outerHeight(true)
+								# adjust padding to prevent it from visually pushing everything down
+								if newHeight >= 0
+									# if possible, reduce topPadding
+									handler.topPadding(newHeight)
+								else
+									# if not, increment scrollTop
+									scrollTop = viewport.scrollTop() + wrapper.element.outerHeight(true)
+									viewport.scrollTop(scrollTop)
 
 							itemScope
 
