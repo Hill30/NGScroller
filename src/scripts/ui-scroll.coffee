@@ -210,7 +210,7 @@ angular.module('ui.scroll', [])
 							linker itemScope,
 								(clone) ->
 									wrapper.element = clone
-									if index > first + 1
+									if index > first
 										if index == next
 											handler.append clone
 											buffer.push wrapper
@@ -289,7 +289,7 @@ angular.module('ui.scroll', [])
 										else
 											clipBottom()
 											for i in [result.length-1..0]
-												lastScope = insert first--, result[i]
+												lastScope = insert --first, result[i]
 											console.log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										dereg = lastScope.$watch 'adjustBuffer', ->
 											finalize(scrolling)
