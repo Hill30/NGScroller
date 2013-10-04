@@ -38,6 +38,8 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 		$rootScope.insert = ->
 			scope.$broadcast 'insert.item', 2, "inserted value"
 
+		$rootScope.parseInt = (value) -> parseInt value, 10
+
 		revision = -> current
 
 		{

@@ -193,7 +193,6 @@ angular.module('ui.scroll', [])
 								fetch(scrolling)
 
 						adjustBuffer = (scrolling)->
-
 							console.log "top {actual=#{handler.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{handler.bottomDataPos()}}"
 							if shouldLoadBottom()
 								enqueueFetch(true, scrolling)
@@ -220,6 +219,8 @@ angular.module('ui.scroll', [])
 									else
 										handler.prepend clone
 										buffer.unshift wrapper
+
+							itemScope.$digest()
 
 							if index > first
 								handler.bottomPadding(Math.max(0,handler.bottomPadding() - wrapper.element.outerHeight(true)))
