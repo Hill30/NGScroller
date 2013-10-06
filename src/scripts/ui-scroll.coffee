@@ -342,6 +342,18 @@ angular.module('ui.scroll', [])
 
 						eventListener.$on "insert.item", (event, locator, item)->
 							if angular.isFunction locator
+								temp = []
+								temp.unshift item for item in buffer
+								((wrapper)->
+									if newItems = locator wrapper.scope
+										insert = (index, newItem) ->
+											insert index, item
+											next++
+										if isArray newItems
+											insert i+j, item for item,j in newitems
+										else
+											insert i, newItems
+								) wrapper for wrapper,i in temp
 							else
 								if 0 <= locator-first-1 < buffer.length
 									insert locator, item
