@@ -110,6 +110,9 @@ describe('uiScroll', function () {
     });
 
     describe('datasource with only 3 elements', function () {
+
+        return;
+
         it('should create 3 divs with data (+ 2 padding divs)', inject(
             function ($rootScope, $compile, myOnePageDatasource) {
                 var scroller = angular.element('<div ng-scroll="item in myOnePageDatasource">{{$index}}: {{item}}</div>');
@@ -237,7 +240,7 @@ describe('uiScroll', function () {
     });
     describe('datasource with 20 elements default buffer size (10) - constrained viewport', function () {
 
-        //return;
+        return;
 
         var HTML = '<div ng-scroll-viewport style="height:200px"><div style="height:40px" ng-scroll="item in myMultipageDatasource" buffer-size="3">{{$index}}: {{item}}</div></div>';
 
