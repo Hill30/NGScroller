@@ -93,6 +93,8 @@ describe('uiScroll', function () {
 
             }));
 
+		return;
+
         it('should call get on the datasource 1 time ', inject(
             function ($rootScope, $compile, myEmptyDatasource) {
                 var spy = spyOn(myEmptyDatasource, 'get').andCallThrough();

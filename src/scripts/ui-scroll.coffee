@@ -24,8 +24,8 @@ angular.module('ui.scroll', [])
 		])
 
 	.directive( 'ngScroll'
-		[ '$log', '$injector', '$rootScope'
-			(console, $injector, $rootScope) ->
+		[ '$log', '$injector', '$rootScope', '$timeout'
+			(console, $injector, $rootScope, $timeout) ->
 				require: ['?^ngScrollViewport']
 				transclude: 'element'
 				priority: 1000
@@ -192,13 +192,6 @@ angular.module('ui.scroll', [])
 							if pending.push(direction) == 1
 								fetch(scrolling)
 
-						adjustBuffer = (scrolling)->
-							console.log "top {actual=#{handler.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{handler.bottomDataPos()}}"
-							if shouldLoadBottom()
-								enqueueFetch(true, scrolling)
-							else
-								enqueueFetch(false, scrolling) if shouldLoadTop()
-
 						insert = (index, item) ->
 							itemScope = $scope.$new()
 							itemScope[itemName] = item
@@ -206,10 +199,12 @@ angular.module('ui.scroll', [])
 							wrapper =
 								scope: itemScope
 
+							toBeAppended = index > first
+
 							linker itemScope,
 								(clone) ->
 									wrapper.element = clone
-									if index > first
+									if toBeAppended
 										if index == next
 											handler.append clone
 											buffer.push wrapper
@@ -219,10 +214,10 @@ angular.module('ui.scroll', [])
 									else
 										handler.prepend clone
 										buffer.unshift wrapper
+							{appended: toBeAppended, wrapper: wrapper}
 
-							itemScope.$digest()
-
-							if index > first
+						adjustRowHeight = (appended, wrapper) ->
+							if appended
 								handler.bottomPadding(Math.max(0,handler.bottomPadding() - wrapper.element.outerHeight(true)))
 							else
 								# an element is inserted at the top
@@ -233,17 +228,33 @@ angular.module('ui.scroll', [])
 									handler.topPadding(newHeight)
 								else
 									# if not, increment scrollTop
-									scrollTop = viewport.scrollTop() + wrapper.element.outerHeight(true)
-									viewport.scrollTop(scrollTop)
+									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
 
-						finalize = (scrolling)->
-							adjustBuffer(scrolling)
-							pending.shift()
-							if pending.length == 0
-								isLoading = false
-								loading(false)
+						adjustBuffer = (scrolling, newItems, finalize)->
+							doAdjustment = ->
+								console.log "top {actual=#{handler.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{handler.bottomDataPos()}}"
+								if shouldLoadBottom()
+									enqueueFetch(true, scrolling)
+								else
+									enqueueFetch(false, scrolling) if shouldLoadTop()
+								finalize() if finalize
+
+							if newItems
+								$timeout ->
+									for row in newItems
+										adjustRowHeight row.appended, row.wrapper
+									doAdjustment()
 							else
-								fetch(scrolling)
+								doAdjustment()
+
+						finalize = (scrolling, newItems)->
+							adjustBuffer scrolling, newItems, ->
+								pending.shift()
+								if pending.length == 0
+									isLoading = false
+									loading(false)
+								else
+									fetch(scrolling)
 
 						fetch = (scrolling) ->
 							direction = pending[0]
@@ -255,15 +266,16 @@ angular.module('ui.scroll', [])
 									#console.log "appending... requested #{bufferSize} records starting from #{next}"
 									datasource.get next, bufferSize,
 									(result) ->
+										newItems = []
 										if result.length == 0
 											eof = true
 											console.log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
 										else
 											clipTop()
 											for item in result
-												insert ++next, item
+												newItems.push (insert ++next, item)
 											console.log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize(scrolling)
+										finalize(scrolling, newItems)
 
 							else
 								if buffer.length && !shouldLoadTop()
@@ -272,15 +284,16 @@ angular.module('ui.scroll', [])
 									#console.log "prepending... requested #{size} records starting from #{start}"
 									datasource.get first-bufferSize, bufferSize,
 									(result) ->
+										newItems = []
 										if result.length == 0
 											bof = true
 											console.log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
 										else
 											clipBottom()
 											for i in [result.length-1..0]
-												insert --first, result[i]
+												newItems.unshift (insert --first, result[i])
 											console.log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize(scrolling)
+										finalize(scrolling, newItems)
 
 						viewport.bind 'resize', ->
 							if !$rootScope.$$phase && !isLoading
@@ -328,6 +341,7 @@ angular.module('ui.scroll', [])
 							adjustBuffer(false)
 
 						eventListener.$on "insert.item", (event, locator, item)->
+							inserted = []
 							if angular.isFunction locator
 								temp = []
 								temp.unshift item for item in buffer
@@ -337,16 +351,16 @@ angular.module('ui.scroll', [])
 											insert index, item
 											next++
 										if isArray newItems
-											insert i+j, item for item,j in newitems
+											inserted.push(insert i+j, item) for item,j in newitems
 										else
-											insert i, newItems
+											inserted.push (insert i, newItems)
 								) wrapper for wrapper,i in temp
 							else
 								if 0 <= locator-first-1 < buffer.length
-									insert locator, item
+									inserted.push (insert locator, item)
 									next++
 
 							item.scope.$index = first + i for item,i in buffer
-							adjustBuffer(false)
+							adjustBuffer(false, inserted)
 
 		])
