@@ -93,27 +93,25 @@ describe('uiScroll', function () {
 
             }));
 
-		return;
-
         it('should call get on the datasource 1 time ', inject(
-            function ($rootScope, $compile, myEmptyDatasource) {
+            function ($rootScope, $compile, $timeout, myEmptyDatasource) {
                 var spy = spyOn(myEmptyDatasource, 'get').andCallThrough();
                 var scroller = angular.element('<div ng-scroll="item in myEmptyDatasource">{{$index}}: {{item}}</div>');
                 sandbox.append(scroller);
                 $compile(scroller)($rootScope);
                 $rootScope.$apply();
+                $timeout.flush();
 
                 expect(spy.calls.length).toBe(2);
 
                 expect(spy.calls[0].args[0]).toBe(1);
                 expect(spy.calls[1].args[0]).toBe(-9);
 
+
             }));
     });
 
     describe('datasource with only 3 elements', function () {
-
-        return;
 
         it('should create 3 divs with data (+ 2 padding divs)', inject(
             function ($rootScope, $compile, myOnePageDatasource) {
@@ -139,13 +137,14 @@ describe('uiScroll', function () {
             }));
 
         it('should call get on the datasource 3 times ', inject(
-            function ($rootScope, $compile, myOnePageDatasource) {
+            function ($rootScope, $compile, $timeout, myOnePageDatasource) {
 
                 var spy = spyOn(myOnePageDatasource, 'get').andCallThrough();
                 var scroller = angular.element('<div ng-scroll="item in myOnePageDatasource">{{$index}}: {{item}}</div>');
                 sandbox.append(scroller);
                 $compile(scroller)($rootScope);
                 $rootScope.$apply();
+                $timeout.flush();
 
                 expect(spy.calls.length).toBe(3);
 
@@ -242,18 +241,17 @@ describe('uiScroll', function () {
     });
     describe('datasource with 20 elements default buffer size (10) - constrained viewport', function () {
 
-        return;
-
         var HTML = '<div ng-scroll-viewport style="height:200px"><div style="height:40px" ng-scroll="item in myMultipageDatasource" buffer-size="3">{{$index}}: {{item}}</div></div>';
 
         it('should create 6 divs with data (+ 2 padding divs)', inject(
 
-            function ($rootScope, $compile) {
+            function ($rootScope, $compile, $timeout) {
 
                 var scroller = angular.element(HTML);
                 sandbox.append(scroller);
                 $compile(scroller)($rootScope);
                 $rootScope.$apply();
+                $timeout.flush();
 
                 expect(sandbox.children().children().length).toBe(8);
 
@@ -266,13 +264,14 @@ describe('uiScroll', function () {
             }));
 
         it('should call get on the datasource 3 times ', inject(
-            function ($rootScope, $compile, myMultipageDatasource) {
+            function ($rootScope, $compile, $timeout, myMultipageDatasource) {
 
                 var spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
                 var scroller = angular.element(HTML);
                 sandbox.append(scroller);
                 $compile(scroller)($rootScope);
                 $rootScope.$apply();
+                $timeout.flush();
 
                 expect(spy.calls.length).toBe(3);
 
