@@ -20,10 +20,11 @@ describe('uiScroll', function () {
             '$log', '$timeout', '$rootScope', function(console, $timeout, $rootScope) {
                 var current, get, loading, revision;
                 get = function(index, count, success) {
-                    if (index === 1)
+                    if (index === 1) {
                         success(['one', 'two', 'three']);
-                    else
+					} else {
                         success([]);
+					}
                 };
 
                 return {
@@ -38,8 +39,9 @@ describe('uiScroll', function () {
                 get = function(index, count, success) {
                     var result = [];
                     if (index > 0 && index <= 20) {
-                        for (var i = index; i<index+count && i<=20; i++)
+                        for (var i = index; i<index+count && i<=20; i++) {
                             result.push('item' + i);
+						}
                     }
                     success(result);
                 };
@@ -239,6 +241,7 @@ describe('uiScroll', function () {
 
             }));
     });
+
     describe('datasource with 20 elements default buffer size (10) - constrained viewport', function () {
 
         var HTML = '<div ng-scroll-viewport style="height:200px"><div style="height:40px" ng-scroll="item in myMultipageDatasource" buffer-size="3">{{$index}}: {{item}}</div></div>';
@@ -283,4 +286,4 @@ describe('uiScroll', function () {
 
     });
 
-})
+});

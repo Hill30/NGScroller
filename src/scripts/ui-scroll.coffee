@@ -324,6 +324,7 @@ angular.module('ui.scroll', [])
 							else
 								if 0 <= locator-first-1 < buffer.length
 									buffer[locator-first-1].scope[itemName] = newItem
+							null
 
 						eventListener.$on "delete.items", (event, locator)->
 							if angular.isFunction locator
