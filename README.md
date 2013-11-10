@@ -130,7 +130,7 @@ Currently examples consist of a sample datasource service (called 'datasource' s
 I intentionally broke every rule of proper html/css structure (i.e. embedded styles). This is done to keep the html as bare bones as possible and leave
 it to you to do it properly - whatever properly means in your book.
 
-See index.html
+See [index.html] (https://rawgithub.com/Hill30/NGScroller/master/src/index.html)
 
 ###Deployment
 
