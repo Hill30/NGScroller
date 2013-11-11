@@ -3,11 +3,11 @@
 <head>
     <meta charset="utf-8">
     <title>Scroller Demo (table based)</title>
-    <scriptt src="http://code.jquery.com/jquery-1.9.1.js"></scriptt>
+    <script src="http://coffeescript.org/extras/coffee-script.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
-    <script src="scripts/ui-scroll.js"></script>
-    <script src="scripts/ui-scroll-jqlite.js"></script>
-    <script src="scripts/application.js"></script>
+    <script src="scripts/ui-scroll.coffee" type="text/coffeescript"></script>
+    <script src="scripts/ui-scroll-jqlite.coffee" type="text/coffeescript"></script>
+    <script src="scripts/application.coffee" type="text/coffeescript"></script>
     <style>
         .viewport{
             height:400px;
@@ -19,10 +19,10 @@
 <table>
     <tbody style="height:300px" ng-scroll-viewport>
         <tr ng-scroll="item in datasource">
-            <td>
+            <td style="width: 30px">
                 {{$index}}
             </td>
-            <td>
+            <td style="width: 100px">
                 {{item}}
             </td>
         </tr>
