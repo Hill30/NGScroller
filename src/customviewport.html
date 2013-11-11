@@ -3,17 +3,17 @@
 <head>
     <meta charset="utf-8">
     <title>Scroller Demo (multiple lists) </title>
-    <scriptt src="http://code.jquery.com/jquery-1.9.1.js"></scriptt>
+    <script src="http://coffeescript.org/extras/coffee-script.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
-	<script src="scripts/ui-scroll.js"></script>
-	<script src="scripts/ui-scroll-jqlite.js"></script>
-    <script src="scripts/application.js"></script>
+    <script src="scripts/ui-scroll.coffee" type="text/coffeescript"></script>
+    <script src="scripts/ui-scroll-jqlite.coffee" type="text/coffeescript"></script>
+    <script src="scripts/application.coffee" type="text/coffeescript"></script>
 </head>
 <body ng-app="application">
 <h2 style="position: fixed; left: 150px; top: 0;">is loading: {{loading}}; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="index.html"> browse sample code</a></h2>
 <h2> The list </h2>
 <div ng-scroll-viewport style="height:200px">
-    <div ng-scrolll="item in datasource" buffer-size='4'>*one {{item}}*</div>
+    <div ng-scroll="item in datasource" buffer-size='4'>*one {{item}}*</div>
 </div>
 <h2> One more list </h2>
 <div ng-scroll-viewport style="height:200px; border-style: solid; border-width: 1px;">
