@@ -30,7 +30,7 @@ try to pull the entire content of the datasource.
 
 ### Dependencies
 
-To use the directive make sure the ui-scroll.js (as transpiled out of ui-scroll.coffee) is loaded in your page. You also have to include
+To use the directive make sure the ui-scroll.js (as transpiled from ui-scroll.coffee) is loaded in your page. You also have to include
 module name 'ui.scroll' on the list of your application module dependencies.
 
 The code in this file relies on a few DOM element methods of jQuery which are currently not implemented in jQlite, namely
@@ -130,11 +130,11 @@ Currently examples consist of a sample datasource service (called 'datasource' s
 I intentionally broke every rule of proper html/css structure (i.e. embedded styles). This is done to keep the html as bare bones as possible and leave
 it to you to do it properly - whatever properly means in your book.
 
-See index.html
+See [index.html] (https://rawgithub.com/Hill30/NGScroller/master/src/index.html)
 
 ###Deployment
 
-To use the directive in your application just deploy the directive.coffee file using whatever deployment process you use for the rest of your coffescript.
+To use the directive in your application just reference necessary files in your page as described in the dependencies section above.
 
 To see the sample code in action look at the plunk [here](http://plnkr.co/edit/P4G9Xc?p=preview) or, to run it locally, follow the steps below:
 * install [Git](http://git-scm.com/)
