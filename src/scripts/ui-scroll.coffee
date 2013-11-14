@@ -297,15 +297,19 @@ angular.module('ui.scroll', [])
 											console.log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize(scrolling, newItems)
 
-						viewport.bind 'resize', ->
+						resizeHandler = ->
 							if !$rootScope.$$phase && !isLoading
 								adjustBuffer(false)
 								$scope.$apply()
 
-						viewport.bind 'scroll', ->
+						viewport.bind 'resize', resizeHandler
+
+						scrollHandler = ->
 							if !$rootScope.$$phase && !isLoading
 								adjustBuffer(true)
 								$scope.$apply()
+
+						viewport.bind 'scroll', scrollHandler
 
 						$scope.$watch datasource.revision,
 							-> reload()
@@ -314,7 +318,11 @@ angular.module('ui.scroll', [])
 							eventListener = datasource.scope.$new()
 						else
 							eventListener = $scope.$new()
-						$scope.$on '$destroy', -> eventListener.$destroy()
+
+						$scope.$on '$destroy', ->
+							eventListener.$destroy()
+							viewport.unbind 'resize', resizeHandler
+							viewport.unbind 'scroll', scrollHandler
 
 						eventListener.$on "update.items", (event, locator, newItem)->
 							if angular.isFunction locator
