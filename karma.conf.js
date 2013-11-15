@@ -17,7 +17,7 @@ module.exports = function(config) {
             'http://code.jquery.com/jquery-1.9.1.js',
             'http://code.angularjs.org/1.0.6/angular.js',
             'http://code.angularjs.org/1.0.6/angular-mocks.js',
-            'public/scripts/**/*.js',
+            'public/scripts/**/ui-scroll*.js',
             'test/**/*Spec.js'
         ],
 

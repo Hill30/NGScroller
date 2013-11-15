@@ -3,13 +3,13 @@
 <head>
     <meta charset="utf-8">
     <title>Scroller Demo (entire window)</title>
-    <scriptt src="http://code.jquery.com/jquery-1.9.1.js"></scriptt>
+    <script src="http://coffeescript.org/extras/coffee-script.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
-	<script src="scripts/ui-scroll.js"></script>
-	<script src="scripts/ui-scroll-jqlite.js"></script>
-    <script src="scripts/application.js"></script>
+    <script src="scripts/ui-scroll.coffee" type="text/coffeescript"></script>
+    <script src="scripts/ui-scroll-jqlite.coffee" type="text/coffeescript"></script>
+    <script src="scripts/application.coffee" type="text/coffeescript"></script>
 </head>
-<body ng-app="application">
+<body>
 <div style="position: fixed; left: 150px; top: 0;">
 	<h2> <input type=button ng-click="update()" value="update list"/>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="index.html"> browse sample code</a></h2>
 	<h2> <input type=button ng-click="refresh()" value="refresh list"/></h2>
