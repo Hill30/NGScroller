@@ -38,11 +38,10 @@ describe('uiScroll', function () {
                 var current, get, loading, revision;
                 get = function(index, count, success) {
                     var result = [];
-                    if (index > 0 && index <= 20) {
-                        for (var i = index; i<index+count && i<=20; i++) {
-                            result.push('item' + i);
-						}
-                    }
+					for (var i = index; i<index+count; i++) {
+						if (i>0 && i<=20)
+							result.push('item' + i);
+					}
                     success(result);
                 };
 
@@ -70,7 +69,7 @@ describe('uiScroll', function () {
 
 				runTest($window, sandbox);
 
-				scroller.remove();
+				sandbox.remove();
 				scope.$destroy();
 
 				if (cleanupTest) {
@@ -189,6 +188,9 @@ describe('uiScroll', function () {
 				function($window, sandbox) {
 					var scroller = sandbox.children();
 					expect(scroller.children().length).toBe(8);
+					expect(scroller.scrollTop()).toBe(0);
+					expect(scroller.children().css('height')).toBe('0px');
+					expect(angular.element(scroller.children()[7]).css('height')).toBe('0px');
 
 					for (var i = 1; i< 7; i++) {
 						var row = scroller.children()[i];
@@ -217,93 +219,170 @@ describe('uiScroll', function () {
 			);
 		});
 
+		it('should create 3 more divs (9 divs total) with data (+ 2 padding divs)', function() {
+			runTest(html,
+				function($window, sandbox) {
+					var scroller = sandbox.children();
+					scroller.scrollTop(100);
+					scroller.trigger('scroll');
+					inject(function($timeout){
+						$timeout.flush();
+						expect(scroller.children().length).toBe(11);
+						expect(scroller.scrollTop()).toBe(40);
+						expect(scroller.children().css('height')).toBe('0px');
+						expect(angular.element(scroller.children()[10]).css('height')).toBe('0px');
+
+						for (var i = 1; i< 10; i++) {
+							var row = scroller.children()[i];
+							expect(row.tagName.toLowerCase()).toBe('div');
+							expect(row.innerHTML).toBe(i + ': item' + i);
+						}
+					});
+
+				}
+			);
+		});
+
+		it('should call get on the datasource 1 extra time (4 total) ', function() {
+			var spy;
+			inject(function(myMultipageDatasource){
+				spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
+			});
+			runTest(html,
+				function($window, sandbox) {
+					var scroller = sandbox.children();
+					scroller.scrollTop(100);
+					scroller.trigger('scroll');
+					expect(spy.calls.length).toBe(4);
+
+					expect(spy.calls[0].args[0]).toBe(1);
+					expect(spy.calls[1].args[0]).toBe(4);
+					expect(spy.calls[2].args[0]).toBe(-2);
+					expect(spy.calls[3].args[0]).toBe(7);
+
+				}
+			);
+		});
+
+		it('should clip 3 divs from the top and add 3 more divs to the bottom (9 divs total) (+ 2 padding divs)', function() {
+			runTest(html,
+				function($window, sandbox) {
+					var scroller = sandbox.children();
+					scroller.scrollTop(100);
+					scroller.trigger('scroll');
+					scroller.scrollTop(400);
+					scroller.trigger('scroll');
+					inject(function($timeout){
+						$timeout.flush();
+						expect(scroller.children().length).toBe(11);
+						expect(scroller.scrollTop()).toBe(160);
+						expect(scroller.children().css('height')).toBe('120px');
+						expect(angular.element(scroller.children()[10]).css('height')).toBe('0px');
+
+						for (var i = 1; i< 10; i++) {
+							var row = scroller.children()[i];
+							expect(row.tagName.toLowerCase()).toBe('div');
+							expect(row.innerHTML).toBe((i+3) + ': item' + (i+3));
+						}
+					});
+
+				}
+			);
+		});
+
+		it('should call get on the datasource 1 more time (4 total) ', function() {
+			var spy;
+			inject(function(myMultipageDatasource){
+				spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
+			});
+			runTest(html,
+				function($window, sandbox) {
+					var scroller = sandbox.children();
+					scroller.scrollTop(100);
+					scroller.trigger('scroll');
+					scroller.scrollTop(400);
+					scroller.trigger('scroll');
+					inject(function($timeout){
+						$timeout.flush();
+						expect(spy.calls.length).toBe(5);
+
+						expect(spy.calls[0].args[0]).toBe(1);
+						expect(spy.calls[1].args[0]).toBe(4);
+						expect(spy.calls[2].args[0]).toBe(-2);
+						expect(spy.calls[3].args[0]).toBe(7);
+						expect(spy.calls[4].args[0]).toBe(10);
+					});
+
+				}
+			);
+		});
+
+		it('should re-add 3 divs at the top and clip 3 divs from the bottom (9 divs total) (+ 2 padding divs)', function() {
+			var flush;
+			inject(function($timeout){flush = $timeout.flush;})
+			runTest(html,
+				function($window, sandbox) {
+					var scroller = sandbox.children();
+					scroller.scrollTop(100);
+					scroller.trigger('scroll');
+					flush();
+					scroller.scrollTop(400);
+					scroller.trigger('scroll');
+					flush();
+					scroller.scrollTop(0);
+					scroller.trigger('scroll');
+					flush();
+
+					//debugger
+
+					expect(scroller.children().length).toBe(8);
+					expect(scroller.scrollTop()).toBe(0);
+					expect(scroller.children().css('height')).toBe('0px');
+					expect(angular.element(scroller.children()[7]).css('height')).toBe('240px');
+
+					for (var i = 1; i< 7; i++) {
+						var row = scroller.children()[i];
+						expect(row.tagName.toLowerCase()).toBe('div');
+						//expect(row.innerHTML).toBe((i) + ': item' + (i));
+					}
+
+				}
+			);
+		});
+
+		it('should call get on the datasource 1 more time (4 total) ', function() {
+			var spy;
+			inject(function(myMultipageDatasource){
+				spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
+			});
+			var flush;
+			inject(function($timeout){flush = $timeout.flush;})
+			runTest(html,
+				function($window, sandbox) {
+					var scroller = sandbox.children();
+					scroller.scrollTop(100);
+					scroller.trigger('scroll');
+					flush();
+					scroller.scrollTop(400);
+					scroller.trigger('scroll');
+					flush();
+					scroller.scrollTop(0);
+					scroller.trigger('scroll');
+					flush();
+					expect(spy.calls.length).toBe(7);
+
+					expect(spy.calls[0].args[0]).toBe(1);
+					expect(spy.calls[1].args[0]).toBe(4);
+					expect(spy.calls[2].args[0]).toBe(-2);
+					expect(spy.calls[3].args[0]).toBe(7);
+					expect(spy.calls[4].args[0]).toBe(10);
+					expect(spy.calls[5].args[0]).toBe(1);
+					expect(spy.calls[6].args[0]).toBe(-2);
+
+				}
+			);
+		});
+
 	});
-
-
-    describe('datasource with 20 elements default buffer size (10) - unconstrained viewport', function () {
-
-        return;
-
-        var HTML = '<div ng-scroll="item in myMultipageDatasource">{{$index}}: {{item}}</div>';
-
-        it('should create 20 divs with data (+ 2 padding divs)', inject(
-            function ($rootScope, $compile) {
-                var scroller = angular.element(HTML);
-                sandbox.append(scroller);
-                $compile(scroller)($rootScope);
-                $rootScope.$apply();
-
-                expect(sandbox.children().length).toBe(22);
-
-                for (var i = 1; i< 21; i++) {
-                    var row = sandbox.children()[i];
-                    expect(row.tagName.toLowerCase()).toBe('div');
-                    expect(row.innerHTML).toBe(i + ': item' + i);
-                }
-
-            }));
-
-        it('should call get on the datasource 4 times ', inject(
-            function ($rootScope, $compile, myMultipageDatasource) {
-
-                var spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
-                var scroller = angular.element(HTML);
-                sandbox.append(scroller);
-                $compile(scroller)($rootScope);
-                $rootScope.$apply();
-
-                expect(spy.calls.length).toBe(4);
-
-                expect(spy.calls[0].args[0]).toBe(1);
-                expect(spy.calls[1].args[0]).toBe(11);
-                expect(spy.calls[2].args[0]).toBe(21);
-                expect(spy.calls[3].args[0]).toBe(-9);
-
-            }));
-    });
-
-    describe('datasource with 20 elements buffer size 7 - unconstrained viewport', function () {
-
-        return;
-
-        var HTML = '<div ng-scroll="item in myMultipageDatasource" buffer-size="7">{{$index}}: {{item}}</div>';
-
-        it('should create 20 divs with data (+ 2 padding divs)', inject(
-            function ($rootScope, $compile) {
-                var scroller = angular.element(HTML);
-                sandbox.append(scroller);
-                $compile(scroller)($rootScope);
-                $rootScope.$apply();
-
-                expect(sandbox.children().length).toBe(22);
-
-                for (var i = 1; i< 21; i++) {
-                    var row = sandbox.children()[i];
-                    expect(row.tagName.toLowerCase()).toBe('div');
-                    expect(row.innerHTML).toBe(i + ': item' + i);
-                }
-
-            }));
-
-        it('should call get on the datasource 4 times ', inject(
-            function ($rootScope, $compile, myMultipageDatasource) {
-
-                var spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
-                var scroller = angular.element(HTML);
-                sandbox.append(scroller);
-                $compile(scroller)($rootScope);
-                $rootScope.$apply();
-
-                expect(spy.calls.length).toBe(5);
-
-                expect(spy.calls[0].args[0]).toBe(1);
-                expect(spy.calls[1].args[0]).toBe(8);
-                expect(spy.calls[2].args[0]).toBe(15);
-                expect(spy.calls[3].args[0]).toBe(21);
-                expect(spy.calls[4].args[0]).toBe(-6);
-
-            }));
-    });
-
 
 });
