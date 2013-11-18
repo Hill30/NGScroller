@@ -267,30 +267,35 @@ describe('uiScroll', function () {
 		it('should clip 3 divs from the top and add 3 more divs to the bottom (9 divs total) (+ 2 padding divs)', function() {
 			runTest(html,
 				function($window, sandbox) {
+					var flush;
+					inject(function($timeout){flush = $timeout.flush;})
 					var scroller = sandbox.children();
+
 					scroller.scrollTop(100);
 					scroller.trigger('scroll');
+					flush();
 					scroller.scrollTop(400);
 					scroller.trigger('scroll');
-					inject(function($timeout){
-						$timeout.flush();
-						expect(scroller.children().length).toBe(11);
-						expect(scroller.scrollTop()).toBe(160);
-						expect(scroller.children().css('height')).toBe('120px');
-						expect(angular.element(scroller.children()[10]).css('height')).toBe('0px');
+					flush();
 
-						for (var i = 1; i< 10; i++) {
-							var row = scroller.children()[i];
-							expect(row.tagName.toLowerCase()).toBe('div');
-							expect(row.innerHTML).toBe((i+3) + ': item' + (i+3));
-						}
-					});
+					expect(scroller.children().length).toBe(11);
+					expect(scroller.scrollTop()).toBe(160);
+					expect(scroller.children().css('height')).toBe('120px');
+					expect(angular.element(scroller.children()[10]).css('height')).toBe('0px');
+
+					for (var i = 1; i< 10; i++) {
+						var row = scroller.children()[i];
+						expect(row.tagName.toLowerCase()).toBe('div');
+						expect(row.innerHTML).toBe((i+3) + ': item' + (i+3));
+					}
 
 				}
 			);
 		});
 
 		it('should call get on the datasource 1 more time (4 total) ', function() {
+			var flush;
+			inject(function($timeout){flush = $timeout.flush;})
 			var spy;
 			inject(function(myMultipageDatasource){
 				spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
@@ -300,18 +305,17 @@ describe('uiScroll', function () {
 					var scroller = sandbox.children();
 					scroller.scrollTop(100);
 					scroller.trigger('scroll');
+					flush();
 					scroller.scrollTop(400);
 					scroller.trigger('scroll');
-					inject(function($timeout){
-						$timeout.flush();
-						expect(spy.calls.length).toBe(5);
+					flush();
 
-						expect(spy.calls[0].args[0]).toBe(1);
-						expect(spy.calls[1].args[0]).toBe(4);
-						expect(spy.calls[2].args[0]).toBe(-2);
-						expect(spy.calls[3].args[0]).toBe(7);
-						expect(spy.calls[4].args[0]).toBe(10);
-					});
+					expect(spy.calls.length).toBe(5);
+					expect(spy.calls[0].args[0]).toBe(1);
+					expect(spy.calls[1].args[0]).toBe(4);
+					expect(spy.calls[2].args[0]).toBe(-2);
+					expect(spy.calls[3].args[0]).toBe(7);
+					expect(spy.calls[4].args[0]).toBe(10);
 
 				}
 			);
@@ -333,8 +337,6 @@ describe('uiScroll', function () {
 					scroller.trigger('scroll');
 					flush();
 
-					//debugger
-
 					expect(scroller.children().length).toBe(8);
 					expect(scroller.scrollTop()).toBe(0);
 					expect(scroller.children().css('height')).toBe('0px');
@@ -343,7 +345,7 @@ describe('uiScroll', function () {
 					for (var i = 1; i< 7; i++) {
 						var row = scroller.children()[i];
 						expect(row.tagName.toLowerCase()).toBe('div');
-						//expect(row.innerHTML).toBe((i) + ': item' + (i));
+						expect(row.innerHTML).toBe((i) + ': item' + (i));
 					}
 
 				}

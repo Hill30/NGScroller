@@ -195,11 +195,12 @@ angular.module('ui.scroll', [])
 						insert = (index, item) ->
 							itemScope = $scope.$new()
 							itemScope[itemName] = item
-							itemScope.$index = index-1
+							toBeAppended = index > first
+							itemScope.$index = index
+							itemScope.$index-- if toBeAppended
 							wrapper =
 								scope: itemScope
 
-							toBeAppended = index > first
 
 							linker itemScope,
 								(clone) ->
