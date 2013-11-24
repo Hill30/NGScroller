@@ -15,6 +15,8 @@ ngScroll directive
 **ngScroll** directive solves this problem by dynamically destroying elements as they become invisible and recreating
 them if they become visible again.
 
+Now a part of [angular-ui](https://github.com/angular-ui/ui-utils/tree/master/modules/scroll)
+
 ###Description
 
 The ngScroll directive is similar to the ngRepeat. Like the ngRepeat, ngScroll directive instantiates a template once per item from a collection.
