@@ -197,3 +197,6 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 			jqLiteExtras.registerFor angular.element unless window.jQuery
 
 	]
+###
+//# sourceURL=src/scripts/ui-scroll-jqlite.js
+###

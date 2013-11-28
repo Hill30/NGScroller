@@ -376,3 +376,7 @@ angular.module('ui.scroll', [])
 							adjustBuffer(false, inserted)
 
 		])
+
+###
+//# sourceURL=src/scripts/ui-scroll.js
+###
