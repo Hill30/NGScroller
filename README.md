@@ -142,5 +142,5 @@ There is one dirty trick though - to make the breakpoints stick, the first one t
 
 Once the first breakpoint set up this way is hit, the rest of them will work just fine. You can set and/or remove them directly in coffeeScript. Just do not remove the first one - as soon as you do, the rest of you breakpoints while still visible in the editor will cease to work.
 
-Do not ask me why this woodoo is necessary as of Chrome version 30 it is just the way it is.
+Do not ask me why this woodoo is necessary, but as of Chrome version 30 it is just the way it is.
 
