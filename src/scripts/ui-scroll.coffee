@@ -115,6 +115,7 @@ angular.module('ui.scroll', [])
 						bof = false
 						loading = datasource.loading || (value) ->
 						isLoading = false
+						topVisible = datasource.topVisible || (value) ->
 
 						#removes items from start (including) through stop (excluding)
 						removeFromBuffer = (start, stop)->
@@ -239,6 +240,15 @@ angular.module('ui.scroll', [])
 								else
 									enqueueFetch(false, scrolling) if shouldLoadTop()
 								finalize() if finalize
+								if pending.length == 0
+									topHeight = 0
+									for item in buffer
+										itemHeight = item.element.outerHeight(true)
+										if adapter.topDataPos() + topHeight + itemHeight < topVisiblePos()
+											topHeight += itemHeight
+										else
+											topVisible(item)
+											break
 
 							if newItems
 								$timeout ->

@@ -22,6 +22,9 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 		loading = (value) ->
 			$rootScope.loading = value
 
+		topVisible = (item) ->
+			$rootScope.topVisible = item
+
 		current = 0
 		$rootScope.refresh = ->
 			current += 1
@@ -47,6 +50,7 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 			loading
 			scope
 			revision
+			topVisible
 		}
 
 ])
