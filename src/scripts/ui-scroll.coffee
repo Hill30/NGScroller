@@ -107,15 +107,41 @@ angular.module('ui.scroll', [])
 
 						viewport = adapter.viewport
 
+						viewportScope = viewport.scope() || $rootScope
+
+						if angular.isDefined($attr.topVisible)
+							topVisibleItem = (item)->
+								viewportScope[$attr.topVisible] = item
+
+						if angular.isDefined($attr.topVisibleElement)
+							topVisibleElement = (element)->
+								viewportScope[$attr.topVisibleElement] = element
+
+						if angular.isDefined($attr.topVisibleScope)
+							topVisibleScope = (scope)->
+								viewportScope[$attr.topVisibleScope] = scope
+
+						topVisible = (item) ->
+							topVisibleItem(item.scope[itemName]) if topVisibleItem
+							topVisibleElement(item.element) if topVisibleElement
+							topVisibleScope(item.scope) if topVisibleScope
+							datasource.topVisible(item) if datasource.topVisible
+
+						if angular.isDefined ($attr.isLoading)
+							loading = (value) ->
+								viewportScope[$attr.isLoading] = value
+								datasource.loading(value) if datasource.loading
+						else
+							loading = (value) ->
+								datasource.loading(value) if datasource.loading
+
 						first = 1
 						next = 1
 						buffer = []
 						pending = []
 						eof = false
 						bof = false
-						loading = datasource.loading || (value) ->
 						isLoading = false
-						topVisible = datasource.topVisible || (value) ->
 
 						#removes items from start (including) through stop (excluding)
 						removeFromBuffer = (start, stop)->
