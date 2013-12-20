@@ -55,7 +55,7 @@ If you plan to use ng-scroll over jQuery feel free to skip ui-scroll-jqlite.
       ...
 </ANY>
 ```
-Listing `ANY` for the tag the directive can be applied to stretches the truth - a little bit. The directive works well with majority of
+Listing `ANY` for the tag, the directive can be applied to, stretches the truth - a little bit. The directive works well with majority of
 the 'usual' tags - divs, spans, a, inputs, etc. For all of them the viewport should be a div (unless it is the window). Some other tags
 require special treatment. If the repeated tag is a li, it is best to use ul or ol as a viewport. For a tr as a repeated tag the
 viewport has to be the tbody.  
@@ -71,6 +71,10 @@ dl as a repeated tag is not supported.
 * **buffer-size - value**, optional - number of items requested from the datasource in a single request. The default is 10 and the minimal value is 3
 * **padding - value**, optional - extra height added to the visible area for the purpose of determining when the items should be created/destroyed.
 The value is relative to the visible height of the area, the default is 0.5 and the minimal value is 0.3
+* **is-loading - name**, optional - if provided a boolean value indicating whether there are any pending load requests will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope
+* **top-visible - name**, optional - if provided a reference to the item currently in the topmost visible position will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope
+* **top-visible-element - name**, optional - if provided a reference to the DOM element currently in the topmost visible position will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope
+* **top-visible-scope - name**, optional - if provided a reference to the scope created for the item currently in the topmost visible position will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope
 
 ###Data Source 
 Data source is an object to be used by the ngScroll directive to access the data. 
@@ -95,12 +99,15 @@ The datasource object implements methods and properties to be used by the direct
 **Important:** Make sure to respect the `index` and `count` parameters of the request. The array passed to the success method should have 
 exactly `count` elements unless it hit eof/bof
 
-* Method `loading`
+* Method `loading`  
 
         loading(value)
 
     #### Description
     this is an optional method. If supplied this function will be called with a value indicating whether there is data loading request pending
+
+**Deprecated:** Method `loading` is deprecated - use `is-loading` attribute instead
+    
 
 * Method `revision`
 
