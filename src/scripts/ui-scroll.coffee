@@ -328,7 +328,7 @@ angular.module('ui.scroll', [])
 											adapter.topPadding(0)
 											console.log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
 										else
-											clipBottom()
+											clipBottom() if buffer.length
 											for i in [result.length-1..0]
 												newItems.unshift (insert --first, result[i])
 											console.log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"

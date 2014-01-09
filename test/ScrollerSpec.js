@@ -49,9 +49,27 @@ describe('uiScroll', function () {
                     get: get
                 };
             }
-        ]);
+        ])
 
-    var sandbox = angular.element('<div/>');
+		.factory('AnotherDatasource', [
+			'$log', '$timeout', '$rootScope', function(console, $timeout, $rootScope) {
+				var current, get, loading, revision;
+				get = function(index, count, success) {
+					var result = [];
+					for (var i = index; i<index+count; i++) {
+						if (i>-3 && i<1)
+							result.push('item' + i);
+					}
+					success(result);
+				};
+
+				return {
+					get: get
+				};
+			}
+		]);
+
+	var sandbox = angular.element('<div/>');
 
     beforeEach(module('ui.scroll'));
     beforeEach(module('ui.scroll.test'));
@@ -174,6 +192,48 @@ describe('uiScroll', function () {
 					expect(spy.calls[1].args[0]).toBe(4);  // gets eof
 					expect(spy.calls[2].args[0]).toBe(-9); // gets bof
 				});
+			});
+
+		});
+	});
+
+	describe('datasource with only 3 elements (negative index)', function () {
+
+		var html = '<div ng-scroll="item in AnotherDatasource">{{$index}}: {{item}}</div>';
+
+		it('should create 3 divs with data (+ 2 padding divs)', function() {
+			debugger
+			runTest(html,
+				function($window, sandbox) {
+					expect(sandbox.children().length).toBe(5);
+
+					var row1 = sandbox.children()[1];
+					expect(row1.tagName.toLowerCase()).toBe('div');
+					expect(row1.innerHTML).toBe('-2: item-2');
+
+					var row2 = sandbox.children()[2];
+					expect(row2.tagName.toLowerCase()).toBe('div');
+					expect(row2.innerHTML).toBe('-1: item-1');
+
+					var row3 = sandbox.children()[3];
+					expect(row3.tagName.toLowerCase()).toBe('div');
+					expect(row3.innerHTML).toBe('0: item0');
+				}
+			);
+		});
+
+		it('should call get on the datasource 3 times ', function() {
+			var spy;
+			inject(function(AnotherDatasource){
+				spy = spyOn(AnotherDatasource, 'get').andCallThrough();
+				runTest(html,
+					function() {
+						expect(spy.calls.length).toBe(3);
+
+						expect(spy.calls[0].args[0]).toBe(1);  // gets 3 rows
+						expect(spy.calls[1].args[0]).toBe(-9);  // gets eof
+						expect(spy.calls[2].args[0]).toBe(-12); // gets bof
+					});
 			});
 
 		});
