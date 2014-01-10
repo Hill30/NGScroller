@@ -19,10 +19,8 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 					100
 				)
 
-		loading = (value) ->
-			$rootScope.loading = value
-
 		current = 0
+
 		$rootScope.refresh = ->
 			current += 1
 
@@ -44,7 +42,6 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 
 		{
 			get
-			loading
 			scope
 			revision
 		}
