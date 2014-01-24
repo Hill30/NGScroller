@@ -11,10 +11,14 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 						->
 							actualIndex = index + offset
 							result = []
-							if actualIndex > 100 || actualIndex < -40
-								success []
+
+							start = Math.max(-40, actualIndex)
+							end = Math.min(actualIndex + count-1, 100)
+
+							if (start > end)
+								success result
 							else
-								for i in [actualIndex..actualIndex + count-1]
+								for i in [start..end]
 									result.push "item #{i}"
 								success(result)
 						100
