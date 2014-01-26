@@ -83,7 +83,7 @@ describe('\njqLite: testing against jQuery\n', function () {
 				'<div>some text</div>',
 				'<div style="height:30em">some text (height in em)</div>',
 				'<div style="height:30px">some text height in px</div>',
-				//'<div style="border-width: 3px; border-style: solid; border-color: red">some text w border</div>',
+				'<div style="border-width: 3px; border-style: solid; border-color: red">some text w border</div>',
 				'<div style="border-width: 3em; border-style: solid; border-color: red">some text w border</div>',
 				'<div style="padding: 3px">some text w padding</div>',
 				'<div style="padding: 3em">some text w padding</div>',
