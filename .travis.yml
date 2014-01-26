@@ -9,8 +9,7 @@ before_install:
 - npm install
 - bower install
 script: 
-- grunt
-- karma start --single-run
+- grunt travis
 branches:
   only:
     - master

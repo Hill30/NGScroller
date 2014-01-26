@@ -24,6 +24,12 @@ module.exports = (grunt) ->
 					keepalive: true
 					port: 8081
 					runnerPort: 9100
+			travis:
+				options:
+					colors: true
+					configFile: './test/karma.conf.js'
+					runnerPort: 9100
+					singleRun: true
 
 
 		# Starts a web server
@@ -38,4 +44,8 @@ module.exports = (grunt) ->
 
 	grunt.registerTask 'test', [
 		'karma:unit'
+	]
+
+	grunt.registerTask 'travis', [
+		'karma:travis'
 	]
