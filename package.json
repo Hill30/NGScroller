@@ -1,43 +1,42 @@
 {
-  "name": "sb-tran",
-  "description": "Swingbyte strings translator",
+  "name": "ng-scroll",
+  "description": "bidirectional infinite scroll",
   "version": "0.1.0",
   "src": "./src/",
   "public": "./public/",
-  "main": "./server.coffee",
-  "homepage": "sb-tran.herokuapp.com",
+  "homepage": "https://github.com/Hill30/NGScroller",
   "author": {
-    "name": "pboettcher",
-    "email": "pboettcher@hill30.com"
+    "name": "Michael Feingold",
+    "email": "mfeingold@hill30.com"
   },
   "repository": {
     "type": "git",
-    "url": "git://heroku.com/sb-tran.git"
+    "url": "https://github.com/Hill30/NGScroller.git"
   },
   "bugs": {
-    "url": ""
+    "url": "https://github.com/Hill30/NGScroller/issues"
   },
   "licenses": [
     {
       "type": "MIT",
-      "url": "sb-tran.herokuapp.com/blob/master/LICENSE-MIT"
+      "url": "https://github.com/Hill30/NGScroller/blob/master/LICENSE-MIT"
     }
   ],
-  "dependencies": {
-      "express": "~3.0.0",
-      "grunt": "~0.3.12",
-      "grunt-hustler": "~0.5.5",
-      "grunt-less": "0.1.5"
-  },
-  "engine": "server >= 0.8.1",
-  "engines": {
-    "node": ">= 0.6.0"
-  },
   "scripts": {
     "test": "grunt test"
   },
   "devDependencies": {
-    "grunt": "~0.3.17"
+	  "grunt": "~0.4.1",
+	  "grunt-contrib-connect": "~0.5.0",
+	  "grunt-contrib-watch": "~0.5.3",
+	  "coffee-script": "~1.6.3",
+	  "express": "~3.4.1",
+	  "karma": "~0.10",
+	  "karma-coffee-preprocessor": "~0.1",
+	  "karma-chrome-launcher":"~0.1",
+	  "karma-ie-launcher": "~0.1",
+	  "karma-jasmine": "~0.1",
+	  "grunt-karma": "~0.7.0"
   },
   "keywords": []
 }
