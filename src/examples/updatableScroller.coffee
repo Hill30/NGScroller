@@ -50,5 +50,5 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 angular.bootstrap(document, ["application"])
 
 ###
-//# sourceURL=src/scripts/application.js
+//# sourceURL=src/scripts/updatableScroller.js
 ###
