@@ -34,6 +34,12 @@ angular.module('ui.scroll', [])
 				compile: (elementTemplate, attr, linker) ->
 					($scope, element, $attr, controllers) ->
 
+						log = (message) ->
+							if console.debug
+								console.debug message
+							else
+								console.log message
+
 						match = $attr.ngScroll.match /^\s*(\w+)\s+in\s+(\w+)\s*$/
 						if !match
 							throw new Error "Expected ngScroll in form of '_item_ in _datasource_' but got '#{$attr.ngScroll}'"
@@ -189,7 +195,7 @@ angular.module('ui.scroll', [])
 								adapter.bottomPadding(adapter.bottomPadding() + bottomHeight)
 								removeFromBuffer(buffer.length - overage, buffer.length)
 								next -= overage
-								console.log "clipped off bottom #{overage} bottom padding #{adapter.bottomPadding()}"
+								log "clipped off bottom #{overage} bottom padding #{adapter.bottomPadding()}"
 
 						shouldLoadTop = ->
 							!bof && (adapter.topDataPos() > topVisiblePos() - bufferPadding())
@@ -210,7 +216,7 @@ angular.module('ui.scroll', [])
 								adapter.topPadding(adapter.topPadding() + topHeight)
 								removeFromBuffer(0, overage)
 								first += overage
-								console.log "clipped off top #{overage} top padding #{adapter.topPadding()}"
+								log "clipped off top #{overage} top padding #{adapter.topPadding()}"
 
 						enqueueFetch = (direction, scrolling)->
 							if (!isLoading)
@@ -260,7 +266,7 @@ angular.module('ui.scroll', [])
 
 						adjustBuffer = (scrolling, newItems, finalize)->
 							doAdjustment = ->
-								console.log "top {actual=#{adapter.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{adapter.bottomDataPos()}}"
+								log "top {actual=#{adapter.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{adapter.bottomDataPos()}}"
 								if shouldLoadBottom()
 									enqueueFetch(true, scrolling)
 								else
@@ -295,43 +301,43 @@ angular.module('ui.scroll', [])
 
 						fetch = (scrolling) ->
 							direction = pending[0]
-							#console.log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
+							#log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
 							if direction
 								if buffer.length && !shouldLoadBottom()
 									finalize(scrolling)
 								else
-									#console.log "appending... requested #{bufferSize} records starting from #{next}"
+									#log "appending... requested #{bufferSize} records starting from #{next}"
 									datasource.get next, bufferSize,
 									(result) ->
 										newItems = []
 										if result.length == 0
 											eof = true
 											adapter.bottomPadding(0)
-											console.log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
+											log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
 										else
 											clipTop()
 											for item in result
 												newItems.push (insert ++next, item)
-											console.log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+											log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize(scrolling, newItems)
 
 							else
 								if buffer.length && !shouldLoadTop()
 									finalize(scrolling)
 								else
-									#console.log "prepending... requested #{size} records starting from #{start}"
+									#log "prepending... requested #{size} records starting from #{start}"
 									datasource.get first-bufferSize, bufferSize,
 									(result) ->
 										newItems = []
 										if result.length == 0
 											bof = true
 											adapter.topPadding(0)
-											console.log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
+											log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
 										else
 											clipBottom() if buffer.length
 											for i in [result.length-1..0]
 												newItems.unshift (insert --first, result[i])
-											console.log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+											log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize(scrolling, newItems)
 
 						resizeHandler = ->
