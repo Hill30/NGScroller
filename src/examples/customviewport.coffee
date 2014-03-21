@@ -18,7 +18,3 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 
 		])
 angular.bootstrap(document, ["application"])
-
-###
-//# sourceURL=src/scripts/windowviewport.js
-###
