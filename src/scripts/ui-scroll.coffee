@@ -34,11 +34,7 @@ angular.module('ui.scroll', [])
 				compile: (elementTemplate, attr, linker) ->
 					($scope, element, $attr, controllers) ->
 
-						log = (message) ->
-							if console.debug
-								console.debug message
-							else
-								console.log message
+						log = console.debug || console.log
 
 						match = $attr.ngScroll.match /^\s*(\w+)\s+in\s+(\w+)\s*$/
 						if !match
