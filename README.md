@@ -152,3 +152,12 @@ Once the first breakpoint set up this way is hit, the rest of them will work jus
 
 Do not ask me why this woodoo is necessary, but as of Chrome version 30 it is just the way it is.
 
+###History
+
+####v0.1.*
+
+Introduced `is-loading` and `top-visible-*` attributes. Stramlined and added a few more usage examples
+
+####v0.0.*
+
+Initial commit including ngScroll, ngScrollViewPort directives and usage examples
