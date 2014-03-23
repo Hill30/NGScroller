@@ -4,6 +4,7 @@ module.exports = (grunt) ->
 	grunt.loadNpmTasks 'grunt-karma'
 	grunt.loadNpmTasks 'grunt-contrib-connect'
 	grunt.loadNpmTasks 'grunt-contrib-watch'
+	grunt.loadNpmTasks 'grunt-contrib-coffee'
 
 	grunt.initConfig
 		connect:
@@ -31,6 +32,20 @@ module.exports = (grunt) ->
 					runnerPort: 9100
 					singleRun: true
 
+		# Compile CoffeeScript (.coffee) files to JavaScript (.js).
+		coffee:
+			build:
+				files: [
+					cwd: './src'
+					src: 'scripts/**/*.coffee'
+					dest: './build/'
+					expand: true
+					ext: '.js'
+				]
+				options:
+					bare: true
+					#sourceMap: true
+
 
 		# Starts a web server
 		# Enter the following command at the command line to execute this task:
@@ -45,6 +60,8 @@ module.exports = (grunt) ->
 	grunt.registerTask 'test', [
 		'karma:unit'
 	]
+
+	grunt.registerTask 'build', ['coffee:build']
 
 	grunt.registerTask 'travis', [
 		'karma:travis'
