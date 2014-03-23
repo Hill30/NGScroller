@@ -31,7 +31,6 @@
 	  "grunt-contrib-watch": "~0.5.3",
 	  "coffee-script": "~1.6.3",
 	  "express": "~3.4.1",
-	  "karma": "~0.11",
 	  "karma-coffee-preprocessor": "~0.1",
 	  "karma-firefox-launcher":"~0.1",
 	  "karma-chrome-launcher":"~0.1",
