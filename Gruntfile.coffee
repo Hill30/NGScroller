@@ -5,6 +5,7 @@ module.exports = (grunt) ->
 	grunt.loadNpmTasks 'grunt-contrib-connect'
 	grunt.loadNpmTasks 'grunt-contrib-watch'
 	grunt.loadNpmTasks 'grunt-contrib-coffee'
+	grunt.loadNpmTasks 'grunt-contrib-jshint'
 
 	grunt.initConfig
 		connect:
@@ -31,6 +32,12 @@ module.exports = (grunt) ->
 					configFile: './test/karma.conf.js'
 					runnerPort: 9100
 					singleRun: true
+
+		jshint:
+			src:
+				files:
+					src: ['./build/**/*.js']
+				options: jshintrc: '.jshintrc'
 
 		# Compile CoffeeScript (.coffee) files to JavaScript (.js).
 		coffee:
@@ -61,7 +68,7 @@ module.exports = (grunt) ->
 		'karma:unit'
 	]
 
-	grunt.registerTask 'build', ['coffee:build']
+	grunt.registerTask 'build', ['coffee:build', 'jshint']
 
 	grunt.registerTask 'travis', [
 		'karma:travis'

@@ -156,10 +156,10 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 				outerHeight: (option) ->
 					getWidthHeight(this[0], 'height', if option then 'outerfull' else 'outer')
 
-###
-  NGScroller no longer relies on jQuery method offset. The jQLite implementation of the method
-  is kept here just for the reference. Also the offset setter method was never implemented
-###
+				###
+				  NGScroller no longer relies on jQuery method offset. The jQLite implementation of the method
+				  is kept here just for the reference. Also the offset setter method was never implemented
+				###
 
 				offset: (value)->
 					self = this
