@@ -45,7 +45,7 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 					getStyle = (elem) -> elem.currentStyle
 					convertToPx = (elem, value) ->
 						core_pnum = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source
-						rnumnonpx = new RegExp( "^(" + core_pnum + ")(?!px)[a-z%]+$", "i" )
+						rnumnonpx = new RegExp( '^(' + core_pnum + ')(?!px)[a-z%]+$', 'i' )
 						if !rnumnonpx.test(value)
 							parseFloat value
 						else
@@ -157,8 +157,8 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 					getWidthHeight(this[0], 'height', if option then 'outerfull' else 'outer')
 
 				###
-				  NGScroller no longer relies on jQuery method offset. The jQLite implementation of the method
-				  is kept here just for the reference. Also the offset setter method was never implemented
+NGScroller no longer relies on jQuery method offset. The jQLite implementation of the method
+is kept here just for the reference. Also the offset setter method was never implemented
 				###
 
 				offset: (value)->

@@ -6,6 +6,7 @@ module.exports = (grunt) ->
 	grunt.loadNpmTasks 'grunt-contrib-watch'
 	grunt.loadNpmTasks 'grunt-contrib-coffee'
 	grunt.loadNpmTasks 'grunt-contrib-jshint'
+	grunt.loadNpmTasks 'grunt-contrib-concat'
 
 	grunt.initConfig
 		connect:
@@ -13,7 +14,7 @@ module.exports = (grunt) ->
 				options:
 					base: './src/'
 					middleware: require './server/middleware'
-					port: 5000
+					port: 5001
 		watch:
 			options:
 				livereload: false
@@ -33,19 +34,13 @@ module.exports = (grunt) ->
 					runnerPort: 9100
 					singleRun: true
 
-		jshint:
-			src:
-				files:
-					src: ['./build/**/*.js']
-				options: jshintrc: '.jshintrc'
-
-		# Compile CoffeeScript (.coffee) files to JavaScript (.js).
+		# transpile CoffeeScript (.coffee) files to JavaScript (.js).
 		coffee:
 			build:
 				files: [
 					cwd: './src'
 					src: 'scripts/**/*.coffee'
-					dest: './build/'
+					dest: './temp/'
 					expand: true
 					ext: '.js'
 				]
@@ -53,6 +48,26 @@ module.exports = (grunt) ->
 					bare: true
 					#sourceMap: true
 
+		#prepend 'use strict' to the files
+		concat:
+		#usestrict:
+			options:
+				banner: "'use strict';\n"
+			dynamic_mappings:
+				files: [{
+								expand: true
+								cwd: './temp'
+								src: ['**/*.js']
+								dest: 'build/'
+								ext: '.js'
+								}]
+
+		# run the linter
+		jshint:
+			src:
+				files:
+					src: ['./build/**/*.js']
+				options: jshintrc: '.jshintrc'
 
 		# Starts a web server
 		# Enter the following command at the command line to execute this task:
@@ -68,7 +83,7 @@ module.exports = (grunt) ->
 		'karma:unit'
 	]
 
-	grunt.registerTask 'build', ['coffee:build', 'jshint']
+	grunt.registerTask 'build', ['coffee:build', 'concat', 'jshint']
 
 	grunt.registerTask 'travis', [
 		'karma:travis'

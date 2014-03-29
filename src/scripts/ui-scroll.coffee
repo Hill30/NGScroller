@@ -15,7 +15,7 @@ angular.module('ui.scroll', [])
 
 	.directive( 'ngScrollViewport'
 		[ '$log'
-			(console) ->
+			 ->
 				controller:
 					[ '$scope', '$element'
 						(scope, element) -> element
@@ -393,18 +393,19 @@ angular.module('ui.scroll', [])
 						eventListener.$on "insert.item", (event, locator, item)->
 							inserted = []
 							if angular.isFunction locator
-								temp = []
-								temp.unshift item for item in buffer
-								((wrapper)->
-									if newItems = locator wrapper.scope
-										insert = (index, newItem) ->
-											insert index, item
-											next++
-										if isArray newItems
-											inserted.push(insert i+j, item) for item,j in newitems
-										else
-											inserted.push (insert i, newItems)
-								) wrapper for wrapper,i in temp
+#								temp = []
+#								temp.unshift item for item in buffer
+#								((wrapper)->
+#									if newItems = locator wrapper.scope
+#										insert = (index, newItem) ->
+#											insert index, newItem
+#											next++
+#										if isArray newItems
+#											inserted.push(insert i+j, item) for item,j in newitems
+#										else
+#											inserted.push (insert i, newItems)
+#								) wrapper for wrapper,i in temp
+								throw new Error('not implemented - Insert with locator function')
 							else
 								if 0 <= locator-first-1 < buffer.length
 									inserted.push (insert locator, item)
