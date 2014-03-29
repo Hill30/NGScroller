@@ -15,7 +15,7 @@ angular.module('ui.scroll', [])
 
 	.directive( 'ngScrollViewport'
 		[ '$log'
-			 ->
+			 () ->
 				controller:
 					[ '$scope', '$element'
 						(scope, element) -> element
