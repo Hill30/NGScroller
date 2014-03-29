@@ -202,7 +202,6 @@ describe('uiScroll', function () {
 		var html = '<div ng-scroll="item in AnotherDatasource">{{$index}}: {{item}}</div>';
 
 		it('should create 3 divs with data (+ 2 padding divs)', function() {
-			debugger
 			runTest(html,
 				function($window, sandbox) {
 					expect(sandbox.children().length).toBe(5);
