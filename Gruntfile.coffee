@@ -83,7 +83,7 @@ module.exports = (grunt) ->
 		'karma:unit'
 	]
 
-	grunt.registerTask 'build', ['coffee:build', 'concat', 'jshint']
+	grunt.registerTask 'build', ['karma:travis', 'coffee:build', 'concat', 'jshint']
 
 	grunt.registerTask 'travis', [
 		'karma:travis'
