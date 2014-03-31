@@ -53,6 +53,20 @@ module.exports = (grunt) ->
 		#usestrict:
 			options:
 				banner: "'use strict';\n"
+				process: (src, filepath) ->
+					console.log("Processing #{filepath} ...")
+
+					strings = /("(?:(?:\\")|[^"])*")/g
+					singleQuotes = /'/g
+
+					src.replace(strings,
+						(match) ->
+							console.log("match: " + match)
+							result = "'" + match.substring(1, match.length-1).replace(singleQuotes, "\\'") + "'"
+							console.log "replaced with: " + result
+							result
+					)
+
 			dynamic_mappings:
 				files: [{
 								expand: true
