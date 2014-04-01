@@ -24,8 +24,8 @@ angular.module('ui.scroll', [])
 		])
 
 	.directive( 'ngScroll'
-		[ '$log', '$injector', '$rootScope', '$timeout'
-			(console, $injector, $rootScope, $timeout) ->
+		[ '$log', '$injector', '$rootScope', '$q', '$timeout'
+			(console, $injector, $rootScope, $q, $timeout) ->
 				require: ['?^ngScrollViewport']
 				transclude: 'element'
 				priority: 1000
@@ -140,7 +140,8 @@ angular.module('ui.scroll', [])
 						first = 1
 						next = 1
 						buffer = []
-						pending = []
+						requestQueue = []
+						pendingRequest = $q.defer()
 						eof = false
 						bof = false
 						isLoading = false
@@ -158,7 +159,8 @@ angular.module('ui.scroll', [])
 							removeFromBuffer(0, buffer.length)
 							adapter.topPadding(0)
 							adapter.bottomPadding(0)
-							pending = []
+							requestQueue = []
+							pendingRequest.reject('reloading')
 							eof = false
 							bof = false
 							adjustBuffer(false)
@@ -218,7 +220,7 @@ angular.module('ui.scroll', [])
 							if (!isLoading)
 								isLoading = true
 								loading(true)
-							if pending.push(direction) == 1
+							if requestQueue.push(direction) == 1
 								fetch(scrolling)
 
 						insert = (index, item) ->
@@ -268,7 +270,7 @@ angular.module('ui.scroll', [])
 								else
 									enqueueFetch(false, scrolling) if shouldLoadTop()
 								finalize() if finalize
-								if pending.length == 0
+								if requestQueue.length == 0
 									topHeight = 0
 									for item in buffer
 										itemHeight = item.element.outerHeight(true)
@@ -288,53 +290,63 @@ angular.module('ui.scroll', [])
 
 						finalize = (scrolling, newItems)->
 							adjustBuffer scrolling, newItems, ->
-								pending.shift()
-								if pending.length == 0
+								requestQueue.shift()
+								if requestQueue.length == 0
 									isLoading = false
 									loading(false)
 								else
 									fetch(scrolling)
 
 						fetch = (scrolling) ->
-							direction = pending[0]
-							#log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
+							direction = requestQueue[0]
+							#log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} requestQueue #{requestQueue.length}"
 							if direction
 								if buffer.length && !shouldLoadBottom()
 									finalize(scrolling)
 								else
 									#log "appending... requested #{bufferSize} records starting from #{next}"
+									pendingRequest = $q.defer()
+									pendingRequest.promise.then(
+										(result) ->
+											newItems = []
+											if result.length == 0
+												eof = true
+												adapter.bottomPadding(0)
+												log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
+											else
+												clipTop()
+												for item in result
+													newItems.push (insert ++next, item)
+												log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+											finalize(scrolling, newItems)
+									)
 									datasource.get next, bufferSize,
-									(result) ->
-										newItems = []
-										if result.length == 0
-											eof = true
-											adapter.bottomPadding(0)
-											log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
-										else
-											clipTop()
-											for item in result
-												newItems.push (insert ++next, item)
-											log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize(scrolling, newItems)
+										(result) ->
+											pendingRequest.resolve(result)
 
 							else
 								if buffer.length && !shouldLoadTop()
 									finalize(scrolling)
 								else
 									#log "prepending... requested #{size} records starting from #{start}"
+									pendingRequest = $q.defer()
+									pendingRequest.promise.then(
+										(result) ->
+											newItems = []
+											if result.length == 0
+												bof = true
+												adapter.topPadding(0)
+												log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
+											else
+												clipBottom() if buffer.length
+												for i in [result.length-1..0]
+													newItems.unshift (insert --first, result[i])
+												log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+											finalize(scrolling, newItems)
+									)
 									datasource.get first-bufferSize, bufferSize,
-									(result) ->
-										newItems = []
-										if result.length == 0
-											bof = true
-											adapter.topPadding(0)
-											log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
-										else
-											clipBottom() if buffer.length
-											for i in [result.length-1..0]
-												newItems.unshift (insert --first, result[i])
-											log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize(scrolling, newItems)
+										(result) ->
+											pendingRequest.resolve(result)
 
 						resizeHandler = ->
 							if !$rootScope.$$phase && !isLoading
