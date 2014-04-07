@@ -141,10 +141,11 @@ angular.module('ui.scroll', [])
 						next = 1
 						buffer = []
 						requestQueue = []
-						pendingRequest = $q.defer()
 						eof = false
 						bof = false
 						isLoading = false
+
+						revision = datasource.revision || ->
 
 						#removes items from start (including) through stop (excluding)
 						removeFromBuffer = (start, stop)->
@@ -160,7 +161,6 @@ angular.module('ui.scroll', [])
 							adapter.topPadding(0)
 							adapter.bottomPadding(0)
 							requestQueue = []
-							pendingRequest.reject('reloading')
 							eof = false
 							bof = false
 							adjustBuffer(false)
@@ -299,54 +299,50 @@ angular.module('ui.scroll', [])
 
 						fetch = (scrolling) ->
 							direction = requestQueue[0]
-							#log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} requestQueue #{requestQueue.length}"
+							currentRevision = revision()
+							#log "fetching rev #{currentRevision}"
+							#log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} requestQueue #{requestQueue.length} index #{{true:next, false: first-bufferSize}[direction]}} "
 							if direction
 								if buffer.length && !shouldLoadBottom()
 									finalize(scrolling)
 								else
 									#log "appending... requested #{bufferSize} records starting from #{next}"
-									pendingRequest = $q.defer()
-									pendingRequest.promise.then(
-										(result) ->
-											newItems = []
-											if result.length == 0
-												eof = true
-												adapter.bottomPadding(0)
-												log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
-											else
-												clipTop()
-												for item in result
-													newItems.push (insert ++next, item)
-												log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-											finalize(scrolling, newItems)
-									)
 									datasource.get next, bufferSize,
 										(result) ->
-											pendingRequest.resolve(result)
+											#log "finalizing fetch #{currentRevision} for revision #{revision()}"
+											if currentRevision is revision()
+												newItems = []
+												if result.length == 0
+													eof = true
+													adapter.bottomPadding(0)
+													log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
+												else
+													clipTop()
+													for item in result
+														newItems.push (insert ++next, item)
+													log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+												finalize(scrolling, newItems)
 
 							else
 								if buffer.length && !shouldLoadTop()
 									finalize(scrolling)
 								else
 									#log "prepending... requested #{size} records starting from #{start}"
-									pendingRequest = $q.defer()
-									pendingRequest.promise.then(
-										(result) ->
-											newItems = []
-											if result.length == 0
-												bof = true
-												adapter.topPadding(0)
-												log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
-											else
-												clipBottom() if buffer.length
-												for i in [result.length-1..0]
-													newItems.unshift (insert --first, result[i])
-												log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-											finalize(scrolling, newItems)
-									)
 									datasource.get first-bufferSize, bufferSize,
 										(result) ->
-											pendingRequest.resolve(result)
+											#log "finalizing fetch #{currentRevision} for revision #{revision()}"
+											if currentRevision is revision()
+												newItems = []
+												if result.length == 0
+													bof = true
+													adapter.topPadding(0)
+													log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
+												else
+													clipBottom() if buffer.length
+													for i in [result.length-1..0]
+														newItems.unshift (insert --first, result[i])
+													log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+												finalize(scrolling, newItems)
 
 						resizeHandler = ->
 							if !$rootScope.$$phase && !isLoading
@@ -362,8 +358,7 @@ angular.module('ui.scroll', [])
 
 						viewport.bind 'scroll', scrollHandler
 
-						$scope.$watch datasource.revision,
-							-> reload()
+						$scope.$watch datasource.revision, -> reload()
 
 						if datasource.scope
 							eventListener = datasource.scope.$new()

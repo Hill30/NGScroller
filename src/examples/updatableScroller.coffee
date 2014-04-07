@@ -10,13 +10,17 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 			$timeout(
 					->
 						result = []
-						if index > 100000
+
+						start = Math.max(1, index)
+						end = Math.min(index + count-1, 100)
+
+						if start > end
 							success []
 						else
 							for i in [index..index + count-1]
 								result.push "item r#{current} ##{i}"
 							success(result)
-					100
+					1000
 				)
 
 		current = 0
