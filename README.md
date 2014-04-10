@@ -156,7 +156,7 @@ Do not ask me why this woodoo is necessary, but as of Chrome version 30 it is ju
 
 ####v0.1.*
 
-Introduced `is-loading` and `top-visible-*` attributes. Stramlined and added a few more usage examples
+Introduced `is-loading` and `top-visible-*` attributes. Streamlined and added a few more usage examples
 
 ####v0.0.*
 
