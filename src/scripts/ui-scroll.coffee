@@ -137,6 +137,7 @@ angular.module('ui.scroll', [])
 							loading = (value) ->
 								datasource.loading(value) if datasource.loading
 
+						ridActual = 0
 						first = 1
 						next = 1
 						buffer = []
@@ -153,6 +154,7 @@ angular.module('ui.scroll', [])
 							buffer.splice start, stop - start
 
 						reload = ->
+							ridActual++
 							first = 1
 							next = 1
 							removeFromBuffer(0, buffer.length)
@@ -161,7 +163,7 @@ angular.module('ui.scroll', [])
 							pending = []
 							eof = false
 							bof = false
-							adjustBuffer(false)
+							adjustBuffer(ridActual, false)
 
 						bottomVisiblePos = ->
 							viewport.scrollTop() + viewport.height()
@@ -214,12 +216,12 @@ angular.module('ui.scroll', [])
 								first += overage
 								log "clipped off top #{overage} top padding #{adapter.topPadding()}"
 
-						enqueueFetch = (direction, scrolling)->
+						enqueueFetch = (rid, direction, scrolling)->
 							if (!isLoading)
 								isLoading = true
 								loading(true)
 							if pending.push(direction) == 1
-								fetch(scrolling)
+								fetch(rid, scrolling)
 
 						insert = (index, item) ->
 							itemScope = $scope.$new()
@@ -260,14 +262,14 @@ angular.module('ui.scroll', [])
 									# if not, increment scrollTop
 									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
 
-						adjustBuffer = (scrolling, newItems, finalize)->
+						adjustBuffer = (rid, scrolling, newItems, finalize)->
 							doAdjustment = ->
 								log "top {actual=#{adapter.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{adapter.bottomDataPos()}}"
 								if shouldLoadBottom()
-									enqueueFetch(true, scrolling)
+									enqueueFetch(rid, true, scrolling)
 								else
-									enqueueFetch(false, scrolling) if shouldLoadTop()
-								finalize() if finalize
+									enqueueFetch(rid, false, scrolling) if shouldLoadTop()
+								finalize(rid) if finalize
 								if pending.length == 0
 									topHeight = 0
 									for item in buffer
@@ -286,66 +288,68 @@ angular.module('ui.scroll', [])
 							else
 								doAdjustment()
 
-						finalize = (scrolling, newItems)->
-							adjustBuffer scrolling, newItems, ->
+						finalize = (rid, scrolling, newItems)->
+							adjustBuffer rid, scrolling, newItems, ->
 								pending.shift()
 								if pending.length == 0
 									isLoading = false
 									loading(false)
 								else
-									fetch(scrolling)
+									fetch(rid, scrolling)
 
-						fetch = (scrolling) ->
+						fetch = (rid, scrolling) ->
 							direction = pending[0]
 							#log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
 							if direction
 								if buffer.length && !shouldLoadBottom()
-									finalize(scrolling)
+									finalize(rid, scrolling)
 								else
 									#log "appending... requested #{bufferSize} records starting from #{next}"
 									datasource.get next, bufferSize,
 									(result) ->
+										return if rid isnt ridActual
 										newItems = []
 										if result.length == 0
 											eof = true
 											adapter.bottomPadding(0)
-											log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
+											#log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
 										else
 											clipTop()
 											for item in result
 												newItems.push (insert ++next, item)
-											log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize(scrolling, newItems)
+										#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+										finalize(rid, scrolling, newItems)
 
 							else
 								if buffer.length && !shouldLoadTop()
-									finalize(scrolling)
+									finalize(rid, scrolling)
 								else
 									#log "prepending... requested #{size} records starting from #{start}"
 									datasource.get first-bufferSize, bufferSize,
 									(result) ->
+										return if rid isnt ridActual
 										newItems = []
 										if result.length == 0
 											bof = true
 											adapter.topPadding(0)
-											log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
+											#log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
 										else
 											clipBottom() if buffer.length
 											for i in [result.length-1..0]
 												newItems.unshift (insert --first, result[i])
-											log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize(scrolling, newItems)
+										#log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+										finalize(rid, scrolling, newItems)
 
 						resizeHandler = ->
 							if !$rootScope.$$phase && !isLoading
-								adjustBuffer(false)
+								adjustBuffer(null, false)
 								$scope.$apply()
 
 						viewport.bind 'resize', resizeHandler
 
 						scrollHandler = ->
 							if !$rootScope.$$phase && !isLoading
-								adjustBuffer(true)
+								adjustBuffer(null, true)
 								$scope.$apply()
 
 						viewport.bind 'scroll', scrollHandler
@@ -388,7 +392,7 @@ angular.module('ui.scroll', [])
 									next--
 
 							item.scope.$index = first + i for item,i in buffer
-							adjustBuffer(false)
+							adjustBuffer(null, false)
 
 						eventListener.$on "insert.item", (event, locator, item)->
 							inserted = []
@@ -412,7 +416,7 @@ angular.module('ui.scroll', [])
 									next++
 
 							item.scope.$index = first + i for item,i in buffer
-							adjustBuffer(false, inserted)
+							adjustBuffer(null, false, inserted)
 
 		])
 
