@@ -317,7 +317,7 @@ angular.module('ui.scroll', [])
 											clipTop()
 											for item in result
 												newItems.push (insert ++next, item)
-										#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+											#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize(rid, scrolling, newItems)
 
 							else
@@ -337,7 +337,7 @@ angular.module('ui.scroll', [])
 											clipBottom() if buffer.length
 											for i in [result.length-1..0]
 												newItems.unshift (insert --first, result[i])
-										#log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+											#log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize(rid, scrolling, newItems)
 
 						resizeHandler = ->
