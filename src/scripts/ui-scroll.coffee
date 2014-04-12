@@ -24,8 +24,8 @@ angular.module('ui.scroll', [])
 		])
 
 	.directive( 'ngScroll'
-		[ '$log', '$injector', '$rootScope', '$q', '$timeout'
-			(console, $injector, $rootScope, $q, $timeout) ->
+		[ '$log', '$injector', '$rootScope', '$timeout'
+			(console, $injector, $rootScope, $timeout) ->
 				require: ['?^ngScrollViewport']
 				transclude: 'element'
 				priority: 1000
@@ -137,15 +137,14 @@ angular.module('ui.scroll', [])
 							loading = (value) ->
 								datasource.loading(value) if datasource.loading
 
+						ridActual = 0
 						first = 1
 						next = 1
 						buffer = []
-						requestQueue = []
+						pending = []
 						eof = false
 						bof = false
 						isLoading = false
-
-						revision = datasource.revision || ->
 
 						#removes items from start (including) through stop (excluding)
 						removeFromBuffer = (start, stop)->
@@ -155,15 +154,16 @@ angular.module('ui.scroll', [])
 							buffer.splice start, stop - start
 
 						reload = ->
+							ridActual++
 							first = 1
 							next = 1
 							removeFromBuffer(0, buffer.length)
 							adapter.topPadding(0)
 							adapter.bottomPadding(0)
-							requestQueue = []
+							pending = []
 							eof = false
 							bof = false
-							adjustBuffer(false)
+							adjustBuffer(ridActual, false)
 
 						bottomVisiblePos = ->
 							viewport.scrollTop() + viewport.height()
@@ -216,12 +216,12 @@ angular.module('ui.scroll', [])
 								first += overage
 								log "clipped off top #{overage} top padding #{adapter.topPadding()}"
 
-						enqueueFetch = (direction, scrolling)->
+						enqueueFetch = (rid, direction, scrolling)->
 							if (!isLoading)
 								isLoading = true
 								loading(true)
-							if requestQueue.push(direction) == 1
-								fetch(scrolling)
+							if pending.push(direction) == 1
+								fetch(rid, scrolling)
 
 						insert = (index, item) ->
 							itemScope = $scope.$new()
@@ -262,15 +262,15 @@ angular.module('ui.scroll', [])
 									# if not, increment scrollTop
 									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
 
-						adjustBuffer = (scrolling, newItems, finalize)->
+						adjustBuffer = (rid, scrolling, newItems, finalize)->
 							doAdjustment = ->
 								log "top {actual=#{adapter.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{adapter.bottomDataPos()}}"
 								if shouldLoadBottom()
-									enqueueFetch(true, scrolling)
+									enqueueFetch(rid, true, scrolling)
 								else
-									enqueueFetch(false, scrolling) if shouldLoadTop()
-								finalize() if finalize
-								if requestQueue.length == 0
+									enqueueFetch(rid, false, scrolling) if shouldLoadTop()
+								finalize(rid) if finalize
+								if pending.length == 0
 									topHeight = 0
 									for item in buffer
 										itemHeight = item.element.outerHeight(true)
@@ -288,77 +288,74 @@ angular.module('ui.scroll', [])
 							else
 								doAdjustment()
 
-						finalize = (scrolling, newItems)->
-							adjustBuffer scrolling, newItems, ->
-								requestQueue.shift()
-								if requestQueue.length == 0
+						finalize = (rid, scrolling, newItems)->
+							adjustBuffer rid, scrolling, newItems, ->
+								pending.shift()
+								if pending.length == 0
 									isLoading = false
 									loading(false)
 								else
-									fetch(scrolling)
+									fetch(rid, scrolling)
 
-						fetch = (scrolling) ->
-							direction = requestQueue[0]
-							currentRevision = revision()
-							#log "fetching rev #{currentRevision}"
-							#log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} requestQueue #{requestQueue.length} index #{{true:next, false: first-bufferSize}[direction]}} "
+						fetch = (rid, scrolling) ->
+							direction = pending[0]
+							#log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
 							if direction
 								if buffer.length && !shouldLoadBottom()
-									finalize(scrolling)
+									finalize(rid, scrolling)
 								else
 									#log "appending... requested #{bufferSize} records starting from #{next}"
 									datasource.get next, bufferSize,
-										(result) ->
-											#log "finalizing fetch #{currentRevision} for revision #{revision()}"
-											if currentRevision is revision()
-												newItems = []
-												if result.length == 0
-													eof = true
-													adapter.bottomPadding(0)
-													log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
-												else
-													clipTop()
-													for item in result
-														newItems.push (insert ++next, item)
-													log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-												finalize(scrolling, newItems)
+									(result) ->
+										return if rid isnt ridActual
+										newItems = []
+										if result.length == 0
+											eof = true
+											adapter.bottomPadding(0)
+											#log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
+										else
+											clipTop()
+											for item in result
+												newItems.push (insert ++next, item)
+											#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+										finalize(rid, scrolling, newItems)
 
 							else
 								if buffer.length && !shouldLoadTop()
-									finalize(scrolling)
+									finalize(rid, scrolling)
 								else
 									#log "prepending... requested #{size} records starting from #{start}"
 									datasource.get first-bufferSize, bufferSize,
-										(result) ->
-											#log "finalizing fetch #{currentRevision} for revision #{revision()}"
-											if currentRevision is revision()
-												newItems = []
-												if result.length == 0
-													bof = true
-													adapter.topPadding(0)
-													log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
-												else
-													clipBottom() if buffer.length
-													for i in [result.length-1..0]
-														newItems.unshift (insert --first, result[i])
-													log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-												finalize(scrolling, newItems)
+									(result) ->
+										return if rid isnt ridActual
+										newItems = []
+										if result.length == 0
+											bof = true
+											adapter.topPadding(0)
+											#log "prepended: requested #{bufferSize} records starting from #{first-bufferSize} recieved: bof"
+										else
+											clipBottom() if buffer.length
+											for i in [result.length-1..0]
+												newItems.unshift (insert --first, result[i])
+											#log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+										finalize(rid, scrolling, newItems)
 
 						resizeHandler = ->
 							if !$rootScope.$$phase && !isLoading
-								adjustBuffer(false)
+								adjustBuffer(null, false)
 								$scope.$apply()
 
 						viewport.bind 'resize', resizeHandler
 
 						scrollHandler = ->
 							if !$rootScope.$$phase && !isLoading
-								adjustBuffer(true)
+								adjustBuffer(null, true)
 								$scope.$apply()
 
 						viewport.bind 'scroll', scrollHandler
 
-						$scope.$watch datasource.revision, -> reload()
+						$scope.$watch datasource.revision,
+							-> reload()
 
 						if datasource.scope
 							eventListener = datasource.scope.$new()
@@ -395,7 +392,7 @@ angular.module('ui.scroll', [])
 									next--
 
 							item.scope.$index = first + i for item,i in buffer
-							adjustBuffer(false)
+							adjustBuffer(null, false)
 
 						eventListener.$on "insert.item", (event, locator, item)->
 							inserted = []
@@ -419,7 +416,7 @@ angular.module('ui.scroll', [])
 									next++
 
 							item.scope.$index = first + i for item,i in buffer
-							adjustBuffer(false, inserted)
+							adjustBuffer(null, false, inserted)
 
 		])
 
