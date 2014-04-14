@@ -307,7 +307,7 @@ angular.module('ui.scroll', [])
 									#log "appending... requested #{bufferSize} records starting from #{next}"
 									datasource.get next, bufferSize,
 									(result) ->
-										return if rid isnt ridActual
+										return if rid and rid isnt ridActual
 										newItems = []
 										if result.length == 0
 											eof = true
@@ -327,7 +327,7 @@ angular.module('ui.scroll', [])
 									#log "prepending... requested #{size} records starting from #{start}"
 									datasource.get first-bufferSize, bufferSize,
 									(result) ->
-										return if rid isnt ridActual
+										return if rid and rid isnt ridActual
 										newItems = []
 										if result.length == 0
 											bof = true
