@@ -309,17 +309,15 @@ angular.module('ui.scroll', [])
 									(result) ->
 										return if rid and rid isnt ridActual
 										newItems = []
-										if result.length == 0
+										if result.length < bufferSize
 											eof = true
 											adapter.bottomPadding(0)
-											#log "appended: requested #{bufferSize} records starting from #{next} recieved: eof"
-										else
-											clipTop()
-											for item in result
-												newItems.push (insert ++next, item)
-											#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+											#log "eof is reached"
+										clipTop()
+										for item in result
+											newItems.push (insert ++next, item)
+										#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize(rid, scrolling, newItems)
-
 							else
 								if buffer.length && !shouldLoadTop()
 									finalize(rid, scrolling)

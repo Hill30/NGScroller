@@ -95,7 +95,7 @@ describe('uiScroll', function () {
 				}
 			}
 		)
-	}
+	};
 
 	describe('basic setup', function() {
 			var html = '<div ng-scroll="item in myEmptyDatasource">{{$index}}: {{item}}</div>';
@@ -180,17 +180,16 @@ describe('uiScroll', function () {
 			);
 		});
 
-		it('should call get on the datasource 3 times ', function() {
+		it('should call get on the datasource 2 times ', function() {
 			var spy;
 			inject(function(myOnePageDatasource){
 				spy = spyOn(myOnePageDatasource, 'get').andCallThrough();
 			runTest(html,
 				function() {
-					expect(spy.calls.length).toBe(3);
+					expect(spy.calls.length).toBe(2);
 
-					expect(spy.calls[0].args[0]).toBe(1);  // gets 3 rows
-					expect(spy.calls[1].args[0]).toBe(4);  // gets eof
-					expect(spy.calls[2].args[0]).toBe(-9); // gets bof
+					expect(spy.calls[0].args[0]).toBe(1);  // gets 3 rows (with eof)
+					expect(spy.calls[1].args[0]).toBe(-9); // gets bof
 				});
 			});
 
