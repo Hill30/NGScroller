@@ -190,7 +190,7 @@ describe('uiScroll', function () {
 					expect(spy.calls.length).toBe(2);
 
 					expect(spy.calls[0].args[0]).toBe(1);  // gets 3 rows (with eof)
-					expect(spy.calls[1].args[0]).toBe(-9); // gets bof
+					expect(spy.calls[1].args[0]).toBe(-9); // gets 0 rows (and bof)
 				});
 			});
 
@@ -221,17 +221,16 @@ describe('uiScroll', function () {
 			);
 		});
 
-		it('should call get on the datasource 3 times ', function() {
+		it('should call get on the datasource 2 times ', function() {
 			var spy;
 			inject(function(AnotherDatasource){
 				spy = spyOn(AnotherDatasource, 'get').andCallThrough();
 				runTest(html,
 					function() {
-						expect(spy.calls.length).toBe(3);
+						expect(spy.calls.length).toBe(2);
 
-						expect(spy.calls[0].args[0]).toBe(1);  // gets 3 rows
-						expect(spy.calls[1].args[0]).toBe(-9);  // gets eof
-						expect(spy.calls[2].args[0]).toBe(-12); // gets bof
+						expect(spy.calls[0].args[0]).toBe(1);  // gets 0 rows (and eof)
+						expect(spy.calls[1].args[0]).toBe(-9); // gets 3 rows (and bof)
 					});
 			});
 
@@ -521,6 +520,38 @@ describe('uiScroll', function () {
                     expect(spy.calls[1].args[0]).toBe(4);
                     expect(spy.calls[2].args[0]).toBe(-2);
                     expect(spy.calls[3].args[0]).toBe(5);
+
+                }
+            );
+        });
+
+        it('[fold frame, scroll up] should call get on the datasource 1 extra time', function() {
+            var spy, flush;
+            var viewportHeight = buffer * itemHeight;
+
+            inject(function (myEdgeDatasource) {
+                spy = spyOn(myEdgeDatasource, 'get').andCallThrough();
+            });
+            inject(function ($timeout) {
+                flush = $timeout.flush;
+            });
+
+            runTest(makeHtml(viewportHeight),
+                function($window, sandbox) {
+                    var scroller = sandbox.children();
+                    scroller.scrollTop(0);
+                    scroller.trigger('scroll');
+                    flush();
+                    scroller.scrollTop(0);
+                    scroller.trigger('scroll');
+                    expect(flush).toThrow();
+
+                    expect(spy.calls.length).toBe(4);
+
+                    expect(spy.calls[0].args[0]).toBe(1);
+                    expect(spy.calls[1].args[0]).toBe(4);
+                    expect(spy.calls[2].args[0]).toBe(-2);
+                    expect(spy.calls[3].args[0]).toBe(-5);
 
                 }
             );
