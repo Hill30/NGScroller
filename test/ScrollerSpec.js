@@ -517,15 +517,15 @@ describe('uiScroll', function () {
                     expect(spy.calls.length).toBe(4);
 
                     expect(spy.calls[0].args[0]).toBe(1);
-                    expect(spy.calls[1].args[0]).toBe(4);
+                    expect(spy.calls[1].args[0]).toBe(4); //last full
                     expect(spy.calls[2].args[0]).toBe(-2);
-                    expect(spy.calls[3].args[0]).toBe(5);
+                    expect(spy.calls[3].args[0]).toBe(5); //empty
 
                 }
             );
         });
 
-        it('[fold frame, scroll up] should call get on the datasource 1 extra time', function() {
+        it('[fold frame, scroll up] should call get on the datasource 2 extra times', function() {
             var spy, flush;
             var viewportHeight = buffer * itemHeight;
 
@@ -539,20 +539,24 @@ describe('uiScroll', function () {
             runTest(makeHtml(viewportHeight),
                 function($window, sandbox) {
                     var scroller = sandbox.children();
-                    scroller.scrollTop(0);
+                    scroller.scrollTop(0); //first full
                     scroller.trigger('scroll');
                     flush();
-                    scroller.scrollTop(0);
+                    scroller.scrollTop(0); //last full
+                    scroller.trigger('scroll');
+                    flush();
+                    scroller.scrollTop(0); //empty
                     scroller.trigger('scroll');
                     expect(flush).toThrow();
 
-                    expect(spy.calls.length).toBe(4);
+                    expect(spy.calls.length).toBe(5);
 
                     expect(spy.calls[0].args[0]).toBe(1);
                     expect(spy.calls[1].args[0]).toBe(4);
-                    expect(spy.calls[2].args[0]).toBe(-2);
-                    expect(spy.calls[3].args[0]).toBe(-5);
-
+                    expect(spy.calls[2].args[0]).toBe(-2); //first full
+                    expect(spy.calls[3].args[0]).toBe(-5); //last full
+                    expect(spy.calls[4].args[0]).toBe(-8); //empty
+                   
                 }
             );
         });
