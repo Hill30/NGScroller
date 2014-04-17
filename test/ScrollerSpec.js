@@ -4,72 +4,73 @@ describe('uiScroll', function () {
 
     angular.module('ui.scroll.test', [])
         .factory('myEmptyDatasource', [
-            '$log', '$timeout', '$rootScope', function(console, $timeout, $rootScope) {
-                var current, get, loading, revision;
-                get = function(index, count, success) {
-                    success([]);
-                };
-
+            '$log', '$timeout', '$rootScope', function() {
                 return {
-                    get: get
+                    get: function(index, count, success) {
+                        success([]);
+                    }
                 };
             }
         ])
 
         .factory('myOnePageDatasource', [
-            '$log', '$timeout', '$rootScope', function(console, $timeout, $rootScope) {
-                var current, get, loading, revision;
-                get = function(index, count, success) {
-                    if (index === 1) {
-                        success(['one', 'two', 'three']);
-					} else {
-                        success([]);
-					}
-                };
-
+            '$log', '$timeout', '$rootScope', function() {
                 return {
-                    get: get
+                    get: function(index, count, success) {
+                        if (index === 1) {
+                            success(['one', 'two', 'three']);
+                        } else {
+                            success([]);
+                        }
+                    }
                 };
             }
         ])
 
         .factory('myMultipageDatasource', [
-            '$log', '$timeout', '$rootScope', function(console, $timeout, $rootScope) {
-                var current, get, loading, revision;
-                get = function(index, count, success) {
-                    var result = [];
-					for (var i = index; i<index+count; i++) {
-						if (i>0 && i<=20)
-							result.push('item' + i);
-					}
-                    success(result);
-                };
-
+            '$log', '$timeout', '$rootScope', function() {
                 return {
-                    get: get
+                    get: function(index, count, success) {
+                        var result = [];
+                        for (var i = index; i<index+count; i++) {
+                            if (i>0 && i<=20)
+                                result.push('item' + i);
+                        }
+                        success(result);
+                    }
                 };
             }
         ])
 
 		.factory('AnotherDatasource', [
-			'$log', '$timeout', '$rootScope', function(console, $timeout, $rootScope) {
-				var current, get, loading, revision;
-				get = function(index, count, success) {
-					var result = [];
-					for (var i = index; i<index+count; i++) {
-						if (i>-3 && i<1)
-							result.push('item' + i);
-					}
-					success(result);
-				};
-
+			'$log', '$timeout', '$rootScope', function() {
 				return {
-					get: get
+					get: function(index, count, success) {
+                        var result = [];
+                        for (var i = index; i<index+count; i++) {
+                            if (i>-3 && i<1)
+                                result.push('item' + i);
+                        }
+                        success(result);
+                    }
+				};
+			}
+		])
+
+		.factory('myEdgeDatasource', [
+			'$log', '$timeout', '$rootScope', function() {
+				return {
+					get: function(index, count, success) {
+                        var result = [];
+                        for (var i = index; i<index+count; i++) {
+                            if (i>-6 && i<=6)
+                                result.push('item' + i);
+                        }
+                        success(result);
+                    }
 				};
 			}
 		]);
-
-	var sandbox = angular.element('<div/>');
 
     beforeEach(module('ui.scroll'));
     beforeEach(module('ui.scroll.test'));
@@ -94,7 +95,7 @@ describe('uiScroll', function () {
 					cleanupTest($window, scope);
 				}
 			}
-		)
+		);
 	};
 
 	describe('basic setup', function() {
@@ -237,7 +238,7 @@ describe('uiScroll', function () {
 		});
 	});
 
-	describe('datasource with 20 elements default buffer size (10) - constrained viewport', function () {
+	describe('datasource with 20 elements and buffer size 3 - constrained viewport', function () {
 
 		var html = '<div ng-scroll-viewport style="height:200px"><div style="height:40px" ng-scroll="item in myMultipageDatasource" buffer-size="3">{{$index}}: {{item}}</div></div>';
 
@@ -266,7 +267,7 @@ describe('uiScroll', function () {
 				spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
 			});
 			runTest(html,
-				function($window, sandbox) {
+				function() {
 					expect(spy.calls.length).toBe(3);
 
 					expect(spy.calls[0].args[0]).toBe(1);
@@ -326,7 +327,7 @@ describe('uiScroll', function () {
 			runTest(html,
 				function($window, sandbox) {
 					var flush;
-					inject(function($timeout){flush = $timeout.flush;})
+					inject(function($timeout){flush = $timeout.flush;});
 					var scroller = sandbox.children();
 
 					scroller.scrollTop(100);
@@ -353,7 +354,7 @@ describe('uiScroll', function () {
 
 		it('should call get on the datasource 1 more time (4 total) ', function() {
 			var flush;
-			inject(function($timeout){flush = $timeout.flush;})
+			inject(function($timeout){flush = $timeout.flush;});
 			var spy;
 			inject(function(myMultipageDatasource){
 				spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
@@ -381,7 +382,7 @@ describe('uiScroll', function () {
 
 		it('should re-add 3 divs at the top and clip 3 divs from the bottom (9 divs total) (+ 2 padding divs)', function() {
 			var flush;
-			inject(function($timeout){flush = $timeout.flush;})
+			inject(function($timeout){flush = $timeout.flush;});
 			runTest(html,
 				function($window, sandbox) {
 					var scroller = sandbox.children();
@@ -416,7 +417,7 @@ describe('uiScroll', function () {
 				spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
 			});
 			var flush;
-			inject(function($timeout){flush = $timeout.flush;})
+			inject(function($timeout){flush = $timeout.flush;});
 			runTest(html,
 				function($window, sandbox) {
 					var scroller = sandbox.children();
@@ -444,5 +445,87 @@ describe('uiScroll', function () {
 		});
 
 	});
+
+    describe('datasource with 12 elements and buffer size 3 (fold/edge cases)', function () {
+
+        var itemsCount = 12, buffer = 3, itemHeight = 20;
+        var makeHtml = function (viewportHeight) {
+            return '<div ng-scroll-viewport style="height:' + viewportHeight + 'px"><div style="height:' + itemHeight + 'px" ng-scroll="item in myEdgeDatasource" buffer-size="' + buffer + '">{{$index}}: {{item}}</div></div>';
+        };
+
+        it('[full frame] should call get on the datasource 4 (12/3) times + 2 additional times (with empty result)', function() {
+            var spy;
+            var viewportHeight = itemsCount * itemHeight;
+
+            inject(function(myEdgeDatasource){
+                spy = spyOn(myEdgeDatasource, 'get').andCallThrough();
+            });
+
+            runTest(makeHtml(viewportHeight),
+                function() {
+                    expect(spy.calls.length).toBe(parseInt(itemsCount/buffer, 10) + 2);
+
+                    expect(spy.calls[0].args[0]).toBe(1);
+                    expect(spy.calls[1].args[0]).toBe(4);
+                    expect(spy.calls[2].args[0]).toBe(7);
+                    expect(spy.calls[3].args[0]).toBe(-2);
+                    expect(spy.calls[4].args[0]).toBe(-5);
+                    expect(spy.calls[5].args[0]).toBe(-8);
+                }
+            );
+        });
+
+        it('[fold frame] should call get on the datasource 3 times', function() {
+            var spy;
+            var viewportHeight = buffer * itemHeight;
+
+            inject(function(myEdgeDatasource){
+                spy = spyOn(myEdgeDatasource, 'get').andCallThrough();
+            });
+
+            runTest(makeHtml(viewportHeight),
+                function() {
+                    expect(spy.calls.length).toBe(3);
+
+                    expect(spy.calls[0].args[0]).toBe(1);
+                    expect(spy.calls[1].args[0]).toBe(4);
+                    expect(spy.calls[2].args[0]).toBe(-2);
+                }
+            );
+        });
+
+        it('[fold frame, scroll down] should call get on the datasource 1 extra time', function() {
+            var spy, flush;
+            var viewportHeight = buffer * itemHeight;
+
+            inject(function (myEdgeDatasource) {
+                spy = spyOn(myEdgeDatasource, 'get').andCallThrough();
+            });
+            inject(function ($timeout) {
+                flush = $timeout.flush;
+            });
+
+            runTest(makeHtml(viewportHeight),
+                function($window, sandbox) {
+                    var scroller = sandbox.children();
+                    scroller.scrollTop(viewportHeight + itemHeight);
+                    scroller.trigger('scroll');
+                    flush();
+                    scroller.scrollTop(viewportHeight + itemHeight * 2);
+                    scroller.trigger('scroll');
+                    expect(flush).toThrow();
+
+                    expect(spy.calls.length).toBe(4);
+
+                    expect(spy.calls[0].args[0]).toBe(1);
+                    expect(spy.calls[1].args[0]).toBe(4);
+                    expect(spy.calls[2].args[0]).toBe(-2);
+                    expect(spy.calls[3].args[0]).toBe(5);
+
+                }
+            );
+        });
+
+    });
 
 });

@@ -340,7 +340,7 @@ angular.module('ui.scroll', [])
 
 						resizeHandler = ->
 							if !$rootScope.$$phase && !isLoading
-								adjustBuffer(null, false)
+								adjustBuffer(null, false) #todo dhilt : is null rid passing safe for resize, scroll, delete and insert cases?
 								$scope.$apply()
 
 						viewport.bind 'resize', resizeHandler
