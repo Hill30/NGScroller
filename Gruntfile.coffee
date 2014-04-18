@@ -82,6 +82,27 @@ module.exports = (grunt) ->
 				files:
 					src: ['./build/**/*.js']
 				options: jshintrc: '.jshintrc'
+			test:
+				files:
+					src : [ './test/*Spec.js']
+				options: grunt.util._.extend({}, grunt.file.readJSON('.jshintrc'), {
+					node: true
+					globals: 
+						angular: false
+						inject: false
+						jQuery: false
+						jasmine: false
+						afterEach: false
+						beforeEach: false
+						ddescribe: false
+						describe: false
+						expect: false
+						iit: false
+						it: false
+						spyOn: false
+						xdescribe: false
+						xit: false
+				})					
 
 		# Starts a web server
 		# Enter the following command at the command line to execute this task:
@@ -98,10 +119,11 @@ module.exports = (grunt) ->
 	]
 
 	grunt.registerTask 'build', [
+		'jshint:test'
 		'karma:travis',
 		'coffee:build',
 		'concat',
-		'jshint']
+		'jshint:src']
 
 	grunt.registerTask 'travis', [
 		'karma:travis'

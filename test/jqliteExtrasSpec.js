@@ -3,15 +3,15 @@ describe('\njqLite: testing against jQuery\n', function () {
 
 	var sandbox = angular.element('<div/>');
 
-	var extras = undefined;
+	var extras;
 
 	beforeEach(module('ui.scroll.jqlite'));
 	beforeEach(function(){
 		angular.element(document).find('body').append(sandbox = angular.element('<div></div>'));
 		inject(function(jqLiteExtras) {
 			extras = function(){};
-			jqLiteExtras.registerFor(extras)
-		})
+			jqLiteExtras.registerFor(extras);
+		});
 	});
 
 	afterEach(function() {sandbox.remove();});
@@ -19,9 +19,9 @@ describe('\njqLite: testing against jQuery\n', function () {
 	describe('height() getter for window\n', function() {
 		it('should work for window element', function() {
 			var element = angular.element(window);
-			expect(extras.prototype.height.call(element)).toBe(element.height())
-		})
-	})
+			expect(extras.prototype.height.call(element)).toBe(element.height());
+		});
+	});
 
 	describe('getters height() and outerHeight()\n', function () {
 
@@ -46,29 +46,29 @@ describe('\njqLite: testing against jQuery\n', function () {
 
 				it('should be the same as jQuery height() for ' + element, function() {
 						(function(element) {
-							expect(extras.prototype.height.call(element)).toBe(element.height())
-						})(createElement(element))
+							expect(extras.prototype.height.call(element)).toBe(element.height());
+						})(createElement(element));
 					}
-				)
+				);
 
 				it ('should be the same as jQuery outerHeight() for ' + element, function() {
 						(function(element) {
-							expect(extras.prototype.outerHeight.call(element)).toBe(element.outerHeight())
-						})(createElement(element))
+							expect(extras.prototype.outerHeight.call(element)).toBe(element.outerHeight());
+						})(createElement(element));
 					}
-				)
+				);
 
 				it ('should be the same as jQuery outerHeight(true) for ' + element, function() {
 						(function(element) {
-							expect(extras.prototype.outerHeight.call(element, true)).toBe(element.outerHeight(true))
-						})(createElement(element))
+							expect(extras.prototype.outerHeight.call(element, true)).toBe(element.outerHeight(true));
+						})(createElement(element));
 					}
-				)
+				);
 
 			}
 
-		)
-	})
+		);
+	});
 
 	describe('height(value) setter\n', function () {
 
@@ -93,12 +93,12 @@ describe('\njqLite: testing against jQuery\n', function () {
 				'<div style="line-height: 1.1em">some text w line height</div>'
 			], function(element) {
 
-				function validateHeight(element) {
+				/*function validateHeight(element) {
 					expect(extras.prototype.height.call(element)).toBe(element.height());
 					var h = element.height();
 					extras.prototype.height.call(element, h*2);
 					expect(extras.prototype.height.call(element)).toBe(h*2);
-				}
+				}*/
 
 				it('height(value) for ' + element, function() {
 						(function (element) {
@@ -106,14 +106,14 @@ describe('\njqLite: testing against jQuery\n', function () {
 							var h = element.height();
 							extras.prototype.height.call(element, h*2);
 							expect(extras.prototype.height.call(element)).toBe(h*2);
-						})(createElement(element))
+						})(createElement(element));
 					}
-				)
+				);
 
 			}
 
-		)
-	})
+		);
+	});
 
 	describe('offset() getter\n', function () {
 
@@ -138,16 +138,16 @@ describe('\njqLite: testing against jQuery\n', function () {
 
 				it('should be the same as jQuery offset() for ' + element, function() {
 						(function (element) {
-							var target = $(element.contents()[0]);
+							var target = jQuery(element.contents()[0]);
 							expect(extras.prototype.offset.call(target)).toEqual(element.offset());
-						})(createElement(element))
+						})(createElement(element));
 					}
-				)
+				);
 
 			}
 
-		)
-	})
+		);
+	});
 
 	describe('scrollTop()\n', function() {
 
@@ -160,14 +160,14 @@ describe('\njqLite: testing against jQuery\n', function () {
 		it('should be the same as jQuery scrollTop() for window', function() {
 
 				createElement('<div style="height:10000px; width:10000px"></div>');
-				var element = $(window);
+				var element = jQuery(window);
 				expect(extras.prototype.scrollTop.call(element)).toBe(element.scrollTop());
 				element.scrollTop(100);
 				expect(extras.prototype.scrollTop.call(element)).toBe(element.scrollTop());
 				extras.prototype.scrollTop.call(element, 200);
 				expect(extras.prototype.scrollTop.call(element)).toBe(element.scrollTop());
 			}
-		)
+		);
 
 		it('should be the same as jQuery scrollTop() for window', function() {
 
@@ -178,8 +178,8 @@ describe('\njqLite: testing against jQuery\n', function () {
 				extras.prototype.scrollTop.call(element, 200);
 				expect(extras.prototype.scrollTop.call(element)).toBe(element.scrollTop());
 			}
-		)
+		);
 
-	})
+	});
 
-})
+});
