@@ -136,11 +136,12 @@ marked with ngScrollViewport directive, the browser window object will be used a
 
 ###Examples
 
-Currently examples consist of a sample datasource service (called 'datasource' see [application.coffee] (https://github.com/Hill30/NGScroller/blob/master/src/scripts/application.coffee)) and several pages with different ways the ng-scroll can be used.
+Examples ([look here](https://github.com/Hill30/NGScroller/tree/master/src/examples)) consist of several pages (.html files) showing various ways to use the ng-scroll directive. Each page relays on its own datasource service (called `datasource`) defined in the coffescript file with the same name and .coffee extension.
+
 I intentionally broke every rule of proper html/css structure (i.e. embedded styles). This is done to keep the html as bare bones as possible and leave
 it to you to do it properly - whatever properly means in your book.
 
-See [index.html] (http://rawgithub.com/Hill30/NGScroller/master/src/index.html)
+See [index.html](http://rawgithub.com/Hill30/NGScroller/master/src/index.html)
 
 ###Debugging coffeeScript directly in the browser
 
