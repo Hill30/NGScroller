@@ -262,31 +262,31 @@ angular.module('ui.scroll', [])
 									# if not, increment scrollTop
 									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
 
-						adjustBuffer = (rid, scrolling, newItems, finalize)->
-							doAdjustment = ->
-								log "top {actual=#{adapter.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{adapter.bottomDataPos()}}"
-								if shouldLoadBottom()
-									enqueueFetch(rid, true, scrolling)
-								else
-									enqueueFetch(rid, false, scrolling) if shouldLoadTop()
-								finalize(rid) if finalize
-								if pending.length == 0
-									topHeight = 0
-									for item in buffer
-										itemHeight = item.element.outerHeight(true)
-										if adapter.topDataPos() + topHeight + itemHeight < topVisiblePos()
-											topHeight += itemHeight
-										else
-											topVisible(item)
-											break
+						doAdjustment = (rid, scrolling, finalize)->
+							log "top {actual=#{adapter.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{adapter.bottomDataPos()}}"
+							if shouldLoadBottom()
+								enqueueFetch(rid, true, scrolling)
+							else
+								enqueueFetch(rid, false, scrolling) if shouldLoadTop()
+							finalize(rid) if finalize
+							if pending.length == 0
+								topHeight = 0
+								for item in buffer
+									itemHeight = item.element.outerHeight(true)
+									if adapter.topDataPos() + topHeight + itemHeight < topVisiblePos()
+										topHeight += itemHeight
+									else
+										topVisible(item)
+										break
 
+						adjustBuffer = (rid, scrolling, newItems, finalize)->
 							if newItems
 								$timeout ->
 									for row in newItems
 										adjustRowHeight row.appended, row.wrapper
-									doAdjustment()
+									doAdjustment(rid, scrolling, finalize)
 							else
-								doAdjustment()
+								doAdjustment(rid, scrolling, finalize)
 
 						finalize = (rid, scrolling, newItems)->
 							adjustBuffer rid, scrolling, newItems, ->
