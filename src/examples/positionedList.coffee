@@ -4,46 +4,46 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 
 			(console, $timeout, $rootScope, $location)->
 
-				offset = parseInt($location.search().offset || '0')
+				$rootScope.key = ""
 
-				$rootScope.position = $location.search().position || ''
+				position = 0
 
 				data = []
 
-				for letter in 'abcdefghijk'
-					for i in [0..9]
-						data.push("#{letter}: 0#{i}")
+				for letter1 in 'abcdefghijk'
+					for letter2 in 'abcdefghijk'
+						for i in [0..9]
+							data.push("#{letter1}#{letter2}: 0#{i}")
 
 				get = (index, count, success)->
 					$timeout(
 						->
-							actualIndex = index + offset
-							result = []
-							start = Math.max(1, actualIndex)
+							actualIndex = index + position
+
+							start = Math.max(0 - position, actualIndex)
 							end = Math.min(actualIndex + count-1, data.length)
 
 							if (start > end)
 								success []
 							else
-								for i in [start..end]
-									result.push data[i-1]
-								success(result)
+								success data.slice(start, end+1)
 						100
 					)
 
-				$rootScope.$watch ( -> $rootScope.position),
-					->
-						if $rootScope.position
-							$location.search('position', $rootScope.position)
+				current = 0
 
-				$rootScope.$watch (-> $rootScope.topVisible),
-				->
-					if $rootScope.topVisible
-						$location.search('offset', $rootScope.topVisible.$index + offset)
-						$location.replace()
+				$rootScope.$watch ( -> $rootScope.key),
+					->
+						position = 0
+						for record in data when $rootScope.key > record
+							position++
+						current++
+
+				revision = -> current
 
 				{
 					get
+					revision
 				}
 
 		])

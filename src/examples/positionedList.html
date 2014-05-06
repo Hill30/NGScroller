@@ -17,19 +17,11 @@
 <body>
 <h2 style="position: fixed; left: 200px; top: 0;">
 	is loading: {{loading}}; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="../index.html"> browse sample code</a>
-	<br/>
-	top visible: {{topVisible.$index}}
-	<br/>
-	pos: <input type="text" ng-model="position"/>  here: {{position}}
+	<br>
+	enter key value: <input type="text" ng-model="key"/>
 </h2>
-<div ng-switch="'on'">
-    <div ng-switch-when="on">ON
-        <div ng-scroll-viewport class="viewport">
-            <div ng-scroll="item in datasource"  is-loading="loading" top-visible-scope="topVisible">{{$index}}: {{item}}</div>
-        </div>
-    </div>
-    <div ng-switch-when="off">OFF
-    </div>
-</div>
+	<div ng-scroll-viewport class="viewport">
+		<div ng-scroll="item in datasource" >{{$index}}: {{item}}</div>
+	</div>
 </body>
 </html>
