@@ -68,13 +68,9 @@ module.exports = (grunt) ->
 					)
 
 			dynamic_mappings:
-				files: [{
-								expand: true
-								cwd: './temp'
-								src: ['**/*.js']
-								dest: 'build/'
-								ext: '.js'
-								}]
+				files: 
+					'build/scripts/scroll.js': ['./temp/**/ui-scroll.js']
+					'build/scripts/scroll-jqlite.js': ['./temp/**/ui-scroll-jqlite.js']
 
 		# run the linter
 		jshint:
