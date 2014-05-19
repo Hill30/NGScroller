@@ -20,9 +20,9 @@
 	<br/>
 	top visible: {{topVisible.$index}}
 </h2>
-<div ng-scroll-viewport class="viewport">
+<div ui-scroll-viewport class="viewport">
 	<ul>
-		<li ng-scroll="item in datasource"  is-loading="loading" top-visible-scope="topVisible">{{$index}}: {{item}}</li>
+		<li ui-scroll="item in datasource"  is-loading="loading" top-visible-scope="topVisible">{{$index}}: {{item}}</li>
 	</ul>
 </div>
 </body>

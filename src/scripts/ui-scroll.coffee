@@ -13,7 +13,7 @@ globals: angular, window
 ###
 angular.module('ui.scroll', [])
 
-	.directive( 'ngScrollViewport'
+	.directive( 'uiScrollViewport'
 		[ '$log'
 			 ->
 					controller:
@@ -23,10 +23,10 @@ angular.module('ui.scroll', [])
 
 		])
 
-	.directive( 'ngScroll'
+	.directive( 'uiScroll'
 		[ '$log', '$injector', '$rootScope', '$timeout'
 			(console, $injector, $rootScope, $timeout) ->
-				require: ['?^ngScrollViewport']
+				require: ['?^uiScrollViewport']
 				transclude: 'element'
 				priority: 1000
 				terminal: true
@@ -36,9 +36,9 @@ angular.module('ui.scroll', [])
 
 						log = console.debug || console.log
 
-						match = $attr.ngScroll.match /^\s*(\w+)\s+in\s+(\w+)\s*$/
+						match = $attr.uiScroll.match /^\s*(\w+)\s+in\s+(\w+)\s*$/
 						if !match
-							throw new Error "Expected ngScroll in form of '_item_ in _datasource_' but got '#{$attr.ngScroll}'"
+							throw new Error "Expected uiScroll in form of '_item_ in _datasource_' but got '#{$attr.uiScroll}'"
 
 						itemName = match[1]
 						datasourceName = match[2]
@@ -67,7 +67,7 @@ angular.module('ui.scroll', [])
 
 								repeaterType = template[0].localName
 								if repeaterType in ['dl']
-									throw new Error "ng-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
+									throw new Error "ui-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
 								repeaterType = 'div' if repeaterType not in ['li', 'tr']
 
 								viewport = controllers[0] || angular.element(window)
