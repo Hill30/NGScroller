@@ -67,7 +67,7 @@ angular.module('ui.scroll', [])
 
 								repeaterType = template[0].localName
 								if repeaterType in ['dl']
-									throw new Error "ui-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
+									throw new Error "ng-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
 								repeaterType = 'div' if repeaterType not in ['li', 'tr']
 
 								viewport = controllers[0] || angular.element(window)
@@ -178,7 +178,6 @@ angular.module('ui.scroll', [])
 							# clip the invisible items off the bottom
 							bottomHeight = 0 #adapter.bottomPadding()
 							overage = 0
-
 							for i in [buffer.length-1..0]
 								item = buffer[i]
 								itemTop = item.element.offset().top
@@ -192,7 +191,6 @@ angular.module('ui.scroll', [])
 								else
 									break if newRow
 									overage++
-
 							if overage > 0
 								adapter.bottomPadding(adapter.bottomPadding() + bottomHeight)
 								removeFromBuffer(buffer.length - overage, buffer.length)
@@ -252,6 +250,8 @@ angular.module('ui.scroll', [])
 											buffer[index-first].element.after clone
 											buffer.splice index-first+1, 0, wrapper
 									else
+										clone.displayTemp = clone.css('display')
+										clone.css 'display', 'none'
 										adapter.prepend clone
 										buffer.unshift wrapper
 							{appended: toBeAppended, wrapper: wrapper}
@@ -270,41 +270,43 @@ angular.module('ui.scroll', [])
 									# if not, increment scrollTop
 									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
 
-						doAdjustment = (rid, scrolling, finalize)->
-							log "top {actual=#{adapter.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{adapter.bottomDataPos()}}"
-							if shouldLoadBottom()
-								enqueueFetch(rid, true, scrolling)
-							else
-								enqueueFetch(rid, false, scrolling) if shouldLoadTop()
-							finalize(rid) if finalize
-							if pending.length == 0
-								topHeight = 0
-								for item in buffer
-									itemTop = item.element.offset().top
-									newRow = rowTop isnt itemTop
-									rowTop = itemTop
-									itemHeight = item.element.outerHeight(true) if newRow
-									if (adapter.topDataPos() + topHeight + itemHeight < topVisiblePos())
-										if newRow
-											topHeight += itemHeight
-									else
-										topVisible(item) if newRow
-										break
-
 						adjustBuffer = (rid, scrolling, newItems, finalize)->
-							if newItems and newItems.length
+							doAdjustment = ->
+								log "top {actual=#{adapter.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{adapter.bottomDataPos()}}"
+								if shouldLoadBottom()
+									enqueueFetch(rid, true, scrolling)
+								else
+									enqueueFetch(rid, false, scrolling) if shouldLoadTop()
+								finalize(rid) if finalize
+								if pending.length == 0
+									topHeight = 0
+									for item in buffer
+										itemTop = item.element.offset().top
+										newRow = rowTop isnt itemTop
+										rowTop = itemTop
+										itemHeight = item.element.outerHeight(true) if newRow
+										if (adapter.topDataPos() + topHeight + itemHeight < topVisiblePos())
+											if newRow
+												topHeight += itemHeight
+										else
+											topVisible(item) if newRow
+											break
+							if newItems
 								$timeout ->
 									rows = []
 									for row in newItems
-										itemTop = row.wrapper.element.offset().top
-										if rowTop isnt itemTop
+										element = row.wrapper.element
+										element.css('display', element.displayTemp) if element.hasOwnProperty 'displayTemp'
+										itemTop = element.offset().top
+										newRow = rowTop isnt itemTop
+										if newRow
 											rows.push(row)
 											rowTop = itemTop
 									for row in rows
 										adjustRowHeight(row.appended, row.wrapper)
-									doAdjustment(rid, scrolling, finalize)
+									doAdjustment()
 							else
-								doAdjustment(rid, scrolling, finalize)
+								doAdjustment()
 
 						finalize = (rid, scrolling, newItems)->
 							adjustBuffer rid, scrolling, newItems, ->
@@ -371,13 +373,13 @@ angular.module('ui.scroll', [])
 
 						viewport.bind 'scroll', scrollHandler
 
-						wheelHandler = (event) ->
-							scrollTop = viewport[0].scrollTop
-							yMax = viewport[0].scrollHeight - viewport[0].offsetHeight
-							if (scrollTop is 0 and not bof) or (scrollTop is yMax and not eof)
-								event.preventDefault()
+						wheelHandler = (e) ->
+							if !bof and viewport[0].scrollTop is 0
+								e.preventDefault()
+							if !eof and viewport[0].scrollTop is (viewport[0].scrollHeight - viewport[0].offsetHeight)
+								e.preventDefault()
 
-						viewport.bind 'mousewheel', wheelHandler
+						viewport.parent().bind 'mousewheel', wheelHandler
 
 						$scope.$watch datasource.revision,
 							-> reload()
@@ -391,7 +393,7 @@ angular.module('ui.scroll', [])
 							eventListener.$destroy()
 							viewport.unbind 'resize', resizeHandler
 							viewport.unbind 'scroll', scrollHandler
-							viewport.unbind 'mousewheel', wheelHandler
+							viewport.parent().unbind 'mousewheel', wheelHandler
 
 						eventListener.$on "update.items", (event, locator, newItem)->
 							if angular.isFunction locator
@@ -447,5 +449,5 @@ angular.module('ui.scroll', [])
 		])
 
 ###
-//# sourceURL=src/scripts/ui-scroll.js
+//# sourceURL=src/scripts/ui-scroll-display-trick.js
 ###
