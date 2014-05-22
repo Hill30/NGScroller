@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Scroller Demo (scroll bubbling prevent) </title>
+    <script src="http://coffeescript.org/extras/coffee-script.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
+    <script src="../scripts/ui-scroll.coffee" type="text/coffeescript"></script>
+    <script src="../scripts/ui-scroll-jqlite.coffee" type="text/coffeescript"></script>
+    <script src="scrollBubblingPrevent.coffee" type="text/coffeescript"></script>
+</head>
+<body>
+<h2> Scroll bubbling prevent </h2>
+There are +/- 50 elements in datasource. Scroll of document begins after bof/eof receiving.
+
+<div style="width: 400px; background-color: rgba(255, 249, 0, 0.28); ">
+
+    text<br>text<br>text<br>text<br>text<br>text<br>text<br>text<br>text<br>
+    text<br>text<br>text<br>text<br>text<br>text<br>text<br>text<br>text<br>
+
+    <div ui-scroll-viewport style="width: 400px; height: 300px; display: block; background-color: white;">
+        <ul>
+            <li ui-scroll="item in datasource">*{{item}}*</li>
+        </ul>
+    </div>
+
+    text<br>text<br>text<br>text<br>text<br>text<br>text<br>text<br>text<br>
+    text<br>text<br>text<br>text<br>text<br>text<br>text<br>text<br>text<br>
+    text<br>text<br>text<br>text<br>text<br>text<br>text<br>text<br>text<br>
+    text<br>text<br>text<br>text<br>text<br>text<br>text<br>text<br>text<br>
+    text<br>text<br>text<br>text<br>text<br>text<br>text<br>text<br>text<br>
+
+</div>
+
+</body>
+</html>
