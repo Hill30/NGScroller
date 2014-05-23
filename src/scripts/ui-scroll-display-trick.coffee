@@ -231,6 +231,14 @@ angular.module('ui.scroll', [])
 							if pending.push(direction) == 1
 								fetch(rid, scrolling)
 
+						hideBeforeAppend = (element) ->
+							element.displayTemp = element.css('display')
+							element.css 'display', 'none'
+
+						showAfterRender = (element) ->
+							if element.hasOwnProperty 'displayTemp'
+								element.css 'display', element.displayTemp
+
 						insert = (index, item) ->
 							itemScope = $scope.$new()
 							itemScope[itemName] = item
@@ -240,20 +248,19 @@ angular.module('ui.scroll', [])
 							wrapper =
 								scope: itemScope
 
-
 							linker itemScope,
 								(clone) ->
 									wrapper.element = clone
 									if toBeAppended
 										if index == next
+											hideBeforeAppend clone
 											adapter.append clone
 											buffer.push wrapper
 										else
 											buffer[index-first].element.after clone
 											buffer.splice index-first+1, 0, wrapper
 									else
-										clone.displayTemp = clone.css('display')
-										clone.css 'display', 'none'
+										hideBeforeAppend clone
 										adapter.prepend clone
 										buffer.unshift wrapper
 							{appended: toBeAppended, wrapper: wrapper}
@@ -299,7 +306,7 @@ angular.module('ui.scroll', [])
 									rows = []
 									for row in newItems
 										element = row.wrapper.element
-										element.css('display', element.displayTemp) if element.hasOwnProperty 'displayTemp'
+										showAfterRender element
 										itemTop = element.offset().top
 										if rowTop isnt itemTop
 											rows.push(row)
