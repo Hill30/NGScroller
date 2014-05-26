@@ -280,7 +280,7 @@ angular.module('ui.scroll', [])
 										break
 
 						adjustBuffer = (rid, scrolling, newItems, finalize)->
-							if newItems
+							if newItems and newItems.length
 								$timeout ->
 									for row in newItems
 										adjustRowHeight row.appended, row.wrapper
@@ -353,6 +353,14 @@ angular.module('ui.scroll', [])
 
 						viewport.bind 'scroll', scrollHandler
 
+						wheelHandler = (event) ->
+							scrollTop = viewport[0].scrollTop
+							yMax = viewport[0].scrollHeight - viewport[0].offsetHeight
+							if (scrollTop is 0 and not bof) or (scrollTop is yMax and not eof)
+								event.preventDefault()
+
+						viewport.bind 'mousewheel', wheelHandler
+
 						$scope.$watch datasource.revision,
 							-> reload()
 
@@ -365,6 +373,7 @@ angular.module('ui.scroll', [])
 							eventListener.$destroy()
 							viewport.unbind 'resize', resizeHandler
 							viewport.unbind 'scroll', scrollHandler
+							viewport.unbind 'mousewheel', wheelHandler
 
 						eventListener.$on "update.items", (event, locator, newItem)->
 							if angular.isFunction locator

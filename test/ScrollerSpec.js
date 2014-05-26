@@ -61,13 +61,30 @@ describe('uiScroll', function () {
 			'$log', '$timeout', '$rootScope', function() {
 				return {
 					get: function(index, count, success) {
-                        var result = [];
-                        for (var i = index; i<index+count; i++) {
-                            if (i>-6 && i<=6)
-                                result.push('item' + i);
-                        }
-                        success(result);
-                    }
+						var result = [];
+						for (var i = index; i<index+count; i++) {
+							if (i>-6 && i<=6)
+								result.push('item' + i);
+						}
+						success(result);
+					}
+				};
+			}
+		])
+
+		.factory('myDatasourceToPreventScrollBubbling', [
+			'$log', '$timeout', '$rootScope', function() {
+				return {
+					get: function(index, count, success) {
+						var result = [];
+						for (var i = index; i<index+count; i++) {
+							if (i<-6 || i>20) {
+								break;
+							}
+							result.push('item' + i);
+						}
+						success(result);
+					}
 				};
 			}
 		]);
@@ -75,16 +92,20 @@ describe('uiScroll', function () {
     beforeEach(module('ui.scroll'));
     beforeEach(module('ui.scroll.test'));
 
-	var runTest = function(html, runTest, cleanupTest) {
+	var runTest = function(html, runTest, cleanupTest, options) {
 		inject(function($rootScope, $compile, $window, $timeout) {
 				var scroller = angular.element(html);
 				var scope = $rootScope.$new();
 				var sandbox = angular.element('<div/>');
 				angular.element(document).find('body').append(sandbox);
 				sandbox.append(scroller);
+
 				$compile(scroller)(scope);
 				scope.$apply();
-				$timeout.flush();
+
+				if(!options || !options.noFlush) {
+					$timeout.flush();
+				}
 
 				runTest($window, sandbox);
 
@@ -106,19 +127,26 @@ describe('uiScroll', function () {
 				spyOn($.fn, 'unbind').andCallThrough();
 				runTest(html,
 					function($window) {
-						expect($.fn.bind.calls.length).toBe(2);
+						expect($.fn.bind.calls.length).toBe(3);
 						expect($.fn.bind.calls[0].args[0]).toBe('resize');
 						expect($.fn.bind.calls[0].object[0]).toBe($window);
 						expect($.fn.bind.calls[1].args[0]).toBe('scroll');
 						expect($.fn.bind.calls[1].object[0]).toBe($window);
+						expect($.fn.bind.calls[2].args[0]).toBe('mousewheel');
+						expect($.fn.bind.calls[2].object[0]).toBe($window);
 						expect($._data($window, 'events')).toBeDefined();
 					},
 					function($window) {
-						expect($.fn.unbind.calls.length).toBe(2);
+						expect($.fn.unbind.calls.length).toBe(3);
 						expect($.fn.unbind.calls[0].args[0]).toBe('resize');
 						expect($.fn.unbind.calls[0].object[0]).toBe($window);
 						expect($.fn.unbind.calls[1].args[0]).toBe('scroll');
 						expect($.fn.unbind.calls[1].object[0]).toBe($window);
+						expect($.fn.unbind.calls[2].args[0]).toBe('mousewheel');
+						expect($.fn.unbind.calls[2].object[0]).toBe($window);
+					},
+					{
+						noFlush: true //empty data-set; nothing to render
 					}
 				);
 			});
@@ -136,6 +164,8 @@ describe('uiScroll', function () {
 						expect(bottomPadding.tagName.toLowerCase()).toBe('div');
 						expect(angular.element(bottomPadding).css('height')).toBe('0px');
 
+					}, null, {
+						noFlush: true
 					}
 				);
 			});
@@ -151,6 +181,8 @@ describe('uiScroll', function () {
 						expect(spy.calls[0].args[0]).toBe(1);
 						expect(spy.calls[1].args[0]).toBe(-9);
 
+					}, null, {
+						noFlush: true
 					}
 				);
 			});
@@ -539,13 +571,13 @@ describe('uiScroll', function () {
             runTest(makeHtml(viewportHeight),
                 function($window, sandbox) {
                     var scroller = sandbox.children();
-                    scroller.scrollTop(0); //first full
+                    scroller.scrollTop(0); //first full, scroll to -2
                     scroller.trigger('scroll');
                     flush();
-                    scroller.scrollTop(0); //last full
+                    scroller.scrollTop(0); //last full, scroll to -5, bof is reached
                     scroller.trigger('scroll');
-                    flush();
-                    scroller.scrollTop(0); //empty
+                    expect(flush).toThrow();
+                    scroller.scrollTop(0); //empty, no scroll occured (-8)
                     scroller.trigger('scroll');
                     expect(flush).toThrow();
 
@@ -556,11 +588,81 @@ describe('uiScroll', function () {
                     expect(spy.calls[2].args[0]).toBe(-2); //first full
                     expect(spy.calls[3].args[0]).toBe(-5); //last full
                     expect(spy.calls[4].args[0]).toBe(-8); //empty
-                   
+
                 }
             );
         });
 
+    });
+
+
+    describe('prevent unwanted scroll bubbling', function () {
+
+        var commonHtml = '<div ui-scroll-viewport style="width: 400px; height: 300px; display: block; background-color: white;"><ul><li ui-scroll="item in myDatasourceToPreventScrollBubbling" buffer-size="3">{{$index}}: {{item}}</li></ul></div>';
+        var documentScrollBubblingCount = 0;
+        var incrementDocumentScrollCount = function(event) {
+            event = event.originalEvent || event;
+            if(!event.defaultPrevented) {
+                documentScrollBubblingCount++;
+            }
+        };
+        var getNewWheelEvent = function () {
+            var event = document.createEvent("MouseEvents");
+            event.initEvent('mousewheel', true, true);
+            event.wheelDelta = 120;
+            return event;
+        };
+
+        it('should prevent wheel-event bubbling until bof is reached', function() {
+            var spy, flush;
+
+            inject(function (myDatasourceToPreventScrollBubbling) {
+                spy = spyOn(myDatasourceToPreventScrollBubbling, 'get').andCallThrough();
+            });
+            inject(function ($timeout) {
+                flush = $timeout.flush;
+            });
+
+            runTest(commonHtml,
+                function($window, sandbox) {
+                    var scroller = sandbox.children();
+                    var wheelEventElement = scroller[0];
+
+                    angular.element(document.body).bind('mousewheel', incrementDocumentScrollCount); //spy for wheel-events bubbling
+
+                    //simulate multiple wheel-scroll events within viewport
+
+                    wheelEventElement.dispatchEvent(getNewWheelEvent()); //preventDefault will not occurred but document will not scroll because of viewport will be scrolled
+                    expect(documentScrollBubblingCount).toBe(1);
+
+                    scroller.scrollTop(0);
+                    scroller.trigger('scroll');
+
+                    wheelEventElement.dispatchEvent(getNewWheelEvent()); //now we are at top but preventDefault will occur because of bof will be reached only after next scroll trigger
+                    expect(documentScrollBubblingCount).toBe(1); //here! the only one prevented wheel-event
+
+                    flush();
+
+                    wheelEventElement.dispatchEvent(getNewWheelEvent()); //preventDefault will not occurred but document will not scroll because of viewport will be scrolled
+                    expect(documentScrollBubblingCount).toBe(2);
+
+                    scroller.scrollTop(0);
+                    scroller.trigger('scroll'); //bof will be reach here
+
+                    wheelEventElement.dispatchEvent(getNewWheelEvent()); //preventDefault will not occurred because we are at top and bof is reached
+                    expect(documentScrollBubblingCount).toBe(3);
+
+                    expect(flush).toThrow(); //there is no new data, bof is reached
+
+                    wheelEventElement.dispatchEvent(getNewWheelEvent()); //preventDefault will not occurred because we are at top and bof is reached
+                    expect(documentScrollBubblingCount).toBe(4);
+
+                }, function() {
+                    angular.element(document.body).unbind('mousewheel', incrementDocumentScrollCount);
+                }
+            );
+
+        });
     });
 
 });
