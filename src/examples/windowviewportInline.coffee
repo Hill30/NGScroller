@@ -9,10 +9,10 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 							result = []
 							for i in [index..index + count - 1]
 								item = {}
-								if testStand
-									item.width = testStand.getWidth(i)
-									item.height = testStand.getHeight(i)
-									item.color = testStand.getColor(i)
+								if inlineDemo
+									item.width = inlineDemo.getWidth(i)
+									item.height = inlineDemo.getHeight(i)
+									item.color = inlineDemo.getColor(i)
 								item.content =  "item ##{i}"
 								result.push item
 							success(result)
