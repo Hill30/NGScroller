@@ -1,83 +1,88 @@
 <!doctype html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>Scroller Demo (entire window)</title>
-    <script src="http://coffeescript.org/extras/coffee-script.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
-    <script src="../scripts/ui-scroll.coffee" type="text/coffeescript"></script>
-    <script src="../scripts/ui-scroll-jqlite.coffee" type="text/coffeescript"></script>
-    <script src="windowviewportInline.coffee" type="text/coffeescript"></script>
+	<meta charset="utf-8">
+	<title>Scroller Demo (entire window)</title>
+	<script src="http://coffeescript.org/extras/coffee-script.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.5/angular.js"></script>
+	<script src="../scripts/ui-scroll.coffee" type="text/coffeescript"></script>
+	<script src="../scripts/ui-scroll-jqlite.coffee" type="text/coffeescript"></script>
+	<script src="windowviewportInline.coffee" type="text/coffeescript"></script>
+
+	<style>
+		span {
+			display: inline-block;
+		}
+	</style>
+
 </head>
 <body>
+
 <script>
-    (function () {
+	(function () {
 
-        window.testStand = {
-            items: {},
-            minX: 80,
-            maxX: 150,
-            minY: 20,
-            maxY: 80,
-            defaultWidth: 100,
-            defaultHeight: 50,
-            defaultColor: '#ffffe0',
-            defaultColorOdd: '#e0ffff',
-            isLighter: true,
+		window.testStand = {
+			items: {},
+			minX: 100,
+			maxX: 150,
+			minY: 50,
+			maxY: 100,
+			defaultWidth: 100,
+			defaultHeight: 50,
+			defaultColor: '#ffffe0',
+			defaultColorOdd: '#e0ffff',
+			isLighter: true,
 
-            getWidth: function (index) {
-                if (this.items['n' + index] !== undefined) {
-                    return this.items['n' + index].width;
-                }
-                return this.defaultWidth;
-            },
+			getWidth: function (index) {
+				if (this.items['n' + index] !== undefined) {
+					return this.items['n' + index].width;
+				}
+				return this.defaultWidth;
+			},
 
-            getHeight: function (index) {
-                if (this.items['n' + index] !== undefined) {
-                    return this.items['n' + index].height;
-                }
-                return this.defaultHeight;
-            },
+			getHeight: function (index) {
+				if (this.items['n' + index] !== undefined) {
+					return this.items['n' + index].height;
+				}
+				return this.defaultHeight;
+			},
 
-            getColor: function (index) {
-                if (this.items['n' + index] !== undefined) {
-                    return this.items['n' + index].color;
-                }
-                return index %2 === 0 ? this.defaultColor : this.defaultColorOdd;
-            },
+			getColor: function (index) {
+				if (this.items['n' + index] !== undefined) {
+					return this.items['n' + index].color;
+				}
+				return index % 2 === 0 ? this.defaultColor : this.defaultColorOdd;
+			},
 
-            initialize: function () {
-                var i, j, color, letters = '0123456789ABCDEF'.split('');
+			initialize: function () {
+				var i, j, color, letters = '0123456789ABCDEF'.split('');
 
-                for (i = -100; i < 100; i++) {
-                    this.items['n' + i] = {};
-                    this.items['n' + i].width = Math.floor((Math.random() * (this.maxX - this.minX + 1)) + this.minX);
-                    this.items['n' + i].height = Math.floor((Math.random() * (this.maxY - this.minY + 1)) + this.minY);
+				for (i = -100; i < 100; i++) {
+					this.items['n' + i] = {};
+					this.items['n' + i].width = Math.floor((Math.random() * (this.maxX - this.minX + 1)) + this.minX);
+					this.items['n' + i].height = Math.floor((Math.random() * (this.maxY - this.minY + 1)) + this.minY);
 
-                    for (j = 0, color = '#'; j < 6; j++) {
-                        var minColor = this.isLighter ? 10 : 0;
-                        color += letters[Math.floor(Math.random() * (15 - minColor + 1)) + minColor];
-                    }
+					for (j = 0, color = '#'; j < 6; j++) {
+						var minColor = this.isLighter ? 10 : 0;
+						color += letters[Math.floor(Math.random() * (15 - minColor + 1)) + minColor];
+					}
 
-                    this.items['n' + i].color = color;
-                }
-            }
+					this.items['n' + i].color = color;
+				}
+			}
 
-        };
+		};
 
-        testStand.initialize();
+		testStand.initialize();
 
-    })();
+	})();
 </script>
-<style>
-    span {
-        display: inline-block;
-    }
-</style>
+
 <h2 style="position: fixed; left: 150px; top: 0;"> is loading: {{loading}}; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a
-        href="../index.html"> browse sample code</a></h2>
+		href="../index.html"> browse sample code</a></h2>
 
 <h2 style="position: fixed; left: 150px; top: 20px;"> top visible: {{topItem}}</h2>
+
 <span ui-scroll="item in datasource" top-visible="topItem" is-loading="loading">
     <span style="width: {{item.width}}px; height: {{item.height}}px; background-color: {{item.color}}">
     *{{item.content}}*
