@@ -180,14 +180,18 @@ angular.module('ui.scroll', [])
 							overage = 0
 
 							for i in [buffer.length-1..0]
-								itemHeight = buffer[i].element.outerHeight(true)
-								if adapter.bottomDataPos() - bottomHeight - itemHeight > bottomVisiblePos() + bufferPadding()
-									# top boundary of the element is below the bottom of the visible area
-									bottomHeight += itemHeight
+								item = buffer[i]
+								itemTop = item.element.offset().top
+								newRow = rowTop isnt itemTop
+								rowTop = itemTop
+								itemHeight = item.element.outerHeight(true) if newRow
+								if (adapter.bottomDataPos() - bottomHeight - itemHeight > bottomVisiblePos() + bufferPadding())
+									bottomHeight += itemHeight if newRow
 									overage++
 									eof = false
 								else
-									break
+									break if newRow
+									overage++
 
 							if overage > 0
 								adapter.bottomPadding(adapter.bottomPadding() + bottomHeight)
@@ -203,13 +207,17 @@ angular.module('ui.scroll', [])
 							topHeight = 0
 							overage = 0
 							for item in buffer
-								itemHeight = item.element.outerHeight(true)
-								if adapter.topDataPos() + topHeight + itemHeight < topVisiblePos() - bufferPadding()
-									topHeight += itemHeight
+								itemTop = item.element.offset().top
+								newRow = rowTop isnt itemTop
+								rowTop = itemTop
+								itemHeight = item.element.outerHeight(true) if newRow
+								if (adapter.topDataPos() + topHeight + itemHeight < topVisiblePos() - bufferPadding())
+									topHeight += itemHeight if newRow
 									overage++
 									bof = false
 								else
-									break
+									break if newRow
+									overage++
 							if overage > 0
 								adapter.topPadding(adapter.topPadding() + topHeight)
 								removeFromBuffer(0, overage)
@@ -223,6 +231,14 @@ angular.module('ui.scroll', [])
 							if pending.push(direction) == 1
 								fetch(rid, scrolling)
 
+						hideElementBeforeAppend = (element) ->
+							element.displayTemp = element.css('display')
+							element.css 'display', 'none'
+
+						showElementAfterRender = (element) ->
+							if element.hasOwnProperty 'displayTemp'
+								element.css 'display', element.displayTemp
+
 						insert = (index, item) ->
 							itemScope = $scope.$new()
 							itemScope[itemName] = item
@@ -232,18 +248,19 @@ angular.module('ui.scroll', [])
 							wrapper =
 								scope: itemScope
 
-
 							linker itemScope,
 								(clone) ->
 									wrapper.element = clone
 									if toBeAppended
 										if index == next
+											hideElementBeforeAppend clone
 											adapter.append clone
 											buffer.push wrapper
 										else
 											buffer[index-first].element.after clone
 											buffer.splice index-first+1, 0, wrapper
 									else
+										hideElementBeforeAppend clone
 										adapter.prepend clone
 										buffer.unshift wrapper
 							{appended: toBeAppended, wrapper: wrapper}
@@ -272,18 +289,29 @@ angular.module('ui.scroll', [])
 							if pending.length == 0
 								topHeight = 0
 								for item in buffer
-									itemHeight = item.element.outerHeight(true)
-									if adapter.topDataPos() + topHeight + itemHeight < topVisiblePos()
-										topHeight += itemHeight
+									itemTop = item.element.offset().top
+									newRow = rowTop isnt itemTop
+									rowTop = itemTop
+									itemHeight = item.element.outerHeight(true) if newRow
+									if newRow and (adapter.topDataPos() + topHeight + itemHeight < topVisiblePos())
+											topHeight += itemHeight
 									else
-										topVisible(item)
+										topVisible(item) if newRow
 										break
 
 						adjustBuffer = (rid, scrolling, newItems, finalize)->
 							if newItems and newItems.length
 								$timeout ->
+									rows = []
 									for row in newItems
-										adjustRowHeight row.appended, row.wrapper
+										element = row.wrapper.element
+										showElementAfterRender element
+										itemTop = element.offset().top
+										if rowTop isnt itemTop
+											rows.push(row)
+											rowTop = itemTop
+									for row in rows
+										adjustRowHeight(row.appended, row.wrapper)
 									doAdjustment(rid, scrolling, finalize)
 							else
 								doAdjustment(rid, scrolling, finalize)
