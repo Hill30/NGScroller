@@ -607,7 +607,7 @@ describe('uiScroll', function () {
             }
         };
         var getNewWheelEvent = function () {
-            var event = document.createEvent("MouseEvents");
+            var event = document.createEvent('MouseEvents');
             event.initEvent('mousewheel', true, true);
             event.wheelDelta = 120;
             return event;
