@@ -36,7 +36,7 @@ angular.module('ui.scroll', [])
 
 						log = console.debug || console.log
 
-						match = $attr.uiScroll.match /^\s*(\w+)\s+in\s+(\w+)\s*$/
+						match = $attr.uiScroll.match(/^\s*(\w+)\s+in\s+([\w\.]+)\s*$/)
 						if !match
 							throw new Error "Expected uiScroll in form of '_item_ in _datasource_' but got '#{$attr.uiScroll}'"
 
@@ -46,7 +46,18 @@ angular.module('ui.scroll', [])
 						isDatasource = (datasource) ->
 							angular.isObject(datasource) and datasource.get and angular.isFunction(datasource.get)
 
-						datasource = $scope[datasourceName]
+						getValueChain = (targetScope, target) ->
+							return targetScope[target] if target.indexOf('.') is -1
+							chain = target.split('.')
+							src = targetScope
+							for ring in chain
+								if !src.hasOwnProperty(ring)
+									throw new Error "Chain walk error: can't find \"" + ring + "\" property within \"" + target + "\" chain"
+								src = src[ring]
+							return src
+
+						datasource = getValueChain($scope, datasourceName)
+
 						if !isDatasource datasource
 							datasource = $injector.get(datasourceName)
 							throw new Error "#{datasourceName} is not a valid datasource" unless isDatasource datasource
