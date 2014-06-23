@@ -49,7 +49,7 @@ angular.module('ui.scroll', [])
 						getValueChain = (targetScope, target) ->
 							chain = target.match(/^([\w]+)\.(.+)$/)
 							if not chain or chain.length isnt 3
-								return targetScope[target]
+								return if not targetScope.hasOwnProperty(target) then null else targetScope[target]
 							return null if not targetScope.hasOwnProperty(chain[1])
 							getValueChain(targetScope[chain[1]], chain[2])
 
