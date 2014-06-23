@@ -47,10 +47,10 @@ angular.module('ui.scroll', [])
 							angular.isObject(datasource) and datasource.get and angular.isFunction(datasource.get)
 
 						getValueChain = (targetScope, target) ->
+							return null if not targetScope
 							chain = target.match(/^([\w]+)\.(.+)$/)
 							return targetScope[target] if not chain or chain.length isnt 3
-							return null if not targetScope.hasOwnProperty(chain[1])
-							getValueChain(targetScope[chain[1]], chain[2])
+							return getValueChain(targetScope[chain[1]], chain[2])
 
 						datasource = getValueChain($scope, datasourceName)
 
