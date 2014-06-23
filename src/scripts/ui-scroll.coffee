@@ -47,14 +47,11 @@ angular.module('ui.scroll', [])
 							angular.isObject(datasource) and datasource.get and angular.isFunction(datasource.get)
 
 						getValueChain = (targetScope, target) ->
-							return targetScope[target] if target.indexOf('.') is -1
-							chain = target.split('.')
-							src = targetScope
-							for ring in chain
-								if !src.hasOwnProperty(ring)
-									throw new Error "Chain walk error: can't find \"" + ring + "\" property within \"" + target + "\" chain"
-								src = src[ring]
-							return src
+							chain = target.match(/^([\w]+)\.(.+)$/)
+							if not chain or chain.length isnt 3
+								return if not targetScope.hasOwnProperty(target) then null else targetScope[target]
+							return null if not targetScope.hasOwnProperty(chain[1])
+							getValueChain(targetScope[chain[1]], chain[2])
 
 						datasource = getValueChain($scope, datasourceName)
 
