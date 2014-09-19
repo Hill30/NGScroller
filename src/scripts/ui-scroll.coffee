@@ -18,7 +18,9 @@ angular.module('ui.scroll', [])
 			 ->
 					controller:
 						[ '$scope', '$element'
-							(scope, element) -> element
+							(scope, element) ->
+								this.viewport = element
+								this
 						]
 
 		])
@@ -77,7 +79,7 @@ angular.module('ui.scroll', [])
 									throw new Error "ui-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
 								repeaterType = 'div' if repeaterType not in ['li', 'tr']
 
-								viewport = controllers[0] || angular.element(window)
+								viewport = if controllers[0] and controllers[0].viewport then controllers[0].viewport else angular.element(window)
 								viewport.css({'overflow-y': 'auto', 'display': 'block'})
 
 								padding = (repeaterType)->
