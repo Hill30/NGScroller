@@ -41,6 +41,7 @@ The code in this file relies on a few DOM element methods of jQuery which are cu
 * height() and height(value)
 * outerHeight() and outerHeight(true)
 * scrollTop() and scrollTop(value)
+* offset()
 
 File ui-scroll-jqlite.coffee houses implementations of the above methods and also has to be loaded in your page. Please note that the methods are implemented in a separate module
 'ui.scroll.jqlite' and this name should also be included in the dependency list of the main module. The implementation currently supports missing methods
