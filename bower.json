@@ -1,0 +1,26 @@
+{
+  "name": "ui-scroll",
+  "version": "1.0.2",
+  "homepage": "https://github.com/Hill30/NGScroller.git",
+  "description": "AngularJS infinite scrolling module",
+  "main": "build/scripts/scroll.js",
+  "keywords": [
+    "angularjs",
+    "infinite",
+    "live",
+    "perpetual",
+    "scrolling"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "Gruntfile.coffee",
+    "package.json",
+    "test.dat",
+    "build",
+    "node_modules",
+    "test",
+    "server",
+    "temp"
+  ]
+}
