@@ -156,6 +156,10 @@ Do not ask me why this woodoo is necessary, but as of Chrome version 30 it is ju
 
 ###History
 
+####v1.0.3
+* Fixed memory leaking bug.
+* Removed examples from bower download list.
+
 ####v1.0.2
 * Registration of ui-scroll in bower.
 

@@ -71,7 +71,7 @@ angular.module('ui.scroll', [])
 						# Calling linker is the only way I found to get access to the tag name of the template
 						# to prevent the directive scope from pollution a new scope is created and destroyed
 						# right after the repeaterHandler creation is completed
-						linker tempScope = $scope.$new(),
+						linker $scope.$new(),
 							(template) ->
 
 								repeaterType = template[0].localName
@@ -103,7 +103,8 @@ angular.module('ui.scroll', [])
 								topPadding = createPadding(padding(repeaterType), element, 'top')
 								bottomPadding = createPadding(padding(repeaterType), element, 'bottom')
 
-								tempScope.$destroy()
+								$scope.$on '$destroy', () ->
+									template.remove()
 
 								adapter =
 									viewport: viewport
@@ -313,9 +314,9 @@ angular.module('ui.scroll', [])
 								$timeout ->
 									rows = []
 									for row in newItems
-										element = row.wrapper.element
-										showElementAfterRender element
-										itemTop = element.offset().top
+										elt = row.wrapper.element
+										showElementAfterRender elt
+										itemTop = elt.offset().top
 										if rowTop isnt itemTop
 											rows.push(row)
 											rowTop = itemTop
@@ -407,7 +408,9 @@ angular.module('ui.scroll', [])
 							eventListener = $scope.$new()
 
 						$scope.$on '$destroy', ->
-							eventListener.$destroy()
+							for item in buffer
+								item.scope.$destroy()
+								item.element.remove()
 							viewport.unbind 'resize', resizeHandler
 							viewport.unbind 'scroll', scrollHandler
 							viewport.unbind 'mousewheel', wheelHandler
