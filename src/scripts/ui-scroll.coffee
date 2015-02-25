@@ -207,7 +207,7 @@ angular.module('ui.scroll', [])
 								builder.bottomPadding(builder.bottomPadding() + bottomHeight)
 								removeFromBuffer(buffer.length - overage, buffer.length)
 								next -= overage
-								log "clipped off bottom #{overage} bottom padding #{builder.bottomPadding()}"
+								#log "clipped off bottom #{overage} bottom padding #{builder.bottomPadding()}"
 
 						shouldLoadTop = ->
 							!bof && (builder.topDataPos() > topVisiblePos() - bufferPadding())
@@ -232,7 +232,7 @@ angular.module('ui.scroll', [])
 								builder.topPadding(builder.topPadding() + topHeight)
 								removeFromBuffer(0, overage)
 								first += overage
-								log "clipped off top #{overage} top padding #{builder.topPadding()}"
+								#log "clipped off top #{overage} top padding #{builder.topPadding()}"
 
 						enqueueFetch = (rid, direction)->
 							if (!isLoading)
@@ -290,7 +290,7 @@ angular.module('ui.scroll', [])
 									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
 
 						doAdjustment = (rid, finalize)->
-							log "top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}"
+							#log "top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}"
 							if shouldLoadBottom()
 								enqueueFetch(rid, true)
 							else
