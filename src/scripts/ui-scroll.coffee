@@ -173,7 +173,7 @@ angular.module('ui.scroll', [])
 							pending = []
 							eof = false
 							bof = false
-							adjustBuffer(ridActual, false)
+							adjustBuffer(ridActual)
 
 						bottomVisiblePos = ->
 							viewport.scrollTop() + viewport.outerHeight()
@@ -234,12 +234,12 @@ angular.module('ui.scroll', [])
 								first += overage
 								log "clipped off top #{overage} top padding #{adapter.topPadding()}"
 
-						enqueueFetch = (rid, direction, scrolling)->
+						enqueueFetch = (rid, direction)->
 							if (!isLoading)
 								isLoading = true
 								loading(true)
 							if pending.push(direction) == 1
-								fetch(rid, scrolling)
+								fetch(rid)
 
 						hideElementBeforeAppend = (element) ->
 							element.displayTemp = element.css('display')
@@ -289,12 +289,12 @@ angular.module('ui.scroll', [])
 									# if not, increment scrollTop
 									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
 
-						doAdjustment = (rid, scrolling, finalize)->
+						doAdjustment = (rid, finalize)->
 							log "top {actual=#{adapter.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{adapter.bottomDataPos()}}"
 							if shouldLoadBottom()
-								enqueueFetch(rid, true, scrolling)
+								enqueueFetch(rid, true)
 							else
-								enqueueFetch(rid, false, scrolling) if shouldLoadTop()
+								enqueueFetch(rid, false) if shouldLoadTop()
 							finalize(rid) if finalize
 							if pending.length == 0
 								topHeight = 0
@@ -309,7 +309,7 @@ angular.module('ui.scroll', [])
 										topVisible(item) if newRow
 										break
 
-						adjustBuffer = (rid, scrolling, newItems, finalize)->
+						adjustBuffer = (rid, newItems, finalize)->
 							if newItems and newItems.length
 								$timeout ->
 									rows = []
@@ -322,25 +322,25 @@ angular.module('ui.scroll', [])
 											rowTop = itemTop
 									for row in rows
 										adjustRowHeight(row.appended, row.wrapper)
-									doAdjustment(rid, scrolling, finalize)
+									doAdjustment(rid, finalize)
 							else
-								doAdjustment(rid, scrolling, finalize)
+								doAdjustment(rid, finalize)
 
-						finalize = (rid, scrolling, newItems)->
-							adjustBuffer rid, scrolling, newItems, ->
+						finalize = (rid, newItems)->
+							adjustBuffer rid, newItems, ->
 								pending.shift()
 								if pending.length == 0
 									isLoading = false
 									loading(false)
 								else
-									fetch(rid, scrolling)
+									fetch(rid)
 
-						fetch = (rid, scrolling) ->
+						fetch = (rid) ->
 							direction = pending[0]
 							#log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
 							if direction
 								if buffer.length && !shouldLoadBottom()
-									finalize(rid, scrolling)
+									finalize(rid)
 								else
 									#log "appending... requested #{bufferSize} records starting from #{next}"
 									datasource.get next, bufferSize,
@@ -356,10 +356,10 @@ angular.module('ui.scroll', [])
 											for item in result
 												newItems.push (insert ++next, item)
 											#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize(rid, scrolling, newItems)
+										finalize(rid, newItems)
 							else
 								if buffer.length && !shouldLoadTop()
-									finalize(rid, scrolling)
+									finalize(rid)
 								else
 									#log "prepending... requested #{size} records starting from #{start}"
 									datasource.get first-bufferSize, bufferSize,
@@ -375,21 +375,15 @@ angular.module('ui.scroll', [])
 											for i in [result.length-1..0]
 												newItems.unshift (insert --first, result[i])
 											#log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize(rid, scrolling, newItems)
+										finalize(rid, newItems)
 
-						resizeHandler = ->
+						resizeAndResizeHandler = ->
 							if !$rootScope.$$phase && !isLoading
-								adjustBuffer(null, false) #todo dhilt : is null rid passing safe for resize, scroll, delete and insert cases?
+								adjustBuffer()
 								$scope.$apply()
 
-						viewport.bind 'resize', resizeHandler
-
-						scrollHandler = ->
-							if !$rootScope.$$phase && !isLoading
-								adjustBuffer(null, true)
-								$scope.$apply()
-
-						viewport.bind 'scroll', scrollHandler
+						viewport.bind 'resize', resizeAndResizeHandler
+						viewport.bind 'scroll', resizeAndResizeHandler
 
 						wheelHandler = (event) ->
 							scrollTop = viewport[0].scrollTop
@@ -440,7 +434,7 @@ angular.module('ui.scroll', [])
 									next--
 
 							item.scope.$index = first + i for item,i in buffer
-							adjustBuffer(null, false)
+							adjustBuffer()
 
 						eventListener.$on "insert.item", (event, locator, item)->
 							inserted = []
@@ -464,7 +458,7 @@ angular.module('ui.scroll', [])
 									next++
 
 							item.scope.$index = first + i for item,i in buffer
-							adjustBuffer(null, false, inserted)
+							adjustBuffer(null, inserted)
 
 		])
 
