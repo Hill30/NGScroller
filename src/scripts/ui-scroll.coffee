@@ -48,17 +48,22 @@ angular.module('ui.scroll', [])
 						isDatasource = (datasource) ->
 							angular.isObject(datasource) and datasource.get and angular.isFunction(datasource.get)
 
-						getValueChain = (targetScope, target) ->
-							return null if not targetScope
+						getValueChain = (targetScope, target, isSet) ->
+							return if not targetScope
 							chain = target.match(/^([\w]+)\.(.+)$/)
-							return targetScope[target] if not chain or chain.length isnt 3
-							return getValueChain(targetScope[chain[1]], chain[2])
+							if not chain or chain.length isnt 3
+								return targetScope[target] = {} if isSet and not angular.isObject(targetScope[target])
+								return targetScope[target]
+							targetScope[chain[1]] = {} if isSet and not angular.isObject(targetScope[chain[1]])
+							return getValueChain(targetScope[chain[1]], chain[2], isSet)
 
 						datasource = getValueChain($scope, datasourceName)
 
 						if !isDatasource datasource
 							datasource = $injector.get(datasourceName)
 							throw new Error "#{datasourceName} is not a valid datasource" unless isDatasource datasource
+
+						adapterAttr = getValueChain($scope, $attr.adapter, true) if $attr.adapter
 
 						bufferSize = Math.max(3, +$attr.bufferSize || 10)
 						bufferPadding = -> viewport.outerHeight() * Math.max(0.1, +$attr.padding || 0.1) # some extra space to initate preload
@@ -67,6 +72,7 @@ angular.module('ui.scroll', [])
 							elem[0].scrollHeight ? elem[0].document.documentElement.scrollHeight
 
 						builder = null
+						adapter = {}
 
 						# Calling linker is the only way I found to get access to the tag name of the template
 						# to prevent the directive scope from pollution a new scope is created and destroyed
@@ -409,7 +415,7 @@ angular.module('ui.scroll', [])
 							viewport.unbind 'scroll', resizeAndResizeHandler
 							viewport.unbind 'mousewheel', wheelHandler
 
-						eventListener.$on "update.items", (event, locator, newItem)->
+						adapter.update = (locator, newItem) ->
 							if angular.isFunction locator
 								((wrapper)->
 									locator wrapper.scope
@@ -419,7 +425,7 @@ angular.module('ui.scroll', [])
 									buffer[locator-first-1].scope[itemName] = newItem
 							null
 
-						eventListener.$on "delete.items", (event, locator)->
+						adapter.delete = (locator) ->
 							if angular.isFunction locator
 								temp = []
 								temp.unshift item for item in buffer
@@ -436,21 +442,9 @@ angular.module('ui.scroll', [])
 							item.scope.$index = first + i for item,i in buffer
 							adjustBuffer()
 
-						eventListener.$on "insert.item", (event, locator, item)->
+						adapter.insert = (locator, item) ->
 							inserted = []
 							if angular.isFunction locator
-#								temp = []
-#								temp.unshift item for item in buffer
-#								((wrapper)->
-#									if newItems = locator wrapper.scope
-#										insert = (index, newItem) ->
-#											insert index, newItem
-#											next++
-#										if isArray newItems
-#											inserted.push(insert i+j, item) for item,j in newitems
-#										else
-#											inserted.push (insert i, newItems)
-#								) wrapper for wrapper,i in temp
 								throw new Error('not implemented - Insert with locator function')
 							else
 								if 0 <= locator-first-1 < buffer.length
@@ -459,6 +453,13 @@ angular.module('ui.scroll', [])
 
 							item.scope.$index = first + i for item,i in buffer
 							adjustBuffer(null, inserted)
+
+						# deprecated since v1.1.0
+						eventListener.$on "insert.item", (event, locator, item)-> adapter.insert(locator, item)
+						eventListener.$on "update.items", (event, locator, newItem)-> adapter.update(locator, newItem)
+						eventListener.$on "delete.items", (event, locator)-> adapter.delete(locator)
+
+						angular.extend(adapterAttr, adapter) if adapterAttr
 
 		])
 
