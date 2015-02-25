@@ -405,8 +405,8 @@ angular.module('ui.scroll', [])
 							for item in buffer
 								item.scope.$destroy()
 								item.element.remove()
-							viewport.unbind 'resize', resizeHandler
-							viewport.unbind 'scroll', scrollHandler
+							viewport.unbind 'resize', resizeAndResizeHandler
+							viewport.unbind 'scroll', resizeAndResizeHandler
 							viewport.unbind 'mousewheel', wheelHandler
 
 						eventListener.$on "update.items", (event, locator, newItem)->
