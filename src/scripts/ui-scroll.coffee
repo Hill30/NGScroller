@@ -66,7 +66,7 @@ angular.module('ui.scroll', [])
 						scrollHeight = (elem)->
 							elem[0].scrollHeight ? elem[0].document.documentElement.scrollHeight
 
-						adapter = null
+						builder = null
 
 						# Calling linker is the only way I found to get access to the tag name of the template
 						# to prevent the directive scope from pollution a new scope is created and destroyed
@@ -106,7 +106,7 @@ angular.module('ui.scroll', [])
 								$scope.$on '$destroy', () ->
 									template.remove()
 
-								adapter =
+								builder =
 									viewport: viewport
 									topPadding: topPadding.paddingHeight
 									bottomPadding: bottomPadding.paddingHeight
@@ -117,7 +117,7 @@ angular.module('ui.scroll', [])
 									topDataPos: ->
 										topPadding.paddingHeight()
 
-						viewport = adapter.viewport
+						viewport = builder.viewport
 
 						viewportScope = viewport.scope() || $rootScope
 
@@ -168,8 +168,8 @@ angular.module('ui.scroll', [])
 							first = 1
 							next = 1
 							removeFromBuffer(0, buffer.length)
-							adapter.topPadding(0)
-							adapter.bottomPadding(0)
+							builder.topPadding(0)
+							builder.bottomPadding(0)
 							pending = []
 							eof = false
 							bof = false
@@ -182,11 +182,11 @@ angular.module('ui.scroll', [])
 							viewport.scrollTop()
 
 						shouldLoadBottom = ->
-							!eof && adapter.bottomDataPos() < bottomVisiblePos() + bufferPadding()
+							!eof && builder.bottomDataPos() < bottomVisiblePos() + bufferPadding()
 
 						clipBottom = ->
 							# clip the invisible items off the bottom
-							bottomHeight = 0 #adapter.bottomPadding()
+							bottomHeight = 0 #builder.bottomPadding()
 							overage = 0
 
 							for i in [buffer.length-1..0]
@@ -195,7 +195,7 @@ angular.module('ui.scroll', [])
 								newRow = rowTop isnt itemTop
 								rowTop = itemTop
 								itemHeight = item.element.outerHeight(true) if newRow
-								if (adapter.bottomDataPos() - bottomHeight - itemHeight > bottomVisiblePos() + bufferPadding())
+								if (builder.bottomDataPos() - bottomHeight - itemHeight > bottomVisiblePos() + bufferPadding())
 									bottomHeight += itemHeight if newRow
 									overage++
 									eof = false
@@ -204,13 +204,13 @@ angular.module('ui.scroll', [])
 									overage++
 
 							if overage > 0
-								adapter.bottomPadding(adapter.bottomPadding() + bottomHeight)
+								builder.bottomPadding(builder.bottomPadding() + bottomHeight)
 								removeFromBuffer(buffer.length - overage, buffer.length)
 								next -= overage
-								log "clipped off bottom #{overage} bottom padding #{adapter.bottomPadding()}"
+								log "clipped off bottom #{overage} bottom padding #{builder.bottomPadding()}"
 
 						shouldLoadTop = ->
-							!bof && (adapter.topDataPos() > topVisiblePos() - bufferPadding())
+							!bof && (builder.topDataPos() > topVisiblePos() - bufferPadding())
 
 						clipTop = ->
 							# clip the invisible items off the top
@@ -221,7 +221,7 @@ angular.module('ui.scroll', [])
 								newRow = rowTop isnt itemTop
 								rowTop = itemTop
 								itemHeight = item.element.outerHeight(true) if newRow
-								if (adapter.topDataPos() + topHeight + itemHeight < topVisiblePos() - bufferPadding())
+								if (builder.topDataPos() + topHeight + itemHeight < topVisiblePos() - bufferPadding())
 									topHeight += itemHeight if newRow
 									overage++
 									bof = false
@@ -229,10 +229,10 @@ angular.module('ui.scroll', [])
 									break if newRow
 									overage++
 							if overage > 0
-								adapter.topPadding(adapter.topPadding() + topHeight)
+								builder.topPadding(builder.topPadding() + topHeight)
 								removeFromBuffer(0, overage)
 								first += overage
-								log "clipped off top #{overage} top padding #{adapter.topPadding()}"
+								log "clipped off top #{overage} top padding #{builder.topPadding()}"
 
 						enqueueFetch = (rid, direction)->
 							if (!isLoading)
@@ -264,33 +264,33 @@ angular.module('ui.scroll', [])
 									if toBeAppended
 										if index == next
 											hideElementBeforeAppend clone
-											adapter.append clone
+											builder.append clone
 											buffer.push wrapper
 										else
 											buffer[index-first].element.after clone
 											buffer.splice index-first+1, 0, wrapper
 									else
 										hideElementBeforeAppend clone
-										adapter.prepend clone
+										builder.prepend clone
 										buffer.unshift wrapper
 							{appended: toBeAppended, wrapper: wrapper}
 
 						adjustRowHeight = (appended, wrapper) ->
 							if appended
-								adapter.bottomPadding(Math.max(0,adapter.bottomPadding() - wrapper.element.outerHeight(true)))
+								builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
 							else
 								# an element is inserted at the top
-								newHeight = adapter.topPadding() - wrapper.element.outerHeight(true)
+								newHeight = builder.topPadding() - wrapper.element.outerHeight(true)
 								# adjust padding to prevent it from visually pushing everything down
 								if newHeight >= 0
 									# if possible, reduce topPadding
-									adapter.topPadding(newHeight)
+									builder.topPadding(newHeight)
 								else
 									# if not, increment scrollTop
 									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
 
 						doAdjustment = (rid, finalize)->
-							log "top {actual=#{adapter.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{adapter.bottomDataPos()}}"
+							log "top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}"
 							if shouldLoadBottom()
 								enqueueFetch(rid, true)
 							else
@@ -303,7 +303,7 @@ angular.module('ui.scroll', [])
 									newRow = rowTop isnt itemTop
 									rowTop = itemTop
 									itemHeight = item.element.outerHeight(true) if newRow
-									if newRow and (adapter.topDataPos() + topHeight + itemHeight < topVisiblePos())
+									if newRow and (builder.topDataPos() + topHeight + itemHeight < topVisiblePos())
 											topHeight += itemHeight
 									else
 										topVisible(item) if newRow
@@ -349,7 +349,7 @@ angular.module('ui.scroll', [])
 										newItems = []
 										if result.length < bufferSize
 											eof = true
-											adapter.bottomPadding(0)
+											builder.bottomPadding(0)
 											#log "eof is reached"
 										if result.length > 0
 											clipTop()
@@ -368,7 +368,7 @@ angular.module('ui.scroll', [])
 										newItems = []
 										if result.length < bufferSize
 											bof = true
-											adapter.topPadding(0)
+											builder.topPadding(0)
 											#log "bof is reached"
 										if result.length > 0
 											clipBottom() if buffer.length
