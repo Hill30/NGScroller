@@ -123,17 +123,37 @@ exactly `count` elements unless it hit eof/bof
 Adapter object is a collection of methods and properties to be used to assess and manipulate the scroller instance adapater is created for. Adapter based API replaces old (undocumented) event based API introduced earlier for this purpose. The event based API is now deprecated but will remain available for backwards compatibililty purposes.
 
 ####Manipulating the scroller content with adapter methods
-All three methods use the first parameter to locate the items the operation intends to affect. The value of the parameter can be either an integer or a function. If the value is an integer, it is expected to be an index for the item in the buffer. If it is a function, the function will be called for every item currently in the buffer. The $scope created for the item will be passed to the locator function and the operation will be applied to the item if the locator function returns truthy value.
+All three methods use the first parameter to locate the items the operation intends to affect. The value of the parameter can be either an integer or a function. If the value is an integer, it is expected to be an index for the item. If it is a function, the function will be called for every item currently in the buffer. The $scope created for the item will be passed to the locator function and the operation will be applied to the item if the locator function returns truthy value.
 
-Keep in mind that because of the dynamic nature of the scroller it is quiet difficult to associate an item with its index in the buffer. As the thumb of the scroller moves the index of an item in the buffer will change.
+**Important:** Keep in mind that the modifications made by the manipulation methods are only applied to the content of the buffer. As the items in response to scrolling are pushed out of the buffer, the modifications are lost. Therefore it is your responsibility to ensure that as the scroller is scrolled back and a modified item is requested from the datasource again the values returned would reflect the updated state. In other words you have to make sure that in addition to manipulating the scroller content you also apply the modifications to the dataset underlying the datasource.
 
-**Important:** Also keep in mind that the modifications made by the manipulation methods are only applied to the content of the buffer. As the items in response to scrolling are pushed out of the buffer, the modifications are lost. Therefore it is your responsibility to ensure that as the scroller is scrolled back and a modified item is requested from the datasource again the values returned would reflect the updated state. In other words you have to make sure that in addition to manipulating the scroller content you also apply the modifications to the dataset underlying the datasource.
+####Content manipulation methods:
 
+* Method `insert`
 
-* Method `get`
+        insert(locator, item)
+    #### Description
+    Inserts a new item after the item identified by the locator
+#### Parameters
+    * **locator** index of the item the new item have to be inserted after
+    * **item** new item
 
-        get(index, count, success)
+* Method `update`
 
+        update(locator, item)
+    #### Description
+    Updates an item(s) currently in the buffer
+#### Parameters
+    * **locator** if it is an integer, it is treated as an index of the item to be replaced. If it is a function it is called for every item currently in the buffer. If the locator is a function, the second parameter (item) is ignored. The necessary updates can be made directly from within the locator function
+    * **item** new item to replace an existing one in this position. The item parameter is ignored if the locator parameter is a function
+
+* Method `delete`
+
+        delete(locator)
+    #### Description
+    Deletes item(s) from the buffer
+#### Parameters
+    * **locator** if it is an integer, it is treated as an index of the item to be deleted. If it is a function, all items the function reutns truthy for will be deleted.
 
 uiScrollViewport directive
 -------------------
