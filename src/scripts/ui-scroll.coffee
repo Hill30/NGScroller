@@ -48,11 +48,14 @@ angular.module('ui.scroll', [])
 						isDatasource = (datasource) ->
 							angular.isObject(datasource) and datasource.get and angular.isFunction(datasource.get)
 
-						getValueChain = (targetScope, target) ->
-							return null if not targetScope
+						getValueChain = (targetScope, target, isSet) ->
+							return if not targetScope
 							chain = target.match(/^([\w]+)\.(.+)$/)
-							return targetScope[target] if not chain or chain.length isnt 3
-							return getValueChain(targetScope[chain[1]], chain[2])
+							if not chain or chain.length isnt 3
+								return targetScope[target] = {} if isSet and not angular.isObject(targetScope[target])
+								return targetScope[target]
+							targetScope[chain[1]] = {} if isSet and not angular.isObject(targetScope[chain[1]])
+							return getValueChain(targetScope[chain[1]], chain[2], isSet)
 
 						datasource = getValueChain($scope, datasourceName)
 
@@ -60,13 +63,16 @@ angular.module('ui.scroll', [])
 							datasource = $injector.get(datasourceName)
 							throw new Error "#{datasourceName} is not a valid datasource" unless isDatasource datasource
 
+						adapterAttr = getValueChain($scope, $attr.adapter, true) if $attr.adapter
+
 						bufferSize = Math.max(3, +$attr.bufferSize || 10)
 						bufferPadding = -> viewport.outerHeight() * Math.max(0.1, +$attr.padding || 0.1) # some extra space to initate preload
 
 						scrollHeight = (elem)->
 							elem[0].scrollHeight ? elem[0].document.documentElement.scrollHeight
 
-						adapter = null
+						builder = null
+						adapter = {}
 
 						# Calling linker is the only way I found to get access to the tag name of the template
 						# to prevent the directive scope from pollution a new scope is created and destroyed
@@ -106,7 +112,7 @@ angular.module('ui.scroll', [])
 								$scope.$on '$destroy', () ->
 									template.remove()
 
-								adapter =
+								builder =
 									viewport: viewport
 									topPadding: topPadding.paddingHeight
 									bottomPadding: bottomPadding.paddingHeight
@@ -117,7 +123,7 @@ angular.module('ui.scroll', [])
 									topDataPos: ->
 										topPadding.paddingHeight()
 
-						viewport = adapter.viewport
+						viewport = builder.viewport
 
 						viewportScope = viewport.scope() || $rootScope
 
@@ -168,12 +174,12 @@ angular.module('ui.scroll', [])
 							first = 1
 							next = 1
 							removeFromBuffer(0, buffer.length)
-							adapter.topPadding(0)
-							adapter.bottomPadding(0)
+							builder.topPadding(0)
+							builder.bottomPadding(0)
 							pending = []
 							eof = false
 							bof = false
-							adjustBuffer(ridActual, false)
+							adjustBuffer(ridActual)
 
 						bottomVisiblePos = ->
 							viewport.scrollTop() + viewport.outerHeight()
@@ -182,11 +188,11 @@ angular.module('ui.scroll', [])
 							viewport.scrollTop()
 
 						shouldLoadBottom = ->
-							!eof && adapter.bottomDataPos() < bottomVisiblePos() + bufferPadding()
+							!eof && builder.bottomDataPos() < bottomVisiblePos() + bufferPadding()
 
 						clipBottom = ->
 							# clip the invisible items off the bottom
-							bottomHeight = 0 #adapter.bottomPadding()
+							bottomHeight = 0 #builder.bottomPadding()
 							overage = 0
 
 							for i in [buffer.length-1..0]
@@ -195,7 +201,7 @@ angular.module('ui.scroll', [])
 								newRow = rowTop isnt itemTop
 								rowTop = itemTop
 								itemHeight = item.element.outerHeight(true) if newRow
-								if (adapter.bottomDataPos() - bottomHeight - itemHeight > bottomVisiblePos() + bufferPadding())
+								if (builder.bottomDataPos() - bottomHeight - itemHeight > bottomVisiblePos() + bufferPadding())
 									bottomHeight += itemHeight if newRow
 									overage++
 									eof = false
@@ -204,13 +210,13 @@ angular.module('ui.scroll', [])
 									overage++
 
 							if overage > 0
-								adapter.bottomPadding(adapter.bottomPadding() + bottomHeight)
+								builder.bottomPadding(builder.bottomPadding() + bottomHeight)
 								removeFromBuffer(buffer.length - overage, buffer.length)
 								next -= overage
-								log "clipped off bottom #{overage} bottom padding #{adapter.bottomPadding()}"
+								#log "clipped off bottom #{overage} bottom padding #{builder.bottomPadding()}"
 
 						shouldLoadTop = ->
-							!bof && (adapter.topDataPos() > topVisiblePos() - bufferPadding())
+							!bof && (builder.topDataPos() > topVisiblePos() - bufferPadding())
 
 						clipTop = ->
 							# clip the invisible items off the top
@@ -221,7 +227,7 @@ angular.module('ui.scroll', [])
 								newRow = rowTop isnt itemTop
 								rowTop = itemTop
 								itemHeight = item.element.outerHeight(true) if newRow
-								if (adapter.topDataPos() + topHeight + itemHeight < topVisiblePos() - bufferPadding())
+								if (builder.topDataPos() + topHeight + itemHeight < topVisiblePos() - bufferPadding())
 									topHeight += itemHeight if newRow
 									overage++
 									bof = false
@@ -229,17 +235,17 @@ angular.module('ui.scroll', [])
 									break if newRow
 									overage++
 							if overage > 0
-								adapter.topPadding(adapter.topPadding() + topHeight)
+								builder.topPadding(builder.topPadding() + topHeight)
 								removeFromBuffer(0, overage)
 								first += overage
-								log "clipped off top #{overage} top padding #{adapter.topPadding()}"
+								#log "clipped off top #{overage} top padding #{builder.topPadding()}"
 
-						enqueueFetch = (rid, direction, scrolling)->
+						enqueueFetch = (rid, direction)->
 							if (!isLoading)
 								isLoading = true
 								loading(true)
 							if pending.push(direction) == 1
-								fetch(rid, scrolling)
+								fetch(rid)
 
 						hideElementBeforeAppend = (element) ->
 							element.displayTemp = element.css('display')
@@ -264,37 +270,37 @@ angular.module('ui.scroll', [])
 									if toBeAppended
 										if index == next
 											hideElementBeforeAppend clone
-											adapter.append clone
+											builder.append clone
 											buffer.push wrapper
 										else
 											buffer[index-first].element.after clone
 											buffer.splice index-first+1, 0, wrapper
 									else
 										hideElementBeforeAppend clone
-										adapter.prepend clone
+										builder.prepend clone
 										buffer.unshift wrapper
 							{appended: toBeAppended, wrapper: wrapper}
 
 						adjustRowHeight = (appended, wrapper) ->
 							if appended
-								adapter.bottomPadding(Math.max(0,adapter.bottomPadding() - wrapper.element.outerHeight(true)))
+								builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
 							else
 								# an element is inserted at the top
-								newHeight = adapter.topPadding() - wrapper.element.outerHeight(true)
+								newHeight = builder.topPadding() - wrapper.element.outerHeight(true)
 								# adjust padding to prevent it from visually pushing everything down
 								if newHeight >= 0
 									# if possible, reduce topPadding
-									adapter.topPadding(newHeight)
+									builder.topPadding(newHeight)
 								else
 									# if not, increment scrollTop
 									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
 
-						doAdjustment = (rid, scrolling, finalize)->
-							log "top {actual=#{adapter.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{adapter.bottomDataPos()}}"
+						doAdjustment = (rid, finalize)->
+							#log "top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}"
 							if shouldLoadBottom()
-								enqueueFetch(rid, true, scrolling)
+								enqueueFetch(rid, true)
 							else
-								enqueueFetch(rid, false, scrolling) if shouldLoadTop()
+								enqueueFetch(rid, false) if shouldLoadTop()
 							finalize(rid) if finalize
 							if pending.length == 0
 								topHeight = 0
@@ -303,13 +309,13 @@ angular.module('ui.scroll', [])
 									newRow = rowTop isnt itemTop
 									rowTop = itemTop
 									itemHeight = item.element.outerHeight(true) if newRow
-									if newRow and (adapter.topDataPos() + topHeight + itemHeight < topVisiblePos())
+									if newRow and (builder.topDataPos() + topHeight + itemHeight < topVisiblePos())
 											topHeight += itemHeight
 									else
 										topVisible(item) if newRow
 										break
 
-						adjustBuffer = (rid, scrolling, newItems, finalize)->
+						adjustBuffer = (rid, newItems, finalize)->
 							if newItems and newItems.length
 								$timeout ->
 									rows = []
@@ -322,74 +328,68 @@ angular.module('ui.scroll', [])
 											rowTop = itemTop
 									for row in rows
 										adjustRowHeight(row.appended, row.wrapper)
-									doAdjustment(rid, scrolling, finalize)
+									doAdjustment(rid, finalize)
 							else
-								doAdjustment(rid, scrolling, finalize)
+								doAdjustment(rid, finalize)
 
-						finalize = (rid, scrolling, newItems)->
-							adjustBuffer rid, scrolling, newItems, ->
+						finalize = (rid, newItems)->
+							adjustBuffer rid, newItems, ->
 								pending.shift()
 								if pending.length == 0
 									isLoading = false
 									loading(false)
 								else
-									fetch(rid, scrolling)
+									fetch(rid)
 
-						fetch = (rid, scrolling) ->
+						fetch = (rid) ->
 							direction = pending[0]
 							#log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
 							if direction
 								if buffer.length && !shouldLoadBottom()
-									finalize(rid, scrolling)
+									finalize(rid)
 								else
 									#log "appending... requested #{bufferSize} records starting from #{next}"
 									datasource.get next, bufferSize,
 									(result) ->
-										return if rid and rid isnt ridActual
+										return if (rid and rid isnt ridActual) or $scope.$$destroyed
 										newItems = []
 										if result.length < bufferSize
 											eof = true
-											adapter.bottomPadding(0)
+											builder.bottomPadding(0)
 											#log "eof is reached"
 										if result.length > 0
 											clipTop()
 											for item in result
 												newItems.push (insert ++next, item)
 											#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize(rid, scrolling, newItems)
+										finalize(rid, newItems)
 							else
 								if buffer.length && !shouldLoadTop()
-									finalize(rid, scrolling)
+									finalize(rid)
 								else
 									#log "prepending... requested #{size} records starting from #{start}"
 									datasource.get first-bufferSize, bufferSize,
 									(result) ->
-										return if rid and rid isnt ridActual
+										return if (rid and rid isnt ridActual) or $scope.$$destroyed
 										newItems = []
 										if result.length < bufferSize
 											bof = true
-											adapter.topPadding(0)
+											builder.topPadding(0)
 											#log "bof is reached"
 										if result.length > 0
 											clipBottom() if buffer.length
 											for i in [result.length-1..0]
 												newItems.unshift (insert --first, result[i])
 											#log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize(rid, scrolling, newItems)
+										finalize(rid, newItems)
 
-						resizeHandler = ->
+						resizeAndResizeHandler = ->
 							if !$rootScope.$$phase && !isLoading
-								adjustBuffer(null, false) #todo dhilt : is null rid passing safe for resize, scroll, delete and insert cases?
+								adjustBuffer()
 								$scope.$apply()
 
-						viewport.bind 'resize', resizeHandler
-
-						scrollHandler = ->
-							if !$rootScope.$$phase && !isLoading
-								adjustBuffer(null, true)
-								$scope.$apply()
-
-						viewport.bind 'scroll', scrollHandler
+						viewport.bind 'resize', resizeAndResizeHandler
+						viewport.bind 'scroll', resizeAndResizeHandler
 
 						wheelHandler = (event) ->
 							scrollTop = viewport[0].scrollTop
@@ -411,11 +411,11 @@ angular.module('ui.scroll', [])
 							for item in buffer
 								item.scope.$destroy()
 								item.element.remove()
-							viewport.unbind 'resize', resizeHandler
-							viewport.unbind 'scroll', scrollHandler
+							viewport.unbind 'resize', resizeAndResizeHandler
+							viewport.unbind 'scroll', resizeAndResizeHandler
 							viewport.unbind 'mousewheel', wheelHandler
 
-						eventListener.$on "update.items", (event, locator, newItem)->
+						adapter.update = (locator, newItem) ->
 							if angular.isFunction locator
 								((wrapper)->
 									locator wrapper.scope
@@ -425,7 +425,7 @@ angular.module('ui.scroll', [])
 									buffer[locator-first-1].scope[itemName] = newItem
 							null
 
-						eventListener.$on "delete.items", (event, locator)->
+						adapter.delete = (locator) ->
 							if angular.isFunction locator
 								temp = []
 								temp.unshift item for item in buffer
@@ -440,23 +440,11 @@ angular.module('ui.scroll', [])
 									next--
 
 							item.scope.$index = first + i for item,i in buffer
-							adjustBuffer(null, false)
+							adjustBuffer()
 
-						eventListener.$on "insert.item", (event, locator, item)->
+						adapter.insert = (locator, item) ->
 							inserted = []
 							if angular.isFunction locator
-#								temp = []
-#								temp.unshift item for item in buffer
-#								((wrapper)->
-#									if newItems = locator wrapper.scope
-#										insert = (index, newItem) ->
-#											insert index, newItem
-#											next++
-#										if isArray newItems
-#											inserted.push(insert i+j, item) for item,j in newitems
-#										else
-#											inserted.push (insert i, newItems)
-#								) wrapper for wrapper,i in temp
 								throw new Error('not implemented - Insert with locator function')
 							else
 								if 0 <= locator-first-1 < buffer.length
@@ -464,7 +452,14 @@ angular.module('ui.scroll', [])
 									next++
 
 							item.scope.$index = first + i for item,i in buffer
-							adjustBuffer(null, false, inserted)
+							adjustBuffer(null, inserted)
+
+						# deprecated since v1.1.0
+						eventListener.$on "insert.item", (event, locator, item)-> adapter.insert(locator, item)
+						eventListener.$on "update.items", (event, locator, newItem)-> adapter.update(locator, newItem)
+						eventListener.$on "delete.items", (event, locator)-> adapter.delete(locator)
+
+						angular.extend(adapterAttr, adapter) if adapterAttr
 
 		])
 
