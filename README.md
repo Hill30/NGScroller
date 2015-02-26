@@ -77,6 +77,7 @@ The value is relative to the visible height of the area, the default is 0.5 and 
 * **top-visible - name**, optional - if provided a reference to the item currently in the topmost visible position will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope
 * **top-visible-element - name**, optional - if provided a reference to the DOM element currently in the topmost visible position will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope
 * **top-visible-scope - name**, optional - if provided a reference to the scope created for the item currently in the topmost visible position will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope
+* **adapter - name**, optional - if provided a reference to the adapter object for the scroller instance will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope
 
 ###Data Source 
 Data source is an object to be used by the uiScroll directive to access the data. 
@@ -117,6 +118,21 @@ exactly `count` elements unless it hit eof/bof
 
     #### Description
     this is an optional method. If supplied the scroller will $watch its value and will refresh the content if the value has changed
+
+###Adapter
+Adapter object is a collection of methods and properties to be used to assess and manipulate the scroller instance adapater is created for. Adapter based API replaces old (undocumented) event based API introduced earlier for this purpose. The event based API is now deprecated but will remain available for backwards compatibililty purposes.
+
+####Manipulating the scroller content with adapter methods
+All three methods use the first parameter to locate the items the operation intends to affect. The value of the parameter can be either an integer or a function. If the value is an integer, it is expected to be an index for the item in the buffer. If it is a function, the function will be called for every item currently in the buffer. The $scope created for the item will be passed to the locator function and the operation will be applied to the item if the locator function returns truthy value.
+
+Keep in mind that because of the dynamic nature of the scroller it is quiet difficult to associate an item with its index in the buffer. As the thumb of the scroller moves the index of an item in the buffer will change.
+
+**Important:** Also keep in mind that the modifications made by the manipulation methods are only applied to the content of the buffer. As the items in response to scrolling are pushed out of the buffer, the modifications are lost. Therefore it is your responsibility to ensure that as the scroller is scrolled back and a modified item is requested from the datasource again the values returned would reflect the updated state. In other words you have to make sure that in addition to manipulating the scroller content you also apply the modifications to the dataset underlying the datasource.
+
+
+* Method `get`
+
+        get(index, count, success)
 
 
 uiScrollViewport directive
