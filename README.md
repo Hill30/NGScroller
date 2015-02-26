@@ -73,11 +73,14 @@ dl as a repeated tag is not supported.
 * **buffer-size - value**, optional - number of items requested from the datasource in a single request. The default is 10 and the minimal value is 3
 * **padding - value**, optional - extra height added to the visible area for the purpose of determining when the items should be created/destroyed.
 The value is relative to the visible height of the area, the default is 0.5 and the minimal value is 0.3
-* **is-loading - name**, optional - if provided a boolean value indicating whether there are any pending load requests will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope
-* **top-visible - name**, optional - if provided a reference to the item currently in the topmost visible position will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope
-* **top-visible-element - name**, optional - if provided a reference to the DOM element currently in the topmost visible position will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope
-* **top-visible-scope - name**, optional - if provided a reference to the scope created for the item currently in the topmost visible position will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope
-* **adapter - name**, optional - if provided a reference to the adapter object for the scroller instance will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope
+* **adapter - name**, optional - if provided a reference to the adapter object for the scroller instance will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope. The adapter is a collection of methods and properties to manipulate and assess the scroller the adapter was created for.
+
+Some of the properties offered by the adapater can also be accessed directly from the directive by using matching attributes. The syntax for such attributes allows for providing a name under which the appropariate value will be placed on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope. Below is a list of such attributes:
+
+* **is-loading - name**, optional - a boolean value indicating whether there are any pending load requests will be placed in the member with the said name.
+* **top-visible - name**, optional - a reference to the item currently in the topmost visible position will be placed in the member with the said name.
+* **top-visible-element - name**, optional - a reference to the DOM element currently in the topmost visible position will be placed in the member with the said name.
+* **top-visible-scope - name**, optional - a reference to the scope created for the item currently in the topmost visible position will be placed in the member with the said name.
 
 ###Data Source 
 Data source is an object to be used by the uiScroll directive to access the data. 
@@ -135,8 +138,8 @@ All three methods use the first parameter to locate the items the operation inte
     #### Description
     Inserts a new item after the item identified by the locator
 #### Parameters
-    * **locator** index of the item the new item have to be inserted after
-    * **item** new item
+    * **locator** index of the item the new item have to be inserted after.
+    * **item** the item to be inserted in the buffer.
 
 * Method `update`
 
@@ -145,7 +148,7 @@ All three methods use the first parameter to locate the items the operation inte
     Updates an item(s) currently in the buffer
 #### Parameters
     * **locator** if it is an integer, it is treated as an index of the item to be replaced. If it is a function it is called for every item currently in the buffer. If the locator is a function, the second parameter (item) is ignored. The necessary updates can be made directly from within the locator function
-    * **item** new item to replace an existing one in this position. The item parameter is ignored if the locator parameter is a function
+    * **item** new item to replace in the buffer the existing item in this position. The item parameter is ignored if the locator parameter is a function
 
 * Method `delete`
 
@@ -153,7 +156,7 @@ All three methods use the first parameter to locate the items the operation inte
     #### Description
     Deletes item(s) from the buffer
 #### Parameters
-    * **locator** if it is an integer, it is treated as an index of the item to be deleted. If it is a function, all items the function reutns truthy for will be deleted.
+    * **locator** if it is an integer, it is treated as an index of the item to be deleted. If it is a function, all items the function reutns truthy for will be deleted from the buffer.
 
 uiScrollViewport directive
 -------------------
