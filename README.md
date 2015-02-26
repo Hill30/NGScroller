@@ -156,8 +156,12 @@ Do not ask me why this woodoo is necessary, but as of Chrome version 30 it is ju
 
 ###History
 
+####v1.1.0
+* Introduced API to dynamically update scroller content.
+* Fixed the problem occuring if the scroller is $destroyed while there are requests pending (#64).
+
 ####v1.0.3
-* Fixed memory leaking bug.
+* Fixed memory on scroller destroy leak (#63).
 * Removed examples from bower download list.
 
 ####v1.0.2
