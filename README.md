@@ -207,7 +207,7 @@ Do not ask me why this woodoo is necessary, but as of Chrome version 30 it is ju
 * Fixed the problem occuring if the scroller is $destroyed while there are requests pending: [#64](https://github.com/Hill30/NGScroller/issues/64).
 
 ####v1.0.3
-* Fixed memory on scroller destroy leak : [#63](https://github.com/Hill30/NGScroller/issues/63).
+* Fixed memory leak on scroller destroy: [#63](https://github.com/Hill30/NGScroller/issues/63).
 * Removed examples from bower download list.
 
 ####v1.0.2
