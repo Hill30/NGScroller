@@ -77,10 +77,10 @@ The value is relative to the visible height of the area, the default is 0.5 and 
 
 Some of the properties offered by the adapater can also be accessed directly from the directive by using matching attributes. The syntax for such attributes allows for providing a name under which the appropariate value will be placed on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope. Below is a list of such attributes:
 
-* **is-loading - name**, optional - a boolean value indicating whether there are any pending load requests will be placed in the member with the said name.
-* **top-visible - name**, optional - a reference to the item currently in the topmost visible position will be placed in the member with the said name.
-* **top-visible-element - name**, optional - a reference to the DOM element currently in the topmost visible position will be placed in the member with the said name.
-* **top-visible-scope - name**, optional - a reference to the scope created for the item currently in the topmost visible position will be placed in the member with the said name.
+* **is-loading - name**, optional - a boolean value indicating whether there are any pending load requests will be placed in the member with the said name. See also `isLoading` adapter property.
+* **top-visible - name**, optional - a reference to the item currently in the topmost visible position will be placed in the member with the said name. See also `topVisible` adapter property.
+* **top-visible-element - name**, optional - a reference to the DOM element currently in the topmost visible position will be placed in the member with the said name. See also `topVisibleElement` adapter property.
+* **top-visible-scope - name**, optional - a reference to the scope created for the item currently in the topmost visible position will be placed in the member with the said name. See also `topVisibleScope` adapter property.
 
 ###Data Source 
 Data source is an object to be used by the uiScroll directive to access the data. 
@@ -157,6 +157,13 @@ All three methods use the first parameter to locate the items the operation inte
     Deletes item(s) from the buffer
 #### Parameters
     * **locator** if it is an integer, it is treated as an index of the item to be deleted. If it is a function, all items the function reutns truthy for will be deleted from the buffer.
+
+####Adapter properties
+
+* `isLoading` - a boolean value indicating whether there are any pending load requests.
+* `topVisible` - a reference to the item currently in the topmost visible position.
+* `topVisibleElement` - a reference to the DOM element currently in the topmost visible position.
+* `topVisibleScope` - a reference to the scope created for the item currently in the topmost visible position.
 
 uiScrollViewport directive
 -------------------
