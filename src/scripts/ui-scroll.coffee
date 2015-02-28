@@ -457,15 +457,18 @@ angular.module('ui.scroll', [])
 						adapter.applyUpdates = (updater) ->
 							inserted = []
 							ridActual++
-							for wrapper in buffer
+							for wrapper in buffer.slice(0)  # we need to do it on the buffer clone
 								newItems = updater(wrapper.scope[itemName], wrapper.scope, wrapper.element)
 								if newItems.length
 									if newItems.length == 1 && newItems[0] == wrapper.scope[itemName]
 										# update inplace
 									else
 										ndx = wrapper.scope.$index
-										toBeAppended = ndx > first
-										oldItemNdx = ndx-first #+newItems.length
+										if ndx > first
+											oldItemNdx = ndx-first
+										else
+											oldItemNdx = 1 # this is where the first item from the batch is prepended to the
+																		# old item, but the rest of them are appended to it. the old item will be in this position
 										#replace items. First insert new items
 										inserted.push (insert ndx+i, newItem) for newItem,i in newItems
 										# now delete the old one
