@@ -465,10 +465,11 @@ angular.module('ui.scroll', [])
 									else
 										ndx = wrapper.scope.$index
 										toBeAppended = ndx > first
-										#replace items. First delete the old one
-										removeFromBuffer ndx-first, ndx-first+1
-										# now insert the replacement
-										inserted.push (insert ndx-1, newItems[0])
+										oldItemNdx = ndx-first #+newItems.length
+										#replace items. First insert new items
+										inserted.push (insert ndx+i, newItem) for newItem,i in newItems
+										# now delete the old one
+										removeFromBuffer oldItemNdx, oldItemNdx+1
 										# re-index the buffer
 										item.scope.$index = first + i for item,i in buffer
 								else

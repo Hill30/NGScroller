@@ -32,11 +32,16 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite']).controller('mai
 
 			$scope.updateList1 = ->
 				$scope.firstListAdapter.applyUpdates (item, scope) ->
-					if item.id == -3
-						item = {}
-						item.id = 0
-						item.content = ' * ' + scope.$index
-					[item]
+					if item.id == -4
+						r = []
+						for i in [1..2]
+							item = {}
+							item.id = 0
+							item.content = " * #{scope.$index} ##{i}"
+							r.push item
+						r
+					else
+						[item]
 
 			$scope.removeFromList1 = ->
 				$scope.firstListAdapter.applyUpdates (item) ->
