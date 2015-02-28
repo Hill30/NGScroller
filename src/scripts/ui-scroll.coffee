@@ -454,6 +454,31 @@ angular.module('ui.scroll', [])
 							item.scope.$index = first + i for item,i in buffer
 							adjustBuffer(null, inserted)
 
+						adapter.applyUpdates = (updater) ->
+							inserted = []
+							ridActual++
+							for wrapper in buffer
+								newItems = updater(wrapper.scope[itemName], wrapper.scope, wrapper.element)
+								if newItems.length
+									if newItems.length == 1 && newItems[0] == wrapper.scope[itemName]
+										# update inplace
+									else
+										ndx = wrapper.scope.$index
+										toBeAppended = ndx > first
+										#replace items. First delete the old one
+										removeFromBuffer ndx-first, ndx-first+1
+										# now insert the replacement
+										inserted.push (insert ndx-1, newItems[0])
+										# re-index the buffer
+										item.scope.$index = first + i for item,i in buffer
+								else
+									# delete the item
+									removeFromBuffer wrapper.scope.$index-first, wrapper.scope.$index-first+1
+									next--
+									item.scope.$index = first + i for item,i in buffer
+							adjustBuffer(ridActual, inserted)
+
+
 						# deprecated since v1.1.0
 						eventListener.$on "insert.item", (event, locator, item)-> adapter.insert(locator, item)
 						eventListener.$on "update.items", (event, locator, newItem)-> adapter.update(locator, newItem)
