@@ -32,32 +32,23 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite']).controller('mai
 
 			$scope.updateList1 = ->
 				$scope.firstListAdapter.applyUpdates (item, scope) ->
-					#if item.id == -4
-						r = []
-						for i in [1..2]
-							it = {}
-							it.id = 100 + item.id
-							it.content = " * #{item.id} ##{i}"
-							r.push it
-						r
-					#else
-						#[item]
+					item.content += " *"
 
 			$scope.removeFromList1 = ->
 				$scope.firstListAdapter.applyUpdates (item) ->
 					if item.id % 2 == 0
-						return []
-					else
-						return [item]
+						[]
 
 			idList1 = 1000
 
 			$scope.addToList1 = ->
-				$scope.firstListAdapter.insert 2,
-					id: idList1
-					content: 'a new one #' + idList1
-				idList1++
-				return
+				$scope.firstListAdapter.applyUpdates (item, scope) ->
+					if scope.$index == 2
+						newItem =
+							id: idList1
+							content: 'a new one #' + idList1
+						idList1++
+						[item, newItem]
 
 			# 2nd list adapter implementation
 

@@ -459,27 +459,29 @@ angular.module('ui.scroll', [])
 							ridActual++
 							for wrapper in buffer.slice(0)  # we need to do it on the buffer clone
 								newItems = updater(wrapper.scope[itemName], wrapper.scope, wrapper.element)
-								if newItems.length
-									if newItems.length == 1 && newItems[0] == wrapper.scope[itemName]
-										# update inplace
-									else
-										ndx = wrapper.scope.$index
-										if ndx > first
-											oldItemNdx = ndx-first
+								if angular.isArray newItems
+									if newItems.length
+										if newItems.length == 1 && newItems[0] == wrapper.scope[itemName]
+											# update inplace
 										else
-											oldItemNdx = 1 # this is where the first item from the batch is prepended to the
-																		# old item, but the rest of them are appended to it. the old item will be in this position
-										#replace items. First insert new items
-										inserted.push (insert ndx+i, newItem) for newItem,i in newItems
-										# now delete the old one
-										removeFromBuffer oldItemNdx, oldItemNdx+1
-										# re-index the buffer
+											ndx = wrapper.scope.$index
+											if ndx > first
+												oldItemNdx = ndx-first
+											else
+												# this is where the first item from the batch is prepended to the
+												# old item, but the rest of them are appended to it. the old item will be in this position
+												oldItemNdx = 1
+											#replace items. First insert new items
+											inserted.push (insert ndx+i, newItem) for newItem,i in newItems
+											# now delete the old one
+											removeFromBuffer oldItemNdx, oldItemNdx+1
+											# re-index the buffer
+											item.scope.$index = first + i for item,i in buffer
+									else
+										# delete the item
+										removeFromBuffer wrapper.scope.$index-first, wrapper.scope.$index-first+1
+										next--
 										item.scope.$index = first + i for item,i in buffer
-								else
-									# delete the item
-									removeFromBuffer wrapper.scope.$index-first, wrapper.scope.$index-first+1
-									next--
-									item.scope.$index = first + i for item,i in buffer
 							adjustBuffer(ridActual, inserted)
 
 
