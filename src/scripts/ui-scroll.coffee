@@ -415,6 +415,52 @@ angular.module('ui.scroll', [])
 							viewport.unbind 'scroll', resizeAndResizeHandler
 							viewport.unbind 'mousewheel', wheelHandler
 
+						applyUpdate = (wrapper, newItems) ->
+							inserted = []
+							if angular.isArray newItems
+								if newItems.length
+									if newItems.length == 1 && newItems[0] == wrapper.scope[itemName]
+										# update inplace
+									else
+										ndx = wrapper.scope.$index
+										if ndx > first
+											oldItemNdx = ndx-first
+										else
+											# this is where the first item from the batch is prepended to the
+											# old item, but the rest of them are appended to it. the old item will be in this position
+											oldItemNdx = 1
+										#replace items. First insert new items
+										inserted.push (insert ndx+i, newItem) for newItem,i in newItems
+										# now delete the old one
+										removeFromBuffer oldItemNdx, oldItemNdx+1
+										# re-index the buffer
+										item.scope.$index = first + i for item,i in buffer
+								else
+									# delete the item
+									removeFromBuffer wrapper.scope.$index-first, wrapper.scope.$index-first+1
+									next--
+									item.scope.$index = first + i for item,i in buffer
+							inserted
+
+						adapter.applyUpdates = (arg1, arg2) ->
+							inserted = []
+							ridActual++
+							if angular.isFunction arg1
+								# arg1 is the updater function, arg2 is ignored
+								for wrapper in buffer.slice(0)  # we need to do it on the buffer clone
+									inserted.concat inserted, applyUpdate wrapper, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
+							else
+								# arg1 is item index, arg2 is the newItems array
+								if arg1%1 == 0 # checking if it is an integer
+									if 0 <= arg-first-1 < buffer.length
+										inserted = applyUpdate buffer[arg1 - first], arg2
+								else
+									throw new Error "applyUpdates - #{arg1} is not a valid index or outside of range"
+							adjustBuffer(ridActual, inserted)
+
+						angular.extend(adapterAttr, adapter) if adapterAttr
+
+						# deprecated since v1.1.0
 						adapter.update = (locator, newItem) ->
 							if angular.isFunction locator
 								((wrapper)->
@@ -450,47 +496,13 @@ angular.module('ui.scroll', [])
 								if 0 <= locator-first-1 < buffer.length
 									inserted.push (insert locator, item)
 									next++
-
 							item.scope.$index = first + i for item,i in buffer
 							adjustBuffer(null, inserted)
 
-						adapter.applyUpdates = (updater) ->
-							inserted = []
-							ridActual++
-							for wrapper in buffer.slice(0)  # we need to do it on the buffer clone
-								newItems = updater(wrapper.scope[itemName], wrapper.scope, wrapper.element)
-								if angular.isArray newItems
-									if newItems.length
-										if newItems.length == 1 && newItems[0] == wrapper.scope[itemName]
-											# update inplace
-										else
-											ndx = wrapper.scope.$index
-											if ndx > first
-												oldItemNdx = ndx-first
-											else
-												# this is where the first item from the batch is prepended to the
-												# old item, but the rest of them are appended to it. the old item will be in this position
-												oldItemNdx = 1
-											#replace items. First insert new items
-											inserted.push (insert ndx+i, newItem) for newItem,i in newItems
-											# now delete the old one
-											removeFromBuffer oldItemNdx, oldItemNdx+1
-											# re-index the buffer
-											item.scope.$index = first + i for item,i in buffer
-									else
-										# delete the item
-										removeFromBuffer wrapper.scope.$index-first, wrapper.scope.$index-first+1
-										next--
-										item.scope.$index = first + i for item,i in buffer
-							adjustBuffer(ridActual, inserted)
 
-
-						# deprecated since v1.1.0
 						eventListener.$on "insert.item", (event, locator, item)-> adapter.insert(locator, item)
 						eventListener.$on "update.items", (event, locator, newItem)-> adapter.update(locator, newItem)
 						eventListener.$on "delete.items", (event, locator)-> adapter.delete(locator)
-
-						angular.extend(adapterAttr, adapter) if adapterAttr
 
 		])
 
