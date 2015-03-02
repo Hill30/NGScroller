@@ -135,7 +135,7 @@ Method `applyUpdates` provides a way to update the scroller content without full
     Updates scroller content at the given location in the dataset
 #### Parameters
     * **index** index of the item to be affected in the dataset.
-    * **newItems** an array of items to replace the affected item. If the array is empty (`[]`). The item will be deleted, otherwise the items in the array replace the affected item.
+    * **newItems** an array of items to replace the affected item. If the array is empty (`[]`) the item will be deleted, otherwise the items in the array replace the affected item.
 
 * Method `applyUpdates(updater)`
 
