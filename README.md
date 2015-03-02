@@ -75,7 +75,7 @@ dl as a repeated tag is not supported.
 The value is relative to the visible height of the area, the default is 0.5 and the minimal value is 0.3
 * **adapter - name**, optional - if provided a reference to the adapter object for the scroller instance will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope. The adapter is a collection of methods and properties to manipulate and assess the scroller the adapter was created for.
 
-Some of the properties offered by the adapter can also be accessed directly from the directive by using matching attributes. The syntax for such attributes allows for providing a name under which the appropariate value will be placed on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope. Below is a list of such attributes:
+Some of the properties offered by the adapter can also be accessed directly from the directive by using matching attributes. In the same way as for the adapter attribute syntax for such attributes allows for providing a name under which the appropariate value will be placed on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope. Below is a list of such attributes:
 
 * **is-loading - name**, optional - a boolean value indicating whether there are any pending load requests will be placed in the member with the said name. See also `isLoading` adapter property.
 * **top-visible - name**, optional - a reference to the item currently in the topmost visible position will be placed in the member with the said name. See also `topVisible` adapter property.
@@ -125,10 +125,28 @@ exactly `count` elements unless it hit eof/bof
 ###Adapter
 Adapter object is a collection of methods and properties to be used to assess and manipulate the scroller instance adapater is created for. Adapter based API replaces old (undocumented) event based API introduced earlier for this purpose. The event based API is now deprecated but will remain available for backwards compatibililty purposes.
 
-####Manipulating the scroller content with adapter methods
+####Manipulating the scroller content with applyUpdates method
+
+Method `applyUpdates` provides a way to update the scroller content without full reload of the content from the datasource. The updates are performed by changing the items in the scroller internal buffer after they are loaded from the datasource. An item in the buffer can be deleted or modified. Also several items can be inserted to replace a given item.
+
+* Method `applyUpdates(index, newItems)`
+
+    #### Description
+    Updates scroller content at the given location in the dataset
+#### Parameters
+    * **index** index of the item to be affected in the dataset.
+    * **newItems** an array of items to replace the affected item. If the array is empty (`[]`). The item will be deleted, otherwise the items in the array replace the affected item.
+
+* Method `applyUpdates(updater)`
+
+    #### Description
+    Updates scroller content as determined by the updater function
+#### Parameters
+    * **updater** a function to be applied to every item currently in the buffer. The function will recieve 3 parameters: `item`, `scope`, and `element`,
+
 All three methods use the first parameter to locate the items the operation intends to affect. The value of the parameter can be either an integer or a function. If the value is an integer, it is expected to be an index for the item. If it is a function, the function will be called for every item currently in the buffer. The $scope created for the item will be passed to the locator function and the operation will be applied to the item if the locator function returns truthy value.
 
-**Important:** Keep in mind that the modifications made by the manipulation methods are only applied to the content of the buffer. As the items in response to scrolling are pushed out of the buffer, the modifications are lost. Therefore it is your responsibility to ensure that as the scroller is scrolled back and a modified item is requested from the datasource again the values returned would reflect the updated state. In other words you have to make sure that in addition to manipulating the scroller content you also apply the modifications to the dataset underlying the datasource.
+**Important:** Keep in mind that the modifications made by the `applyUpdates` methods are only applied to the content of the buffer. As the items in response to scrolling are pushed out of the buffer, the modifications are lost. It is your responsibility to ensure that as the scroller is scrolled back and a modified item is requested from the datasource again the values returned by the datasource would reflect the updated state. In other words you have to make sure that in addition to manipulating the scroller content you also apply the modifications to the dataset underlying the datasource.
 
 ####Content manipulation methods:
 
