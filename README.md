@@ -142,39 +142,9 @@ Method `applyUpdates` provides a way to update the scroller content without full
     #### Description
     Updates scroller content as determined by the updater function
 #### Parameters
-    * **updater** a function to be applied to every item currently in the buffer. The function will recieve 3 parameters: `item`, `scope`, and `element`,
-
-All three methods use the first parameter to locate the items the operation intends to affect. The value of the parameter can be either an integer or a function. If the value is an integer, it is expected to be an index for the item. If it is a function, the function will be called for every item currently in the buffer. The $scope created for the item will be passed to the locator function and the operation will be applied to the item if the locator function returns truthy value.
+    * **updater** a function to be applied to every item currently in the buffer. The function will recieve 3 parameters: `item`, `scope`, and `element`. Here `item` is the item to be affected, `scope` is the item $scope, and `element` is the html element for the item. The return value of the function should be an array of items. Similarly to the `newItem` parameter (see above), if the array is empty(`[]`), the item is deleted, otherwise the item is replaced by the items in the array. If the return value is not an array, the item remains unaffected, unless some updates were made to the item in the updater function. This can be thought of as in place update. 
 
 **Important:** Keep in mind that the modifications made by the `applyUpdates` methods are only applied to the content of the buffer. As the items in response to scrolling are pushed out of the buffer, the modifications are lost. It is your responsibility to ensure that as the scroller is scrolled back and a modified item is requested from the datasource again the values returned by the datasource would reflect the updated state. In other words you have to make sure that in addition to manipulating the scroller content you also apply the modifications to the dataset underlying the datasource.
-
-####Content manipulation methods:
-
-* Method `insert`
-
-        insert(locator, item)
-    #### Description
-    Inserts a new item after the item identified by the locator
-#### Parameters
-    * **locator** index of the item the new item have to be inserted after.
-    * **item** the item to be inserted in the buffer.
-
-* Method `update`
-
-        update(locator, item)
-    #### Description
-    Updates an item(s) currently in the buffer
-#### Parameters
-    * **locator** if it is an integer, it is treated as an index of the item to be replaced. If it is a function it is called for every item currently in the buffer. If the locator is a function, the second parameter (item) is ignored. The necessary updates can be made directly from within the locator function
-    * **item** new item to replace in the buffer the existing item in this position. The item parameter is ignored if the locator parameter is a function
-
-* Method `delete`
-
-        delete(locator)
-    #### Description
-    Deletes item(s) from the buffer
-#### Parameters
-    * **locator** if it is an integer, it is treated as an index of the item to be deleted. If it is a function, all items the function reutns truthy for will be deleted from the buffer.
 
 ####Adapter properties
 
