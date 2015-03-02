@@ -77,51 +77,49 @@ angular.module('ui.scroll', [])
 						# Calling linker is the only way I found to get access to the tag name of the template
 						# to prevent the directive scope from pollution a new scope is created and destroyed
 						# right after the repeaterHandler creation is completed
-						linker $scope.$new(),
-							(template) ->
+						linker $scope.$new(), (template) ->
 
-								repeaterType = template[0].localName
-								if repeaterType in ['dl']
-									throw new Error "ui-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
-								repeaterType = 'div' if repeaterType not in ['li', 'tr']
+							repeaterType = template[0].localName
+							if repeaterType in ['dl']
+								throw new Error "ui-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
+							repeaterType = 'div' if repeaterType not in ['li', 'tr']
 
-								viewport = if controllers[0] and controllers[0].viewport then controllers[0].viewport else angular.element(window)
-								viewport.css({'overflow-y': 'auto', 'display': 'block'})
+							viewport = if controllers[0] and controllers[0].viewport then controllers[0].viewport else angular.element(window)
+							viewport.css({'overflow-y': 'auto', 'display': 'block'})
 
-								padding = (repeaterType)->
-									switch repeaterType
-										when 'tr'
-											table = angular.element('<table><tr><td><div></div></td></tr></table>')
-											div = table.find('div')
-											result = table.find('tr')
-											result.paddingHeight = -> div.height.apply(div, arguments)
-											result
-										else
-											result = angular.element("<#{repeaterType}></#{repeaterType}>")
-											result.paddingHeight = result.height
-											result
+							padding = (repeaterType)->
+								switch repeaterType
+									when 'tr'
+										table = angular.element('<table><tr><td><div></div></td></tr></table>')
+										div = table.find('div')
+										result = table.find('tr')
+										result.paddingHeight = -> div.height.apply(div, arguments)
+										result
+									else
+										result = angular.element("<#{repeaterType}></#{repeaterType}>")
+										result.paddingHeight = result.height
+										result
 
-								createPadding = (padding, element, direction) ->
-									element[{top:'before',bottom:'after'}[direction]] padding
-									paddingHeight: -> padding.paddingHeight.apply(padding, arguments)
-									insert: (element) -> padding[{top:'after',bottom:'before'}[direction]] element
+							createPadding = (padding, element, direction) ->
+								element[{top:'before',bottom:'after'}[direction]] padding
+								paddingHeight: -> padding.paddingHeight.apply(padding, arguments)
+								insert: (element) -> padding[{top:'after',bottom:'before'}[direction]] element
 
-								topPadding = createPadding(padding(repeaterType), element, 'top')
-								bottomPadding = createPadding(padding(repeaterType), element, 'bottom')
+							topPadding = createPadding(padding(repeaterType), element, 'top')
+							bottomPadding = createPadding(padding(repeaterType), element, 'bottom')
 
-								$scope.$on '$destroy', () ->
-									template.remove()
+							$scope.$on '$destroy', template.remove
 
-								builder =
-									viewport: viewport
-									topPadding: topPadding.paddingHeight
-									bottomPadding: bottomPadding.paddingHeight
-									append: bottomPadding.insert
-									prepend: topPadding.insert
-									bottomDataPos: ->
-										scrollHeight(viewport) - bottomPadding.paddingHeight()
-									topDataPos: ->
-										topPadding.paddingHeight()
+							builder =
+								viewport: viewport
+								topPadding: topPadding.paddingHeight
+								bottomPadding: bottomPadding.paddingHeight
+								append: bottomPadding.insert
+								prepend: topPadding.insert
+								bottomDataPos: ->
+									scrollHeight(viewport) - bottomPadding.paddingHeight()
+								topDataPos: ->
+									topPadding.paddingHeight()
 
 						viewport = builder.viewport
 
@@ -383,13 +381,10 @@ angular.module('ui.scroll', [])
 											#log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize(rid, newItems)
 
-						resizeAndResizeHandler = ->
+						resizeAndScrollHandler = ->
 							if !$rootScope.$$phase && !isLoading
 								adjustBuffer()
 								$scope.$apply()
-
-						viewport.bind 'resize', resizeAndResizeHandler
-						viewport.bind 'scroll', resizeAndResizeHandler
 
 						wheelHandler = (event) ->
 							scrollTop = viewport[0].scrollTop
@@ -397,10 +392,11 @@ angular.module('ui.scroll', [])
 							if (scrollTop is 0 and not bof) or (scrollTop is yMax and not eof)
 								event.preventDefault()
 
+						viewport.bind 'resize', resizeAndScrollHandler
+						viewport.bind 'scroll', resizeAndScrollHandler
 						viewport.bind 'mousewheel', wheelHandler
 
-						$scope.$watch datasource.revision,
-							-> reload()
+						$scope.$watch datasource.revision, reload
 
 						if datasource.scope
 							eventListener = datasource.scope.$new()
@@ -411,8 +407,8 @@ angular.module('ui.scroll', [])
 							for item in buffer
 								item.scope.$destroy()
 								item.element.remove()
-							viewport.unbind 'resize', resizeAndResizeHandler
-							viewport.unbind 'scroll', resizeAndResizeHandler
+							viewport.unbind 'resize', resizeAndScrollHandler
+							viewport.unbind 'scroll', resizeAndScrollHandler
 							viewport.unbind 'mousewheel', wheelHandler
 
 						applyUpdate = (wrapper, newItems) ->
@@ -460,8 +456,10 @@ angular.module('ui.scroll', [])
 
 						angular.extend(adapterAttr, adapter) if adapterAttr
 
-						# deprecated since v1.1.0
-						adapter.update = (locator, newItem) ->
+
+						# update events are deprecated since v1.1.0
+
+						doUpdate = (locator, newItem) ->
 							if angular.isFunction locator
 								((wrapper)->
 									locator wrapper.scope
@@ -471,7 +469,7 @@ angular.module('ui.scroll', [])
 									buffer[locator-first-1].scope[itemName] = newItem
 							null
 
-						adapter.delete = (locator) ->
+						doDelete = (locator) ->
 							if angular.isFunction locator
 								temp = []
 								temp.unshift item for item in buffer
@@ -488,7 +486,7 @@ angular.module('ui.scroll', [])
 							item.scope.$index = first + i for item,i in buffer
 							adjustBuffer()
 
-						adapter.insert = (locator, item) ->
+						doInsert = (locator, item) ->
 							inserted = []
 							if angular.isFunction locator
 								throw new Error('not implemented - Insert with locator function')
@@ -499,10 +497,9 @@ angular.module('ui.scroll', [])
 							item.scope.$index = first + i for item,i in buffer
 							adjustBuffer(null, inserted)
 
-
-						eventListener.$on "insert.item", (event, locator, item)-> adapter.insert(locator, item)
-						eventListener.$on "update.items", (event, locator, newItem)-> adapter.update(locator, newItem)
-						eventListener.$on "delete.items", (event, locator)-> adapter.delete(locator)
+						eventListener.$on "insert.item", (event, locator, item)->doInsert(locator, item)
+						eventListener.$on "update.items", (event, locator, newItem)-> doUpdate(locator, newItem)
+						eventListener.$on "delete.items", (event, locator)-> doDelete(locator)
 
 		])
 
