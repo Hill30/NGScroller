@@ -64,6 +64,7 @@ angular.module('ui.scroll', [])
 							throw new Error "#{datasourceName} is not a valid datasource" unless isDatasource datasource
 
 						adapterAttr = getValueChain($scope, $attr.adapter, true) if $attr.adapter
+						isLoadingAttr = getValueChain($scope, $attr.isLoading, true) if $attr.isLoading
 
 						bufferSize = Math.max(3, +$attr.bufferSize || 10)
 						bufferPadding = -> viewport.outerHeight() * Math.max(0.1, +$attr.padding || 0.1) # some extra space to initate preload
@@ -72,7 +73,6 @@ angular.module('ui.scroll', [])
 							elem[0].scrollHeight ? elem[0].document.documentElement.scrollHeight
 
 						builder = null
-						adapter = {}
 
 						# Calling linker is the only way I found to get access to the tag name of the template
 						# to prevent the directive scope from pollution a new scope is created and destroyed
@@ -143,13 +143,10 @@ angular.module('ui.scroll', [])
 							topVisibleScope(item.scope) if topVisibleScope
 							datasource.topVisible(item) if datasource.topVisible
 
-						if angular.isDefined ($attr.isLoading)
-							loading = (value) ->
-								viewportScope[$attr.isLoading] = value
-								datasource.loading(value) if datasource.loading
-						else
-							loading = (value) ->
-								datasource.loading(value) if datasource.loading
+						loading = (value) ->
+							adapter.isLoading = value
+							isLoadingAttr = value if $attr.isLoading
+							datasource.loading(value) if typeof datasource.loading is 'function'
 
 						ridActual = 0
 						first = 1
@@ -158,7 +155,6 @@ angular.module('ui.scroll', [])
 						pending = []
 						eof = false
 						bof = false
-						isLoading = false
 
 						#removes items from start (including) through stop (excluding)
 						removeFromBuffer = (start, stop)->
@@ -239,8 +235,7 @@ angular.module('ui.scroll', [])
 								#log "clipped off top #{overage} top padding #{builder.topPadding()}"
 
 						enqueueFetch = (rid, direction)->
-							if (!isLoading)
-								isLoading = true
+							if (!adapter.isLoading)
 								loading(true)
 							if pending.push(direction) == 1
 								fetch(rid)
@@ -308,7 +303,7 @@ angular.module('ui.scroll', [])
 									rowTop = itemTop
 									itemHeight = item.element.outerHeight(true) if newRow
 									if newRow and (builder.topDataPos() + topHeight + itemHeight < topVisiblePos())
-											topHeight += itemHeight
+										topHeight += itemHeight
 									else
 										topVisible(item) if newRow
 										break
@@ -334,7 +329,6 @@ angular.module('ui.scroll', [])
 							adjustBuffer rid, newItems, ->
 								pending.shift()
 								if pending.length == 0
-									isLoading = false
 									loading(false)
 								else
 									fetch(rid)
@@ -381,8 +375,11 @@ angular.module('ui.scroll', [])
 											#log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize(rid, newItems)
 
+
+						# events and bindings
+
 						resizeAndScrollHandler = ->
-							if !$rootScope.$$phase && !isLoading
+							if !$rootScope.$$phase && !adapter.isLoading
 								adjustBuffer()
 								$scope.$apply()
 
@@ -410,6 +407,11 @@ angular.module('ui.scroll', [])
 							viewport.unbind 'resize', resizeAndScrollHandler
 							viewport.unbind 'scroll', resizeAndScrollHandler
 							viewport.unbind 'mousewheel', wheelHandler
+
+
+						# adapter initializing
+
+						adapter = {}
 
 						applyUpdate = (wrapper, newItems) ->
 							inserted = []
@@ -454,10 +456,14 @@ angular.module('ui.scroll', [])
 									throw new Error "applyUpdates - #{arg1} is not a valid index or outside of range"
 							adjustBuffer(ridActual, inserted)
 
-						angular.extend(adapterAttr, adapter) if adapterAttr
+						adapter.isLoading = false
+
+						if $attr.adapter # so we have an adapter on $scope
+							angular.extend(adapterAttr, adapter)
+							adapter = adapterAttr
 
 
-						# update events are deprecated since v1.1.0
+						# update events (are deprecated since v1.1.0)
 
 						doUpdate = (locator, newItem) ->
 							if angular.isFunction locator
