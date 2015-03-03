@@ -64,7 +64,6 @@ angular.module('ui.scroll', [])
 							throw new Error "#{datasourceName} is not a valid datasource" unless isDatasource datasource
 
 						adapterAttr = getValueChain($scope, $attr.adapter, true) if $attr.adapter
-						isLoadingAttr = getValueChain($scope, $attr.isLoading, true) if $attr.isLoading
 
 						bufferSize = Math.max(3, +$attr.bufferSize || 10)
 						bufferPadding = -> viewport.outerHeight() * Math.max(0.1, +$attr.padding || 0.1) # some extra space to initate preload
@@ -145,7 +144,7 @@ angular.module('ui.scroll', [])
 
 						loading = (value) ->
 							adapter.isLoading = value
-							isLoadingAttr = value if $attr.isLoading
+							viewportScope[$attr.isLoading] = value if $attr.isLoading
 							datasource.loading(value) if typeof datasource.loading is 'function'
 
 						ridActual = 0
