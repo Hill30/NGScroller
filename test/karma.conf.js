@@ -15,8 +15,8 @@ module.exports = function(config) {
         // list of files / patterns to load in the browser
         files: [
             'http://code.jquery.com/jquery-1.9.1.js',
-            'https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.js',
-            'https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular-mocks.js',
+            'https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.js',
+            'https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular-mocks.js',
             '../src/scripts/**/ui-scroll*.coffee',
             '**/*Spec.js'
         ],
