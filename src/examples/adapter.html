@@ -21,6 +21,11 @@
 			margin-top: 5px;
 		}
 
+		.dataLoading {
+			margin-top: -10px;
+			margin-bottom: 10px;
+		}
+
 		.note {
 			width: 300px;
 			margin-left: 40px;
@@ -40,9 +45,14 @@
 	<table>
 		<tr>
 			<td>
+				<div class="dataLoading">
+					<span ng-hide="!firstListAdapter.isLoading">...data loading...</span>
+					<span ng-hide="isLoadingOnScope">1st list is loaded</span>
+				</div>
 				<div ui-scroll-viewport class="viewport">
 					<div ui-scroll="item in datasource"
 						 adapter="firstListAdapter"
+						 is-loading="isLoadingOnScope"
 						 buffer-size='5'>{{item.content}}</div>
 				</div>
 				<button ng-click="updateList1()">update this list</button>
@@ -51,6 +61,10 @@
 			</td>
 			<td>
 				<div style="margin-left: 30px;">
+					<div class="dataLoading">
+						<span ng-hide="!second.list.adapter.isLoading">...data loading...</span>
+						<span ng-hide="second.list.adapter.isLoading">2nd list is loaded</span>
+					</div>
 					<div ui-scroll-viewport class="viewport">
 						<div ui-scroll="item in datasource"
 							 adapter="second.list.adapter"
@@ -72,9 +86,6 @@
 		<li>The firstListAdapter is initially defined on ctrl $scope as a first level object with some property.</li>
 		<li>The second.list.adapter chain is not defined on ctrl $scope. The scroller defines it during linking.</li>
 	</ul>
-
-
-	(c) <a href="https://github.com/dhilt">dhilt</a>, 2015
 </div>
 
 <div style="clear: both;"></div>
