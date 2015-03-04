@@ -450,7 +450,7 @@ angular.module('ui.scroll', [])
 							else
 								# arg1 is item index, arg2 is the newItems array
 								if arg1%1 == 0 # checking if it is an integer
-									if 0 <= arg-first-1 < buffer.length
+									if 0 <= arg1-first-1 < buffer.length
 										inserted = applyUpdate buffer[arg1 - first], arg2
 								else
 									throw new Error "applyUpdates - #{arg1} is not a valid index or outside of range"
