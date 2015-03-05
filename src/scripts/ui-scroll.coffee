@@ -251,8 +251,7 @@ angular.module('ui.scroll', [])
 							wrapper =
 								scope: itemScope
 
-							linker itemScope,
-							(clone) ->
+							linker itemScope, (clone) ->
 								wrapper.element = clone
 								if toBeAppended
 									if index == next
