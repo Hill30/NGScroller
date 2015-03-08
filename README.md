@@ -180,6 +180,9 @@ See [index.html](http://rawgithub.com/Hill30/NGScroller/master/src/index.html)
 
 ###History
 
+####v1.1.1
+* Fixed jqlite on $destroy error.
+
 ####v1.1.0
 * Introduced API to dynamically update scroller content.
 * Deep 'name' properties access via dot-notation in template.
