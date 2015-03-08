@@ -111,7 +111,7 @@ angular.module('ui.scroll', [])
 							topPadding = createPadding(padding(repeaterType), element, 'top')
 							bottomPadding = createPadding(padding(repeaterType), element, 'bottom')
 
-							$scope.$on '$destroy', template.remove
+							$scope.$on '$destroy', -> template.remove()
 
 							builder =
 								viewport: viewport
