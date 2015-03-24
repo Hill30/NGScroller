@@ -26,8 +26,8 @@ angular.module('ui.scroll', [])
 		])
 
 	.directive( 'uiScroll'
-		[ '$log', '$injector', '$rootScope', '$timeout'
-			(console, $injector, $rootScope, $timeout) ->
+		[ '$log', '$injector', '$rootScope', '$timeout', '$animate',
+			(console, $injector, $rootScope, $timeout, $animate) ->
 				require: ['?^uiScrollViewport']
 				transclude: 'element'
 				priority: 1000
@@ -407,8 +407,15 @@ angular.module('ui.scroll', [])
 						adapter = {}
 						adapter.isLoading = false
 
+						removeElement = (index)->
+							promise = $animate.leave buffer[index].element,
+								-> buffer[index].scope.$destroy()
+							buffer.splice index, 1
+							promise
+
 						applyUpdate = (wrapper, newItems) ->
 							inserted = []
+							promises = []
 							if angular.isArray newItems
 								if newItems.length
 									if newItems.length == 1 && newItems[0] == wrapper.scope[itemName]
@@ -424,12 +431,12 @@ angular.module('ui.scroll', [])
 										#replace items. First insert new items
 										inserted.push (insert ndx+i, newItem) for newItem,i in newItems
 										# now delete the old one
-										removeFromBuffer oldItemNdx, oldItemNdx+1
+										removeElement oldItemNdx
 										# re-index the buffer
 										item.scope.$index = first + i for item,i in buffer
 								else
 									# delete the item
-									removeFromBuffer wrapper.scope.$index-first, wrapper.scope.$index-first+1
+									promises.push removeElement wrapper.scope.$index-first
 									next--
 									item.scope.$index = first + i for item,i in buffer
 							inserted
@@ -447,7 +454,7 @@ angular.module('ui.scroll', [])
 									if 0 <= arg1-first < buffer.length
 										inserted = applyUpdate buffer[arg1 - first], arg2
 								else
-									throw new Error "applyUpdates - #{arg1} is not a valid index or outside of range"
+									throw new Error "applyUpdates - #{arg1} is not a valid index"
 							adjustBuffer(ridActual, inserted)
 
 						if $attr.adapter # so we have an adapter on $scope
