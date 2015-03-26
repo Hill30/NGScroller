@@ -157,8 +157,7 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 					getWidthHeight(this[0], 'height', if option then 'outerfull' else 'outer')
 
 				###
-UIScroller no longer relies on jQuery method offset. The jQLite implementation of the method
-is kept here just for the reference. Also the offset setter method was never implemented
+The offset setter method is not implemented
 				###
 
 				offset: (value)->

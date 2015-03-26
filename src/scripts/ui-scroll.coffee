@@ -26,8 +26,11 @@ angular.module('ui.scroll', [])
 		])
 
 	.directive( 'uiScroll'
-		[ '$log', '$injector', '$rootScope', '$timeout', '$animate',
-			(console, $injector, $rootScope, $timeout, $animate) ->
+		[ '$log', '$injector', '$rootScope', '$timeout',
+			(console, $injector, $rootScope, $timeout) ->
+
+				$animate = $injector.get('$animate') if $injector.has && $injector.has('$animate')
+
 				require: ['?^uiScrollViewport']
 				transclude: 'element'
 				priority: 1000
