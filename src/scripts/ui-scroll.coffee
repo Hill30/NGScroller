@@ -26,8 +26,8 @@ angular.module('ui.scroll', [])
 		])
 
 	.directive( 'uiScroll'
-		[ '$log', '$injector', '$rootScope', '$timeout',
-			(console, $injector, $rootScope, $timeout) ->
+		[ '$log', '$injector', '$rootScope', '$timeout', '$q',
+			(console, $injector, $rootScope, $timeout, $q) ->
 
 				$animate = $injector.get('$animate') if $injector.has && $injector.has('$animate')
 
@@ -410,11 +410,21 @@ angular.module('ui.scroll', [])
 						adapter = {}
 						adapter.isLoading = false
 
-						removeElement = (index)->
-							promise = $animate.leave buffer[index].element,
-								-> buffer[index].scope.$destroy()
-							buffer.splice index, 1
-							promise
+						removeElement =
+							if $animate
+								(index)->
+									promise = $animate.leave buffer[index].element,
+										-> buffer[index].scope.$destroy()
+									buffer.splice index, 1
+									promise
+							else
+								(index)->
+									buffer[index].element.remove()
+									buffer[index].scope.$destroy()
+									buffer.splice index, 1
+									deferred = $q.defer()
+									deferred.resolve()
+									deferred.promise
 
 						applyUpdate = (wrapper, newItems) ->
 							inserted = []
@@ -435,13 +445,12 @@ angular.module('ui.scroll', [])
 										inserted.push (insert ndx+i, newItem) for newItem,i in newItems
 										# now delete the old one
 										removeElement oldItemNdx
-										# re-index the buffer
-										item.scope.$index = first + i for item,i in buffer
 								else
 									# delete the item
 									promises.push removeElement wrapper.scope.$index-first
 									next--
-									item.scope.$index = first + i for item,i in buffer
+								# re-index the buffer
+								item.scope.$index = first + i for item,i in buffer
 							inserted
 
 						adapter.applyUpdates = (arg1, arg2) ->
