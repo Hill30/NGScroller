@@ -413,8 +413,10 @@ angular.module('ui.scroll', [])
 						removeElement =
 							if $animate
 								(index)->
+									scope = buffer[index].scope
 									promise = $animate.leave buffer[index].element,
-										-> buffer[index].scope.$destroy()
+										-> scope.$destroy()
+									buffer[index].scope.$index = undefined
 									buffer.splice index, 1
 									promise
 							else
@@ -428,7 +430,7 @@ angular.module('ui.scroll', [])
 
 						applyUpdate = (wrapper, newItems) ->
 							inserted = []
-							promises = []
+							animations = []
 							if angular.isArray newItems
 								if newItems.length
 									if newItems.length == 1 && newItems[0] == wrapper.scope[itemName]
@@ -444,30 +446,39 @@ angular.module('ui.scroll', [])
 										#replace items. First insert new items
 										inserted.push (insert ndx+i, newItem) for newItem,i in newItems
 										# now delete the old one
-										removeElement oldItemNdx
+										animations.push removeElement oldItemNdx
 								else
 									# delete the item
-									promises.push removeElement wrapper.scope.$index-first
+									animations.push removeElement wrapper.scope.$index-first
 									next--
 								# re-index the buffer
 								item.scope.$index = first + i for item,i in buffer
-							inserted
+								{inserted: inserted, animations: animations}
 
 						adapter.applyUpdates = (arg1, arg2) ->
 							inserted = []
+							animations = []
 							ridActual++
 							if angular.isFunction arg1
 								# arg1 is the updater function, arg2 is ignored
 								for wrapper in buffer.slice(0)  # we need to do it on the buffer clone
-									inserted.concat inserted, applyUpdate wrapper, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
+									update = applyUpdate wrapper, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
+									if update
+										inserted = inserted.concat update.inserted
+										animations = animations.concat update.animations
 							else
 								# arg1 is item index, arg2 is the newItems array
 								if arg1%1 == 0 # checking if it is an integer
 									if 0 <= arg1-first < buffer.length
-										inserted = applyUpdate buffer[arg1 - first], arg2
+										update = applyUpdate buffer[arg1 - first], arg2
+										if update
+											inserted = inserted.concat update.inserted
+											animations = animations.concat update.animations
 								else
 									throw new Error "applyUpdates - #{arg1} is not a valid index"
-							adjustBuffer(ridActual, inserted)
+							$q.all(animations).then ->
+								adjustBuffer(ridActual, inserted)
+								log "adjusted"
 
 						if $attr.adapter # so we have an adapter on $scope
 							adapterOnScope = getValueChain($scope, $attr.adapter)
