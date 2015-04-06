@@ -237,14 +237,6 @@ angular.module('ui.scroll', [])
 							if pending.push(direction) == 1
 								fetch(rid)
 
-						hideElementBeforeAppend = (element) ->
-							element.displayTemp = element.css('display')
-							element.css 'display', 'none'
-
-						showElementAfterRender = (element) ->
-							if element.hasOwnProperty 'displayTemp'
-								element.css 'display', element.displayTemp
-
 						insert = (index, item) ->
 							itemScope = $scope.$new()
 							itemScope[itemName] = item
@@ -258,17 +250,15 @@ angular.module('ui.scroll', [])
 								wrapper.element = clone
 								if toBeAppended
 									if index == next
-										hideElementBeforeAppend clone
-										builder.append clone
+										wrapper.inserter = builder.append
 										buffer.push wrapper
 									else
-										buffer[index-first].element.after clone
+										wrapper.inserter = buffer[index-first].element.after
 										buffer.splice index-first+1, 0, wrapper
 								else
-									hideElementBeforeAppend clone
-									builder.prepend clone
+									wrapper.inserter = builder.prepend
 									buffer.unshift wrapper
-							{appended: toBeAppended, wrapper: wrapper}
+							wrapper
 
 						adjustRowHeight = (appended, wrapper) ->
 							if appended
@@ -307,16 +297,19 @@ angular.module('ui.scroll', [])
 						adjustBuffer = (rid, newItems, finalize)->
 							if newItems and newItems.length
 								$timeout ->
-									rows = []
-									for row in newItems
-										elt = row.wrapper.element
-										showElementAfterRender elt
-										itemTop = elt.offset().top
-										if rowTop isnt itemTop
-											rows.push(row)
-											rowTop = itemTop
-									for row in rows
-										adjustRowHeight(row.appended, row.wrapper)
+									appended = false
+									prepended = []
+									for wrapper,i in buffer
+										if wrapper.element.parent().length
+											appended = true
+										else
+											if appended
+												buffer[i-1].element.after wrapper.element
+											else
+												prepended.push wrapper
+									for wrapper in prepended.reverse()
+										builder.prepend wrapper.element
+										adjustRowHeight false, wrapper
 									doAdjustment(rid, finalize)
 							else
 								doAdjustment(rid, finalize)
@@ -478,7 +471,6 @@ angular.module('ui.scroll', [])
 									throw new Error "applyUpdates - #{arg1} is not a valid index"
 							$q.all(animations).then ->
 								adjustBuffer(ridActual, inserted)
-								log "adjusted"
 
 						if $attr.adapter # so we have an adapter on $scope
 							adapterOnScope = getValueChain($scope, $attr.adapter)

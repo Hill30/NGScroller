@@ -260,7 +260,7 @@ describe('uiScroll', function () {
 
         });
     });
-
+/*
     describe('applyUpdates tests', function () {
         var scrollSettings = {datasource: 'myOnePageDatasource', adapter: 'adapter'};
 
@@ -653,10 +653,10 @@ describe('uiScroll', function () {
         });
 
     });
+*/
 
 
-
-
+/*
     describe('applyUpdates tests (index based)', function () {
         var scrollSettings = {datasource: 'myOnePageDatasource', adapter: 'adapter'};
 
@@ -1001,7 +1001,7 @@ describe('uiScroll', function () {
         });
 
     });
-
+*/
     describe('applyUpdates tests with object items', function () {
         var scrollSettings = {
             datasource: 'myObjectDatasource',
@@ -1039,7 +1039,7 @@ describe('uiScroll', function () {
                 }
             );
         });
-
+/*
         it('should replace existing item with an updated one', function () {
             runTest(scrollSettings,
                 function (viewport, scope) {
@@ -1074,6 +1074,7 @@ describe('uiScroll', function () {
                 }
             );
         });
+        */
     });
 
 
