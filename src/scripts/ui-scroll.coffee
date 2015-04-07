@@ -248,6 +248,7 @@ angular.module('ui.scroll', [])
 
 							linker itemScope, (clone) ->
 								wrapper.element = clone
+								wrapper.toBeAppended = toBeAppended
 								if toBeAppended
 									if index == next
 										wrapper.inserter = builder.append
@@ -297,18 +298,16 @@ angular.module('ui.scroll', [])
 						adjustBuffer = (rid, newItems, finalize)->
 							if newItems and newItems.length
 								$timeout ->
-									appended = false
 									prepended = []
-									for wrapper,i in buffer
-										if wrapper.element.parent().length
-											appended = true
-										else
-											if appended
-												buffer[i-1].element.after wrapper.element
+									for wrapper in buffer
+										if wrapper.element.parent().length == 0
+											if wrapper.toBeAppended
+												wrapper.inserter wrapper.element
 											else
-												prepended.push wrapper
-									for wrapper in prepended.reverse()
-										builder.prepend wrapper.element
+												prepended.unshift wrapper
+									# prepended items have to be inserted from the bottom up
+									for wrapper in prepended
+										wrapper.inserter wrapper.element
 										adjustRowHeight false, wrapper
 									doAdjustment(rid, finalize)
 							else
