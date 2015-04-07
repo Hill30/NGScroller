@@ -256,7 +256,8 @@ angular.module('ui.scroll', [])
 											builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
 										buffer.push wrapper
 									else
-										wrapper.doInsert = -> buffer[index-first].element.after clone
+										wrapper.doInsert = ->
+											buffer[index-first].element.after clone
 										buffer.splice index-first+1, 0, wrapper
 								else
 									wrapper.doInsert = ->
@@ -271,7 +272,6 @@ angular.module('ui.scroll', [])
 											# if not, increment scrollTop
 											viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
 									buffer.unshift wrapper
-							wrapper
 
 						doAdjustment = (rid, finalize)->
 							#log "top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}"
@@ -294,7 +294,7 @@ angular.module('ui.scroll', [])
 										break
 
 						adjustBuffer = (rid, newItems, finalize)->
-							if newItems and newItems.length
+							if newItems
 								$timeout ->
 									prepended = []
 									for wrapper in buffer
@@ -329,7 +329,6 @@ angular.module('ui.scroll', [])
 									datasource.get next, bufferSize,
 									(result) ->
 										return if (rid and rid isnt ridActual) or $scope.$$destroyed
-										newItems = []
 										if result.length < bufferSize
 											eof = true
 											builder.bottomPadding(0)
@@ -337,9 +336,9 @@ angular.module('ui.scroll', [])
 										if result.length > 0
 											clipTop()
 											for item in result
-												newItems.push (insert ++next, item)
+												insert ++next, item
 											#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize(rid, newItems)
+										finalize rid, result.length > 0
 							else
 								if buffer.length && !shouldLoadTop()
 									finalize(rid)
@@ -348,7 +347,6 @@ angular.module('ui.scroll', [])
 									datasource.get first-bufferSize, bufferSize,
 									(result) ->
 										return if (rid and rid isnt ridActual) or $scope.$$destroyed
-										newItems = []
 										if result.length < bufferSize
 											bof = true
 											builder.topPadding(0)
@@ -356,10 +354,9 @@ angular.module('ui.scroll', [])
 										if result.length > 0
 											clipBottom() if buffer.length
 											for i in [result.length-1..0]
-												newItems.unshift (insert --first, result[i])
+												insert --first, result[i]
 											#log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
-										finalize(rid, newItems)
-
+										finalize rid, result.length > 0
 
 						# events and bindings
 
