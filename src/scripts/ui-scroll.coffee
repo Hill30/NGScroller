@@ -251,29 +251,27 @@ angular.module('ui.scroll', [])
 								wrapper.toBeAppended = toBeAppended
 								if toBeAppended
 									if index == next
-										wrapper.inserter = builder.append
+										wrapper.doInsert = ->
+											builder.append clone
+											builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
 										buffer.push wrapper
 									else
-										wrapper.inserter = buffer[index-first].element.after
+										wrapper.doInsert = -> buffer[index-first].element.after clone
 										buffer.splice index-first+1, 0, wrapper
 								else
-									wrapper.inserter = builder.prepend
+									wrapper.doInsert = ->
+										builder.prepend clone
+										# an element is inserted at the top
+										newHeight = builder.topPadding() - wrapper.element.outerHeight(true)
+										# adjust padding to prevent it from visually pushing everything down
+										if newHeight >= 0
+											# if possible, reduce topPadding
+											builder.topPadding(newHeight)
+										else
+											# if not, increment scrollTop
+											viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
 									buffer.unshift wrapper
 							wrapper
-
-						adjustRowHeight = (appended, wrapper) ->
-							if appended
-								builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
-							else
-								# an element is inserted at the top
-								newHeight = builder.topPadding() - wrapper.element.outerHeight(true)
-								# adjust padding to prevent it from visually pushing everything down
-								if newHeight >= 0
-									# if possible, reduce topPadding
-									builder.topPadding(newHeight)
-								else
-									# if not, increment scrollTop
-									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
 
 						doAdjustment = (rid, finalize)->
 							#log "top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}"
@@ -302,13 +300,12 @@ angular.module('ui.scroll', [])
 									for wrapper in buffer
 										if wrapper.element.parent().length == 0
 											if wrapper.toBeAppended
-												wrapper.inserter wrapper.element
+												wrapper.doInsert()
 											else
 												prepended.unshift wrapper
 									# prepended items have to be inserted from the bottom up
 									for wrapper in prepended
-										wrapper.inserter wrapper.element
-										adjustRowHeight false, wrapper
+										wrapper.doInsert()
 									doAdjustment(rid, finalize)
 							else
 								doAdjustment(rid, finalize)
