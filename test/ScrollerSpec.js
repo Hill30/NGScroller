@@ -134,7 +134,7 @@ describe('uiScroll', function () {
                     $timeout.flush();
                 }
 
-                run(scroller, scope);
+                run(scroller, scope, $timeout);
 
                 scroller.remove();
 
@@ -260,7 +260,7 @@ describe('uiScroll', function () {
 
         });
     });
-/*
+
     describe('applyUpdates tests', function () {
         var scrollSettings = {datasource: 'myOnePageDatasource', adapter: 'adapter'};
 
@@ -288,8 +288,11 @@ describe('uiScroll', function () {
         });
 
         it('should update rows in place', function () {
+
+            //debugger
+
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -298,6 +301,7 @@ describe('uiScroll', function () {
                     );
 
                     scope.$apply();
+                    //timeout.flush();
 
                     expect(viewport.children().length).toBe(5);
                     var row1 = viewport.children()[1];
@@ -317,7 +321,7 @@ describe('uiScroll', function () {
                 }
             );
         });
-
+/*
         it('should update selected (first) row', function () {
             runTest(scrollSettings,
                 function (viewport, scope) {
@@ -651,9 +655,9 @@ describe('uiScroll', function () {
                 }
             );
         });
-
-    });
 */
+    });
+
 
 
 /*

@@ -463,7 +463,7 @@ angular.module('ui.scroll', [])
 								else
 									throw new Error "applyUpdates - #{arg1} is not a valid index"
 							$q.all(animations).then ->
-								adjustBuffer(ridActual, inserted)
+								adjustBuffer(ridActual, true)
 
 						if $attr.adapter # so we have an adapter on $scope
 							adapterOnScope = getValueChain($scope, $attr.adapter)
