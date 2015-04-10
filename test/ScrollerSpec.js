@@ -289,7 +289,7 @@ describe('uiScroll', function () {
 
         it('should update rows in place', function () {
 
-            //debugger
+            return;
 
             runTest(scrollSettings,
                 function (viewport, scope, timeout) {
@@ -321,8 +321,11 @@ describe('uiScroll', function () {
                 }
             );
         });
-/*
+
         it('should update selected (first) row', function () {
+
+            debugger
+
             runTest(scrollSettings,
                 function (viewport, scope) {
 
@@ -354,7 +357,7 @@ describe('uiScroll', function () {
                 }
             );
         });
-
+/*
         it('should update selected (middle) row', function () {
             runTest(scrollSettings,
                 function (viewport, scope) {

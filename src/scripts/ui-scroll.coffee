@@ -257,7 +257,7 @@ angular.module('ui.scroll', [])
 										buffer.push wrapper
 									else
 										wrapper.doInsert = ->
-											buffer[index-first].element.after clone
+											buffer[index-first-1].element.after clone
 										buffer.splice index-first+1, 0, wrapper
 								else
 									wrapper.doInsert = ->
@@ -415,7 +415,6 @@ angular.module('ui.scroll', [])
 									deferred.promise
 
 						applyUpdate = (wrapper, newItems) ->
-							inserted = []
 							animations = []
 							if angular.isArray newItems
 								if newItems.length
@@ -430,7 +429,8 @@ angular.module('ui.scroll', [])
 											# old item, but the rest of them are appended to it. the old item will be in this position
 											oldItemNdx = 1
 										#replace items. First insert new items
-										inserted.push (insert ndx+i, newItem) for newItem,i in newItems
+										for newItem,i in newItems
+											insert ndx+i, newItem
 										# now delete the old one
 										animations.push removeElement oldItemNdx
 								else
@@ -439,27 +439,20 @@ angular.module('ui.scroll', [])
 									next--
 								# re-index the buffer
 								item.scope.$index = first + i for item,i in buffer
-								{inserted: inserted, animations: animations}
+								animations
 
 						adapter.applyUpdates = (arg1, arg2) ->
-							inserted = []
 							animations = []
 							ridActual++
 							if angular.isFunction arg1
 								# arg1 is the updater function, arg2 is ignored
 								for wrapper in buffer.slice(0)  # we need to do it on the buffer clone
-									update = applyUpdate wrapper, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
-									if update
-										inserted = inserted.concat update.inserted
-										animations = animations.concat update.animations
+									animations = animations.concat applyUpdate wrapper, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
 							else
 								# arg1 is item index, arg2 is the newItems array
 								if arg1%1 == 0 # checking if it is an integer
 									if 0 <= arg1-first < buffer.length
-										update = applyUpdate buffer[arg1 - first], arg2
-										if update
-											inserted = inserted.concat update.inserted
-											animations = animations.concat update.animations
+										animations = animations.concat applyUpdate buffer[arg1 - first], arg2
 								else
 									throw new Error "applyUpdates - #{arg1} is not a valid index"
 							$q.all(animations).then ->
