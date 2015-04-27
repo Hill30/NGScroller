@@ -319,8 +319,6 @@ describe('uiScroll', function () {
 
         it('should update selected (first) row', function () {
 
-            //debugger
-
             runTest(scrollSettings,
                 function (viewport, scope) {
 
@@ -1188,9 +1186,12 @@ describe('uiScroll', function () {
 				spy = spyOn(myMultipageDatasource, 'get').andCallThrough();
 			});
 			runTest(scrollSettings,
-				function (viewport) {
+				function (viewport, scope, $timeout) {
 					viewport.scrollTop(100);
 					viewport.trigger('scroll');
+                    $timeout.flush();
+
+
 					expect(spy.calls.length).toBe(4);
 
 					expect(spy.calls[0].args[0]).toBe(1);
