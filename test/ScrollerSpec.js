@@ -1387,14 +1387,11 @@ describe('uiScroll', function () {
 		});
 
 		it('[fold frame, scroll down] should call get on the datasource 1 extra time', function () {
-			var spy, flush;
+			var spy;
 			var viewportHeight = buffer * itemHeight;
 
 			inject(function (myEdgeDatasource) {
 				spy = spyOn(myEdgeDatasource, 'get').andCallThrough();
-			});
-			inject(function ($timeout) {
-				flush = $timeout.flush;
 			});
 
 			runTest(
@@ -1404,12 +1401,14 @@ describe('uiScroll', function () {
 					viewportHeight: viewportHeight,
 					itemHeight: itemHeight
 				},
-				function (viewport) {
+				function (viewport, scope, $timeout) {
+                    var flush = $timeout.flush;
 					viewport.scrollTop(viewportHeight + itemHeight);
 					viewport.trigger('scroll');
 					flush();
 					viewport.scrollTop(viewportHeight + itemHeight * 2);
 					viewport.trigger('scroll');
+                    flush();
 					expect(flush).toThrow();
 
 					expect(spy.calls.length).toBe(4);
@@ -1424,14 +1423,11 @@ describe('uiScroll', function () {
 		});
 
 		it('[fold frame, scroll up] should call get on the datasource 2 extra times', function () {
-			var spy, flush;
+			var spy;
 			var viewportHeight = buffer * itemHeight;
 
 			inject(function (myEdgeDatasource) {
 				spy = spyOn(myEdgeDatasource, 'get').andCallThrough();
-			});
-			inject(function ($timeout) {
-				flush = $timeout.flush;
 			});
 
 			runTest(
@@ -1441,15 +1437,18 @@ describe('uiScroll', function () {
 					viewportHeight: viewportHeight,
 					itemHeight: itemHeight
 				},
-				function (viewport) {
+				function (viewport, scope, $timeout) {
+                    var flush = $timeout.flush;
 					viewport.scrollTop(0); //first full, scroll to -2
 					viewport.trigger('scroll');
 					flush();
 					viewport.scrollTop(0); //last full, scroll to -5, bof is reached
 					viewport.trigger('scroll');
+                    flush();
 					expect(flush).toThrow();
 					viewport.scrollTop(0); //empty, no scroll occured (-8)
 					viewport.trigger('scroll');
+                    flush();
 					expect(flush).toThrow();
 
 					expect(spy.calls.length).toBe(5);
@@ -1485,18 +1484,16 @@ describe('uiScroll', function () {
 		};
 
 		it('should prevent wheel-event bubbling until bof is reached', function () {
-			var spy, flush;
+			var spy;
 
 			inject(function (myDatasourceToPreventScrollBubbling) {
 				spy = spyOn(myDatasourceToPreventScrollBubbling, 'get').andCallThrough();
 			});
-			inject(function ($timeout) {
-				flush = $timeout.flush;
-			});
 
 			runTest(scrollSettings,
-				function (viewport) {
+				function (viewport, scope, $timeout) {
 					var wheelEventElement = viewport[0];
+                    var flush = $timeout.flush;
 
 					angular.element(document.body).bind('mousewheel', incrementDocumentScrollCount); //spy for wheel-events bubbling
 
@@ -1518,6 +1515,8 @@ describe('uiScroll', function () {
 
 					viewport.scrollTop(0);
 					viewport.trigger('scroll'); //bof will be reach here
+
+                    flush();
 
 					wheelEventElement.dispatchEvent(getNewWheelEvent()); //preventDefault will not occurred because we are at top and bof is reached
 					expect(documentScrollBubblingCount).toBe(3);
