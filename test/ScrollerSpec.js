@@ -134,7 +134,11 @@ describe('uiScroll', function () {
                     $timeout.flush();
                 }
 
-                run(scroller, scope, $timeout);
+                $timeout(
+                    function() {
+                        run(scroller, scope, $timeout);
+                    }
+                );
 
                 scroller.remove();
 
@@ -284,19 +288,14 @@ describe('uiScroll', function () {
 
         it('should update rows in place', function () {
 
-            return;
-
             runTest(scrollSettings,
-                function (viewport, scope, timeout) {
+                function (viewport, scope) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
                             return [item + ' *' + scope.$index];
                         }
                     );
-
-                    scope.$apply();
-                    //timeout.flush();
 
                     expect(viewport.children().length).toBe(5);
                     var row1 = viewport.children()[1];
@@ -313,6 +312,7 @@ describe('uiScroll', function () {
 
                     expect(scope.adapter).toBeTruthy();
                     //expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one *1');
+
                 }
             );
         });
@@ -328,8 +328,6 @@ describe('uiScroll', function () {
                                 return [item + ' *' + scope.$index];
                         }
                     );
-
-                    scope.$apply();
 
                     expect(viewport.children().length).toBe(5);
 
@@ -350,7 +348,7 @@ describe('uiScroll', function () {
                 }
             );
         });
-/*
+
         it('should update selected (middle) row', function () {
             runTest(scrollSettings,
                 function (viewport, scope) {
@@ -361,8 +359,6 @@ describe('uiScroll', function () {
                                 return [item + ' *' + scope.$index];
                         }
                     );
-
-                    scope.$apply();
 
                     expect(viewport.children().length).toBe(5);
 
@@ -395,8 +391,6 @@ describe('uiScroll', function () {
                         }
                     );
 
-                    scope.$apply();
-
                     expect(viewport.children().length).toBe(5);
 
                     var row1 = viewport.children()[1];
@@ -428,8 +422,6 @@ describe('uiScroll', function () {
                         }
                     );
 
-                    scope.$apply();
-
                     expect(viewport.children().length).toBe(4);
 
                     var row2 = viewport.children()[1];
@@ -456,8 +448,6 @@ describe('uiScroll', function () {
                                 return [];
                         }
                     );
-
-                    scope.$apply();
 
                     expect(viewport.children().length).toBe(4);
 
@@ -486,8 +476,6 @@ describe('uiScroll', function () {
                         }
                     );
 
-                    scope.$apply();
-
                     expect(viewport.children().length).toBe(4);
 
                     var row1 = viewport.children()[1];
@@ -514,8 +502,6 @@ describe('uiScroll', function () {
                                 return ['before one', item];
                         }
                     );
-
-                    scope.$apply();
 
                     expect(viewport.children().length).toBe(6);
 
@@ -552,8 +538,6 @@ describe('uiScroll', function () {
                         }
                     );
 
-                    scope.$apply();
-
                     expect(viewport.children().length).toBe(6);
 
                     var row0 = viewport.children()[1];
@@ -588,8 +572,6 @@ describe('uiScroll', function () {
                                 return ['before two', item];
                         }
                     );
-
-                    scope.$apply();
 
                     expect(viewport.children().length).toBe(6);
 
@@ -626,8 +608,6 @@ describe('uiScroll', function () {
                         }
                     );
 
-                    scope.$apply();
-
                     expect(viewport.children().length).toBe(6);
 
                     var row0 = viewport.children()[1];
@@ -651,12 +631,9 @@ describe('uiScroll', function () {
                 }
             );
         });
-*/
+
     });
 
-
-
-/*
     describe('applyUpdates tests (index based)', function () {
         var scrollSettings = {datasource: 'myOnePageDatasource', adapter: 'adapter'};
 
@@ -665,8 +642,6 @@ describe('uiScroll', function () {
                 function (viewport, scope) {
 
                     scope.adapter.applyUpdates(1, ['one *1']);
-
-                    scope.$apply();
 
                     expect(viewport.children().length).toBe(5);
 
@@ -694,8 +669,6 @@ describe('uiScroll', function () {
 
                     scope.adapter.applyUpdates(0, ['invalid']);
 
-                    scope.$apply();
-
                     expect(viewport.children().length).toBe(5);
 
                     var row1 = viewport.children()[1];
@@ -721,8 +694,6 @@ describe('uiScroll', function () {
                 function (viewport, scope) {
 
                     scope.adapter.applyUpdates(4, ['invalid']);
-
-                    scope.$apply();
 
                     expect(viewport.children().length).toBe(5);
 
@@ -750,8 +721,6 @@ describe('uiScroll', function () {
 
                     scope.adapter.applyUpdates(2, ['two *2']);
 
-                    scope.$apply();
-
                     expect(viewport.children().length).toBe(5);
 
                     var row1 = viewport.children()[1];
@@ -777,8 +746,6 @@ describe('uiScroll', function () {
                 function (viewport, scope) {
 
                     scope.adapter.applyUpdates(3, ['three *3']);
-
-                    scope.$apply();
 
                     expect(viewport.children().length).toBe(5);
 
@@ -806,8 +773,6 @@ describe('uiScroll', function () {
 
                     scope.adapter.applyUpdates(1, []);
 
-                    scope.$apply();
-
                     expect(viewport.children().length).toBe(4);
 
                     var row2 = viewport.children()[1];
@@ -829,8 +794,6 @@ describe('uiScroll', function () {
                 function (viewport, scope) {
 
                     scope.adapter.applyUpdates(2, []);
-
-                    scope.$apply();
 
                     expect(viewport.children().length).toBe(4);
 
@@ -854,8 +817,6 @@ describe('uiScroll', function () {
 
                     scope.adapter.applyUpdates(3, []);
 
-                    scope.$apply();
-
                     expect(viewport.children().length).toBe(4);
 
                     var row1 = viewport.children()[1];
@@ -877,8 +838,6 @@ describe('uiScroll', function () {
                 function (viewport, scope) {
 
                     scope.adapter.applyUpdates(1, ['before one', 'one']);
-
-                    scope.$apply();
 
                     expect(viewport.children().length).toBe(6);
 
@@ -910,8 +869,6 @@ describe('uiScroll', function () {
 
                     scope.adapter.applyUpdates(1, ['one', 'after one']);
 
-                    scope.$apply();
-
                     expect(viewport.children().length).toBe(6);
 
                     var row0 = viewport.children()[1];
@@ -941,8 +898,6 @@ describe('uiScroll', function () {
                 function (viewport, scope) {
 
                     scope.adapter.applyUpdates(2, ['before two', 'two']);
-
-                    scope.$apply();
 
                     expect(viewport.children().length).toBe(6);
 
@@ -974,8 +929,6 @@ describe('uiScroll', function () {
 
                     scope.adapter.applyUpdates(3, ['three', 'after three']);
 
-                    scope.$apply();
-
                     expect(viewport.children().length).toBe(6);
 
                     var row0 = viewport.children()[1];
@@ -1001,7 +954,7 @@ describe('uiScroll', function () {
         });
 
     });
-*/
+
     describe('applyUpdates tests with object items', function () {
         var scrollSettings = {
             datasource: 'myObjectDatasource',
@@ -1018,8 +971,6 @@ describe('uiScroll', function () {
                             item.text  += ' *' + scope.$index;
                         }
                     );
-
-                    scope.$apply();
 
                     expect(viewport.children().length).toBe(5);
                     var row1 = viewport.children()[1];
@@ -1039,7 +990,7 @@ describe('uiScroll', function () {
                 }
             );
         });
-/*
+
         it('should replace existing item with an updated one', function () {
             runTest(scrollSettings,
                 function (viewport, scope) {
@@ -1074,7 +1025,6 @@ describe('uiScroll', function () {
                 }
             );
         });
-        */
     });
 
 
