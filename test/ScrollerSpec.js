@@ -311,7 +311,7 @@ describe('uiScroll', function () {
                     expect(row3.innerHTML).toBe('3: three *3');
 
                     expect(scope.adapter).toBeTruthy();
-                    //expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one *1');
+                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one *1');
 
                 }
             );
@@ -344,7 +344,7 @@ describe('uiScroll', function () {
                     expect(row3.innerHTML).toBe('3: three');
 
                     expect(scope.adapter).toBeTruthy();
-                    //expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one *1');
+                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one *1');
                 }
             );
         });
@@ -433,7 +433,7 @@ describe('uiScroll', function () {
                     expect(row3.innerHTML).toBe('2: three');
 
                     expect(scope.adapter).toBeTruthy();
-//                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: two');
+                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: two');
                 }
             );
         });
@@ -522,7 +522,7 @@ describe('uiScroll', function () {
                     expect(row3.innerHTML).toBe('4: three');
 
                     expect(scope.adapter).toBeTruthy();
-//                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: before one');
+                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: before one');
                 }
             );
         });
@@ -557,7 +557,7 @@ describe('uiScroll', function () {
                     expect(row3.innerHTML).toBe('4: three');
 
                     expect(scope.adapter).toBeTruthy();
-                    //expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one');
+                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one');
                 }
             );
         });
@@ -658,7 +658,7 @@ describe('uiScroll', function () {
                     expect(row3.innerHTML).toBe('3: three');
 
                     expect(scope.adapter).toBeTruthy();
-//                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one *1');
+                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one *1');
                 }
             );
         });
@@ -784,7 +784,7 @@ describe('uiScroll', function () {
                     expect(row3.innerHTML).toBe('2: three');
 
                     expect(scope.adapter).toBeTruthy();
-                    //expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: two');
+                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: two');
                 }
             );
         });
@@ -858,7 +858,7 @@ describe('uiScroll', function () {
                     expect(row3.innerHTML).toBe('4: three');
 
                     expect(scope.adapter).toBeTruthy();
-//                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: before one');
+                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: before one');
                 }
             );
         });
@@ -888,7 +888,7 @@ describe('uiScroll', function () {
                     expect(row3.innerHTML).toBe('4: three');
 
                     expect(scope.adapter).toBeTruthy();
-                    //expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one');
+                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one');
                 }
             );
         });
@@ -1021,7 +1021,7 @@ describe('uiScroll', function () {
                     expect(row3.innerHTML).toBe('3: three *3');
 
                     expect(scope.adapter).toBeTruthy();
-//                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one *1');
+                    expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one *1');
                 }
             );
         });
