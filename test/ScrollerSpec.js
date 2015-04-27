@@ -169,7 +169,6 @@ describe('uiScroll', function () {
                         expect($.fn.bind.calls[2].args[0]).toBe('mousewheel');
                         expect($.fn.bind.calls[2].object[0]).toBe(viewport[0]);
                     }, {
-                        noFlush: true, //empty data-set, nothing to render
                         flushOnCleanup: true,
                         cleanupTest: function (viewport) {
                             expect($.fn.unbind.calls.length).toBe(3);
@@ -197,8 +196,6 @@ describe('uiScroll', function () {
                         expect(bottomPadding.tagName.toLowerCase()).toBe('div');
                         expect(angular.element(bottomPadding).css('height')).toBe('0px');
 
-                    }, {
-                        noFlush: true //empty data-set, nothing to render
                     }
                 );
             });
@@ -214,8 +211,6 @@ describe('uiScroll', function () {
                         expect(spy.calls[0].args[0]).toBe(1);
                         expect(spy.calls[1].args[0]).toBe(-9);
 
-                    }, {
-                        noFlush: true //empty data-set, nothing to render
                     }
                 );
             });
@@ -324,7 +319,7 @@ describe('uiScroll', function () {
 
         it('should update selected (first) row', function () {
 
-            debugger
+            //debugger
 
             runTest(scrollSettings,
                 function (viewport, scope) {
