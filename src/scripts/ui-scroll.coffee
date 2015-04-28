@@ -145,24 +145,6 @@ angular.module('ui.scroll', [])
 							setValueChain($scope, $attr.isLoading, value) if $attr.isLoading
 							datasource.loading(value) if typeof datasource.loading is 'function'
 
-						removeElement =
-							if $animate
-								(index)->
-									scope = buffer[index].scope
-									promise = $animate.leave buffer[index].element,
-										-> scope.$destroy()
-									buffer[index].scope.$index = undefined
-									buffer.splice index, 1
-									promise
-							else
-								(index)->
-									buffer[index].element.remove()
-									buffer[index].scope.$destroy()
-									buffer.splice index, 1
-									deferred = $q.defer()
-									deferred.resolve()
-									deferred.promise
-
 						ridActual = 0
 						first = 1
 						next = 1
@@ -170,6 +152,26 @@ angular.module('ui.scroll', [])
 						pending = []
 						eof = false
 						bof = false
+
+						removeElement =
+							if $animate
+								(wrapper)->
+									$animate.leave wrapper.element,
+										->
+											wrapper.scope.$destroy()
+											buffer.splice wrapper.scope.$index - first, 1
+											# re-index the buffer
+											item.scope.$index = first + i for item,i in buffer
+							else
+								(wrapper)->
+									wrapper.element.remove()
+									wrapper.scope.$destroy()
+									buffer.splice wrapper.scope.$index - first, 1
+									# re-index the buffer
+									item.scope.$index = first + i for item,i in buffer
+									deferred = $q.defer()
+									deferred.resolve()
+									deferred.promise
 
 						#removes items from start (including) through stop (excluding)
 						removeFromBuffer = (start, stop)->
@@ -266,7 +268,9 @@ angular.module('ui.scroll', [])
 
 							linker itemScope, (clone) ->
 								wrapper.element = clone
-								wrapper.toBeAppended = toBeAppended
+								# operations: 'append', 'prepend', 'remove', 'update', 'none'
+								wrapper.op = if toBeAppended then 'append' else 'prepend'
+								#wrapper.toBeAppended = toBeAppended
 								if toBeAppended
 									if index == next
 										wrapper.doInsert = ->
@@ -292,18 +296,20 @@ angular.module('ui.scroll', [])
 									buffer.unshift wrapper
 
 						adjustBuffer = (rid, finalize)->
-							# We need the item bindings to be processed before we can do adjustment
+							prepended = []
+							for wrapper in buffer
+								switch wrapper.op
+									when 'append' then wrapper.doInsert()
+									when 'prepend' then prepended.unshift wrapper
+									when 'remove' then removeElement wrapper
+								wrapper.op = 'none'
+
+							# prepended items have to be inserted from the bottom up
+							for wrapper in prepended
+								wrapper.doInsert()
+
+						# We need the item bindings to be processed before we can do adjustment
 							$timeout ->
-								prepended = []
-								for wrapper in buffer
-									if wrapper.element.parent().length == 0
-										if wrapper.toBeAppended
-											wrapper.doInsert()
-										else
-											prepended.unshift wrapper
-								# prepended items have to be inserted from the bottom up
-								for wrapper in prepended
-									wrapper.doInsert()
 								#log "top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}"
 								if shouldLoadBottom()
 									enqueueFetch(rid, true)
@@ -332,9 +338,8 @@ angular.module('ui.scroll', [])
 									fetch(rid)
 
 						fetch = (rid) ->
-							direction = pending[0]
 							#log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
-							if direction
+							if pending[0] # scrolling down
 								if buffer.length && !shouldLoadBottom()
 									finalize rid
 								else
@@ -412,24 +417,18 @@ angular.module('ui.scroll', [])
 						applyUpdate = (wrapper, newItems) ->
 							if angular.isArray newItems
 								ndx = wrapper.scope.$index
-								if ndx > first
-									oldItemNdx = ndx-first
-								else
-									# this is where the first item from the batch is prepended to the
-									# old item, but the rest of them are appended to it. the old item will be in this position
-									oldItemNdx = 1
 								for newItem,i in newItems
 									if newItem == wrapper.scope[itemName]
 										keepIt = true;
 									else
 										insert wrapper.scope.$index+i, newItem
 								unless keepIt
-									removeElement oldItemNdx
+									wrapper.op = 'remove'
+
 								# re-index the buffer
 								item.scope.$index = first + i for item,i in buffer
 
 						adapter.applyUpdates = (arg1, arg2) ->
-							animations = []
 							ridActual++
 							if angular.isFunction arg1
 								# arg1 is the updater function, arg2 is ignored
@@ -442,8 +441,7 @@ angular.module('ui.scroll', [])
 										applyUpdate buffer[arg1 - first], arg2
 								else
 									throw new Error "applyUpdates - #{arg1} is not a valid index"
-							$q.all(animations).then ->
-								adjustBuffer ridActual
+							adjustBuffer ridActual
 
 						if $attr.adapter # so we have an adapter on $scope
 							adapterOnScope = getValueChain($scope, $attr.adapter)
@@ -453,8 +451,7 @@ angular.module('ui.scroll', [])
 							angular.extend(adapterOnScope, adapter)
 							adapter = adapterOnScope
 
-
-						# update events (are deprecated since v1.1.0)
+						# update events (deprecated since v1.1.0)
 
 						doUpdate = (locator, newItem) ->
 							if angular.isFunction locator
