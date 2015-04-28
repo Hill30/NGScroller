@@ -304,7 +304,6 @@ angular.module('ui.scroll', [])
 								# prepended items have to be inserted from the bottom up
 								for wrapper in prepended
 									wrapper.doInsert()
-								# doAdjustment(rid, finalize)
 								#log "top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}"
 								if shouldLoadBottom()
 									enqueueFetch(rid, true)
@@ -411,31 +410,23 @@ angular.module('ui.scroll', [])
 						adapter.isLoading = false
 
 						applyUpdate = (wrapper, newItems) ->
-							animations = []
 							if angular.isArray newItems
-								if newItems.length
-									if newItems.length == 1 && newItems[0] == wrapper.scope[itemName]
-										# update inplace
-									else
-										ndx = wrapper.scope.$index
-										if ndx > first
-											oldItemNdx = ndx-first
-										else
-											# this is where the first item from the batch is prepended to the
-											# old item, but the rest of them are appended to it. the old item will be in this position
-											oldItemNdx = 1
-										#replace items. First insert new items
-										for newItem,i in newItems
-											insert ndx+i, newItem
-										# now delete the old one
-										animations.push removeElement oldItemNdx
+								ndx = wrapper.scope.$index
+								if ndx > first
+									oldItemNdx = ndx-first
 								else
-									# delete the item
-									animations.push removeElement wrapper.scope.$index-first
-									next--
+									# this is where the first item from the batch is prepended to the
+									# old item, but the rest of them are appended to it. the old item will be in this position
+									oldItemNdx = 1
+								for newItem,i in newItems
+									if newItem == wrapper.scope[itemName]
+										keepIt = true;
+									else
+										insert wrapper.scope.$index+i, newItem
+								unless keepIt
+									removeElement oldItemNdx
 								# re-index the buffer
 								item.scope.$index = first + i for item,i in buffer
-								animations
 
 						adapter.applyUpdates = (arg1, arg2) ->
 							animations = []
@@ -443,12 +434,12 @@ angular.module('ui.scroll', [])
 							if angular.isFunction arg1
 								# arg1 is the updater function, arg2 is ignored
 								for wrapper in buffer.slice(0)  # we need to do it on the buffer clone
-									animations = animations.concat applyUpdate wrapper, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
+									applyUpdate wrapper, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
 							else
 								# arg1 is item index, arg2 is the newItems array
 								if arg1%1 == 0 # checking if it is an integer
 									if 0 <= arg1-first < buffer.length
-										animations = animations.concat applyUpdate buffer[arg1 - first], arg2
+										applyUpdate buffer[arg1 - first], arg2
 								else
 									throw new Error "applyUpdates - #{arg1} is not a valid index"
 							$q.all(animations).then ->
