@@ -261,7 +261,6 @@ describe('uiScroll', function () {
 
         it('should create adapter object', function () {
 
-            return;
             runTest(scrollSettings,
                 function (viewport, scope) {
                     expect(viewport.children().length).toBe(5);
@@ -286,15 +285,16 @@ describe('uiScroll', function () {
 
         it('should update rows in place', function () {
 
-            return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
                             return [item + ' *' + scope.$index];
                         }
                     );
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(5);
                     var row1 = viewport.children()[1];
@@ -318,9 +318,8 @@ describe('uiScroll', function () {
 
         it('should update selected (first) row', function () {
 
-            return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -328,6 +327,8 @@ describe('uiScroll', function () {
                                 return [item + ' *' + scope.$index];
                         }
                     );
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(5);
 
@@ -351,9 +352,8 @@ describe('uiScroll', function () {
 
         it('should update selected (middle) row', function () {
 
-            return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -361,6 +361,8 @@ describe('uiScroll', function () {
                                 return [item + ' *' + scope.$index];
                         }
                     );
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(5);
 
@@ -384,9 +386,8 @@ describe('uiScroll', function () {
 
         it('should update selected (last) row', function () {
 
-            return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -394,6 +395,8 @@ describe('uiScroll', function () {
                                 return [item + ' *' + scope.$index];
                         }
                     );
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(5);
 
@@ -417,9 +420,8 @@ describe('uiScroll', function () {
 
         it('should delete selected (first) row', function () {
 
-            return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -427,6 +429,8 @@ describe('uiScroll', function () {
                                 return [];
                         }
                     );
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(4);
 
@@ -446,9 +450,8 @@ describe('uiScroll', function () {
 
         it('should delete selected (middle) row', function () {
 
-            return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -456,6 +459,8 @@ describe('uiScroll', function () {
                                 return [];
                         }
                     );
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(4);
 
@@ -475,9 +480,8 @@ describe('uiScroll', function () {
 
         it('should delete selected (last) row', function () {
 
-            return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -485,6 +489,8 @@ describe('uiScroll', function () {
                                 return [];
                         }
                     );
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(4);
 
@@ -504,9 +510,8 @@ describe('uiScroll', function () {
 
         it('should insert a new element before selected (first) row', function () {
 
-            return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -514,6 +519,8 @@ describe('uiScroll', function () {
                                 return ['before one', item];
                         }
                     );
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(6);
 
@@ -542,8 +549,9 @@ describe('uiScroll', function () {
         it('should insert a new element after selected (first) row', function () {
 
             return;
+
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -551,6 +559,8 @@ describe('uiScroll', function () {
                                 return [item, 'after one'];
                         }
                     );
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(6);
 
@@ -578,9 +588,8 @@ describe('uiScroll', function () {
 
         it('should insert a new element before selected (middle) row', function () {
 
-            return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -588,6 +597,8 @@ describe('uiScroll', function () {
                                 return ['before two', item];
                         }
                     );
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(6);
 
@@ -617,7 +628,7 @@ describe('uiScroll', function () {
 
             return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -625,6 +636,8 @@ describe('uiScroll', function () {
                                 return [item, 'after three'];
                         }
                     );
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(6);
 
@@ -659,9 +672,11 @@ describe('uiScroll', function () {
 
             return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(1, ['one *1']);
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(5);
 
@@ -685,7 +700,6 @@ describe('uiScroll', function () {
 
         it('should ignore out of bound indexes', function () {
 
-            return;
             runTest(scrollSettings,
                 function (viewport, scope) {
 
@@ -713,7 +727,6 @@ describe('uiScroll', function () {
 
         it('should ignore out of bound indexes 2', function () {
 
-            return;
             runTest(scrollSettings,
                 function (viewport, scope) {
 
@@ -743,9 +756,11 @@ describe('uiScroll', function () {
 
             return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(2, ['two *2']);
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(5);
 
@@ -799,9 +814,11 @@ describe('uiScroll', function () {
 
             return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(1, []);
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(4);
 
@@ -967,9 +984,11 @@ describe('uiScroll', function () {
 
             return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(3, ['three', 'after three']);
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(6);
 
@@ -1006,15 +1025,16 @@ describe('uiScroll', function () {
 
         it('should update existing item inplace', function () {
 
-            return;
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
                             item.text  += ' *' + scope.$index;
                         }
                     );
+
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(5);
                     var row1 = viewport.children()[1];
@@ -1037,7 +1057,6 @@ describe('uiScroll', function () {
 
         it('should replace existing item with an updated one', function () {
 
-            return;
             runTest(scrollSettings,
                 function (viewport, scope, $timeout) {
 
@@ -1051,7 +1070,6 @@ describe('uiScroll', function () {
                         }
                     );
 
-                    scope.$root.$apply();
                     $timeout.flush();
 
                     expect(viewport.children().length).toBe(5);

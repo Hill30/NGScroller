@@ -97,16 +97,12 @@ angular.module('ui.scroll', [])
 									$animate.leave wrapper.element,
 										->
 											wrapper.scope.$destroy()
-											buffer.splice wrapper.scope.$index - first, 1
-											# re-index the buffer
-											item.scope.$index = first + i for item,i in buffer
+									buffer.splice buffer.indexOf(wrapper), 1
 							else
 								(wrapper)->
 									wrapper.element.remove()
 									wrapper.scope.$destroy()
-									buffer.splice wrapper.scope.$index - first, 1
-									# re-index the buffer
-									item.scope.$index = first + i for item,i in buffer
+									buffer.splice buffer.indexOf(wrapper), 1
 									deferred = $q.defer()
 									deferred.resolve()
 									deferred.promise
@@ -413,30 +409,29 @@ angular.module('ui.scroll', [])
 						adapter = {}
 						adapter.isLoading = false
 
-						applyUpdate = (wrapper, newItems) ->
+						applyUpdate = (bufferClone, index, newItems) ->
 							if angular.isArray newItems
-								for newItem,i in newItems
+								wrapper = bufferClone[index]
+								for newItem,i in newItems.reverse()
 									if newItem == wrapper.scope[itemName]
 										keepIt = true;
 									else
-										insert wrapper.scope.$index+i, newItem
+										insert newItem, buffer.indexOf wrapper
 								unless keepIt
 									wrapper.op = 'remove'
-
-								# re-index the buffer
-								item.scope.$index = first + i for item,i in buffer
 
 						adapter.applyUpdates = (arg1, arg2) ->
 							ridActual++
 							if angular.isFunction arg1
 								# arg1 is the updater function, arg2 is ignored
-								for wrapper in buffer.slice(0)  # we need to do it on the buffer clone
-									applyUpdate wrapper, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
+								bufferClone = buffer.slice(0)
+								for wrapper,i in bufferClone  # we need to do it on the buffer clone
+									applyUpdate bufferClone, i, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
 							else
 								# arg1 is item index, arg2 is the newItems array
 								if arg1%1 == 0 # checking if it is an integer
 									if 0 <= arg1-first < buffer.length
-										applyUpdate buffer[arg1 - first], arg2
+										applyUpdate arg2, arg1 - first
 								else
 									throw new Error "applyUpdates - #{arg1} is not a valid index"
 							adjustBuffer ridActual
