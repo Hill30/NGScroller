@@ -78,8 +78,43 @@ angular.module('ui.scroll', [])
 						scrollHeight = (elem)->
 							elem[0].scrollHeight ? elem[0].document.documentElement.scrollHeight
 
-						builder = null
+						# initial settings
 
+						builder = null
+						ridActual = 0 # current data revision id
+						first = 1
+						next = 1
+						buffer = []
+						pending = []
+						eof = false
+						bof = false
+
+						# Element manipulation routines
+
+						removeElement =
+							if $animate
+								(wrapper)->
+									$animate.leave wrapper.element,
+										->
+											wrapper.scope.$destroy()
+											buffer.splice wrapper.scope.$index - first, 1
+											# re-index the buffer
+											item.scope.$index = first + i for item,i in buffer
+							else
+								(wrapper)->
+									wrapper.element.remove()
+									wrapper.scope.$destroy()
+									buffer.splice wrapper.scope.$index - first, 1
+									# re-index the buffer
+									item.scope.$index = first + i for item,i in buffer
+									deferred = $q.defer()
+									deferred.resolve()
+									deferred.promise
+
+						appendElement = (wrapper, sibling) ->
+
+						# Element builder
+						#
 						# Calling linker is the only way I found to get access to the tag name of the template
 						# to prevent the directive scope from pollution a new scope is created and destroyed
 						# right after the repeaterHandler creation is completed
@@ -105,22 +140,20 @@ angular.module('ui.scroll', [])
 										result.paddingHeight = result.height
 								result
 
-							createPadding = (padding, element, direction) ->
-								element[{top:'before',bottom:'after'}[direction]] padding
-								paddingHeight: -> padding.paddingHeight.apply(padding, arguments)
-								insert: (element) -> padding[{top:'after',bottom:'before'}[direction]] element
+							topPadding = padding(repeaterType)
+							element.before topPadding
 
-							topPadding = createPadding(padding(repeaterType), element, 'top')
-							bottomPadding = createPadding(padding(repeaterType), element, 'bottom')
+							bottomPadding = padding(repeaterType)
+							element.after bottomPadding
 
 							$scope.$on '$destroy', -> template.remove()
 
 							builder =
 								viewport: viewport
-								topPadding: topPadding.paddingHeight
-								bottomPadding: bottomPadding.paddingHeight
-								append: bottomPadding.insert
-								prepend: topPadding.insert
+								topPadding: -> topPadding.paddingHeight.apply(topPadding, arguments)
+								bottomPadding: -> bottomPadding.paddingHeight.apply(bottomPadding, arguments)
+								append:  (e) -> element.before.apply(bottomPadding, e)
+								prepend: (e) -> element.after.apply(topPadding, e)
 								bottomDataPos: ->
 									scrollHeight(viewport) - bottomPadding.paddingHeight()
 								topDataPos: ->
@@ -143,34 +176,6 @@ angular.module('ui.scroll', [])
 							adapter.isLoading = value
 							setValueChain($scope, $attr.isLoading, value) if $attr.isLoading
 							datasource.loading(value) if typeof datasource.loading is 'function'
-
-						ridActual = 0
-						first = 1
-						next = 1
-						buffer = []
-						pending = []
-						eof = false
-						bof = false
-
-						removeElement =
-							if $animate
-								(wrapper)->
-									$animate.leave wrapper.element,
-										->
-											wrapper.scope.$destroy()
-											buffer.splice wrapper.scope.$index - first, 1
-											# re-index the buffer
-											item.scope.$index = first + i for item,i in buffer
-							else
-								(wrapper)->
-									wrapper.element.remove()
-									wrapper.scope.$destroy()
-									buffer.splice wrapper.scope.$index - first, 1
-									# re-index the buffer
-									item.scope.$index = first + i for item,i in buffer
-									deferred = $q.defer()
-									deferred.resolve()
-									deferred.promise
 
 						#removes items from start (including) through stop (excluding)
 						removeFromBuffer = (start, stop)->
