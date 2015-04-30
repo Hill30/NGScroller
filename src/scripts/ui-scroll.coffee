@@ -261,52 +261,51 @@ angular.module('ui.scroll', [])
 							if pending.push(direction) == 1
 								fetch(rid)
 
-						insert = (index, item) ->
+						insert = (item, insertAfter) ->
 							itemScope = $scope.$new()
 							itemScope[itemName] = item
-							toBeAppended = index > first
-							itemScope.$index = index
-							itemScope.$index-- if toBeAppended
 							wrapper =
 								scope: itemScope
 
 							linker itemScope, (clone) ->
 								wrapper.element = clone
 								# operations: 'append', 'prepend', 'remove', 'update', 'none'
-								if toBeAppended
+								if (insertAfter)
 									wrapper.op = 'append'
-									if index == next
-										wrapper.doInsert = ->
-											builder.append clone
-											builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
-											wrapper.op = 'none'
-										buffer.push wrapper
-									else
-										wrapper.doInsert = ->
-											buffer[index-first-1].element.after clone
-											wrapper.op = 'none'
-										buffer.splice index-first+1, 0, wrapper
+									buffer.splice insertAfter, 0, wrapper
 								else
 									wrapper.op = 'prepend'
-									wrapper.doInsert = ->
-										builder.prepend clone
-										# an element is inserted at the top
-										newHeight = builder.topPadding() - wrapper.element.outerHeight(true)
-										# adjust padding to prevent it from visually pushing everything down
-										if newHeight >= 0
-											# if possible, reduce topPadding
-											builder.topPadding(newHeight)
-										else
-											# if not, increment scrollTop
-											viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
-										wrapper.op = 'none'
 									buffer.unshift wrapper
 
-						adjustBuffer = (rid, finalize)->
-							wrapper.doInsert() for wrapper in buffer when wrapper.op is 'append'
-							wrapper.doInsert() for wrapper in buffer.slice(0).reverse() when wrapper.op is 'prepend'
-							removeElement wrapper for wrapper in buffer.slice(0) when wrapper.op is 'remove'
-						# We need the item bindings to be processed before we can do adjustment
+						adjustBuffer = (rid, finalize) ->
+							for wrapper in buffer.slice(0).reverse() when wrapper.op is 'prepend'
+								builder.prepend wrapper.element
+								# an element is inserted at the top
+								newHeight = builder.topPadding() - wrapper.element.outerHeight(true)
+								# adjust padding to prevent it from visually pushing everything down
+								if newHeight >= 0
+									# if possible, reduce topPadding
+									builder.topPadding(newHeight)
+								else
+									# if not, increment scrollTop
+									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
+								wrapper.op = 'none'
+
+							for wrapper,i in buffer when wrapper.op is 'append'
+								if (i == 0)
+									builder.append wrapper.element
+								else
+									buffer[i-1].element.after wrapper.element
+								builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
+								wrapper.op = 'none'
+
+							for wrapper in buffer.slice(0) when wrapper.op is 'remove'
+								removeElement wrapper
+
+							# re-index the buffer
+							item.scope.$index = first + i for item,i in buffer
+
+							# We need the item bindings to be processed before we can do adjustment
 							$timeout ->
 								#log "top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}"
 								if shouldLoadBottom()
@@ -352,7 +351,8 @@ angular.module('ui.scroll', [])
 										if result.length > 0
 											clipTop()
 											for item in result
-												insert ++next, item
+												++next
+												insert item, buffer.length
 											#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize rid
 							else
@@ -370,7 +370,8 @@ angular.module('ui.scroll', [])
 										if result.length > 0
 											clipBottom() if buffer.length
 											for i in [result.length-1..0]
-												insert --first, result[i]
+												--first
+												insert result[i]
 											#log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize rid
 
@@ -414,7 +415,6 @@ angular.module('ui.scroll', [])
 
 						applyUpdate = (wrapper, newItems) ->
 							if angular.isArray newItems
-								ndx = wrapper.scope.$index
 								for newItem,i in newItems
 									if newItem == wrapper.scope[itemName]
 										keepIt = true;
