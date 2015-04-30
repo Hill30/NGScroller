@@ -134,11 +134,7 @@ describe('uiScroll', function () {
                     $timeout.flush();
                 }
 
-                $timeout(
-                    function() {
-                        run(scroller, scope, $timeout);
-                    }
-                );
+                run(scroller, scope, $timeout);
 
                 scroller.remove();
 
@@ -993,7 +989,9 @@ describe('uiScroll', function () {
 
         it('should replace existing item with an updated one', function () {
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
+
+                    debugger
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -1005,7 +1003,8 @@ describe('uiScroll', function () {
                         }
                     );
 
-                    scope.$apply();
+                    scope.$root.$apply();
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(5);
                     var row1 = viewport.children()[1];
@@ -1019,6 +1018,7 @@ describe('uiScroll', function () {
                     var row3 = viewport.children()[3];
                     expect(row3.tagName.toLowerCase()).toBe('div');
                     expect(row3.innerHTML).toBe('3: three *3');
+
 
                     expect(scope.adapter).toBeTruthy();
                     expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one *1');

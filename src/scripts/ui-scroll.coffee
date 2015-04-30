@@ -100,11 +100,10 @@ angular.module('ui.scroll', [])
 										div = table.find('div')
 										result = table.find('tr')
 										result.paddingHeight = -> div.height.apply(div, arguments)
-										result
 									else
 										result = angular.element("<#{repeaterType}></#{repeaterType}>")
 										result.paddingHeight = result.height
-										result
+								result
 
 							createPadding = (padding, element, direction) ->
 								element[{top:'before',bottom:'after'}[direction]] padding
@@ -269,19 +268,21 @@ angular.module('ui.scroll', [])
 							linker itemScope, (clone) ->
 								wrapper.element = clone
 								# operations: 'append', 'prepend', 'remove', 'update', 'none'
-								wrapper.op = if toBeAppended then 'append' else 'prepend'
-								#wrapper.toBeAppended = toBeAppended
 								if toBeAppended
+									wrapper.op = 'append'
 									if index == next
 										wrapper.doInsert = ->
 											builder.append clone
 											builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
+											wrapper.op = 'none'
 										buffer.push wrapper
 									else
 										wrapper.doInsert = ->
 											buffer[index-first-1].element.after clone
+											wrapper.op = 'none'
 										buffer.splice index-first+1, 0, wrapper
 								else
+									wrapper.op = 'prepend'
 									wrapper.doInsert = ->
 										builder.prepend clone
 										# an element is inserted at the top
@@ -293,21 +294,13 @@ angular.module('ui.scroll', [])
 										else
 											# if not, increment scrollTop
 											viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
+										wrapper.op = 'none'
 									buffer.unshift wrapper
 
 						adjustBuffer = (rid, finalize)->
-							prepended = []
-							for wrapper in buffer
-								switch wrapper.op
-									when 'append' then wrapper.doInsert()
-									when 'prepend' then prepended.unshift wrapper
-									when 'remove' then removeElement wrapper
-								wrapper.op = 'none'
-
-							# prepended items have to be inserted from the bottom up
-							for wrapper in prepended
-								wrapper.doInsert()
-
+							wrapper.doInsert() for wrapper in buffer when wrapper.op is 'append'
+							wrapper.doInsert() for wrapper in buffer.slice(0).reverse() when wrapper.op is 'prepend'
+							removeElement wrapper for wrapper in buffer.slice(0) when wrapper.op is 'remove'
 						# We need the item bindings to be processed before we can do adjustment
 							$timeout ->
 								#log "top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}"
