@@ -268,7 +268,7 @@ angular.module('ui.scroll', [])
 								# operations: 'append', 'prepend', 'remove', 'update', 'none'
 								if (insertAfter)
 									wrapper.op = 'append'
-									buffer.splice insertAfter, 0, wrapper
+									buffer.splice insertAfter+1, 0, wrapper
 								else
 									wrapper.op = 'prepend'
 									buffer.unshift wrapper
@@ -288,10 +288,10 @@ angular.module('ui.scroll', [])
 								wrapper.op = 'none'
 
 							for wrapper,i in buffer when wrapper.op is 'append'
-								if (i == 0)
-									builder.append wrapper.element
-								else
-									buffer[i-1].element.after wrapper.element
+								#if (i == 0)
+									#builder.append wrapper.element
+								#else
+								buffer[i-1].element.after wrapper.element
 								builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
 								wrapper.op = 'none'
 
@@ -431,7 +431,7 @@ angular.module('ui.scroll', [])
 								# arg1 is item index, arg2 is the newItems array
 								if arg1%1 == 0 # checking if it is an integer
 									if 0 <= arg1-first < buffer.length
-										applyUpdate arg2, arg1 - first
+										applyUpdate buffer, arg1 - first, arg2
 								else
 									throw new Error "applyUpdates - #{arg1} is not a valid index"
 							adjustBuffer ridActual
