@@ -548,7 +548,6 @@ describe('uiScroll', function () {
 
         it('should insert a new element after selected (first) row', function () {
 
-            return;
             runTest(scrollSettings,
                 function (viewport, scope, $timeout) {
 
@@ -587,7 +586,6 @@ describe('uiScroll', function () {
 
         it('should insert a new element before selected (middle) row', function () {
 
-            return;
             runTest(scrollSettings,
                 function (viewport, scope, $timeout) {
 
@@ -918,7 +916,6 @@ describe('uiScroll', function () {
 
         it('should insert a new element after selected (first) row', function () {
 
-            return;
             runTest(scrollSettings,
                 function (viewport, scope, $timeout) {
 
@@ -952,7 +949,6 @@ describe('uiScroll', function () {
 
         it('should insert a new element before selected (middle) row', function () {
 
-            return;
             runTest(scrollSettings,
                 function (viewport, scope, $timeout) {
 
@@ -1091,6 +1087,65 @@ describe('uiScroll', function () {
 
                     expect(scope.adapter).toBeTruthy();
                     expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one *1');
+                }
+            );
+        });
+
+        it('should preserve the order of inserted items', function () {
+
+            runTest(scrollSettings,
+                function (viewport, scope, $timeout) {
+
+                    debugger
+                    scope.adapter.applyUpdates(
+                        function (item, scope) {
+                            if (scope.$index == 1) {
+                                item.text += ' *' + scope.$index;
+                                return [
+                                    {text: item.text + ' before 1'},
+                                    {text: item.text + ' before 2'},
+                                    item,
+                                    {text: item.text + ' after 1'},
+                                    {text: item.text + ' after 2'}
+                                ];
+                            }
+                        }
+                    );
+
+                    $timeout.flush();
+
+                    expect(viewport.children().length).toBe(9);
+                    var row1 = viewport.children()[1];
+                    expect(row1.tagName.toLowerCase()).toBe('div');
+                    expect(row1.innerHTML).toBe('1: one *1 before 2');
+
+                    var row1 = viewport.children()[2];
+                    expect(row1.tagName.toLowerCase()).toBe('div');
+                    expect(row1.innerHTML).toBe('2: one *1 before 1');
+
+                    var row1 = viewport.children()[3];
+                    expect(row1.tagName.toLowerCase()).toBe('div');
+                    expect(row1.innerHTML).toBe('3: one *1');
+
+                    var row1 = viewport.children()[4];
+                    expect(row1.tagName.toLowerCase()).toBe('div');
+                    expect(row1.innerHTML).toBe('4: one *1 after 1');
+
+                    var row1 = viewport.children()[5];
+                    expect(row1.tagName.toLowerCase()).toBe('div');
+                    expect(row1.innerHTML).toBe('5: one *1 after 2');
+
+                    var row2 = viewport.children()[6];
+                    expect(row2.tagName.toLowerCase()).toBe('div');
+                    expect(row2.innerHTML).toBe('6: two');
+
+                    var row3 = viewport.children()[7];
+                    expect(row3.tagName.toLowerCase()).toBe('div');
+                    expect(row3.innerHTML).toBe('7: three');
+
+
+                    expect(scope.adapter).toBeTruthy();
+                    //expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one *1');
                 }
             );
         });

@@ -268,7 +268,7 @@ angular.module('ui.scroll', [])
 								# operations: 'append', 'prepend', 'remove', 'update', 'none'
 								if (insertAfter)
 									wrapper.op = 'append'
-									buffer.splice insertAfter+1, 0, wrapper
+									buffer.splice insertAfter, 0, wrapper
 								else
 									wrapper.op = 'prepend'
 									buffer.unshift wrapper
@@ -416,7 +416,9 @@ angular.module('ui.scroll', [])
 									if newItem == wrapper.scope[itemName]
 										keepIt = true;
 									else
-										insert newItem, buffer.indexOf wrapper
+										pos = (buffer.indexOf wrapper) + 1
+										pos-- if keepIt
+										insert newItem, pos
 								unless keepIt
 									wrapper.op = 'remove'
 
@@ -425,7 +427,8 @@ angular.module('ui.scroll', [])
 							if angular.isFunction arg1
 								# arg1 is the updater function, arg2 is ignored
 								bufferClone = buffer.slice(0)
-								for wrapper,i in bufferClone  # we need to do it on the buffer clone
+								for wrapper,i in bufferClone  # we need to do it on the buffer clone, because buffer content
+																							# may change as we iterate through
 									applyUpdate bufferClone, i, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
 							else
 								# arg1 is item index, arg2 is the newItems array
