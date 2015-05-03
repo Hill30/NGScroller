@@ -405,7 +405,7 @@ angular.module('ui.scroll', [])
 							viewport.unbind 'mousewheel', wheelHandler
 
 
-						# adapter initializing
+						# adapter setup
 
 						adapter = {}
 						adapter.isLoading = false
@@ -450,41 +450,13 @@ angular.module('ui.scroll', [])
 						# update events (deprecated since v1.1.0)
 
 						doUpdate = (locator, newItem) ->
-							if angular.isFunction locator
-								((wrapper)->
-									locator wrapper.scope
-								) wrapper for wrapper in buffer
-							else
-								if 0 <= locator-first-1 < buffer.length
-									buffer[locator-first-1].scope[itemName] = newItem
-							null
+							throw new Error 'update event is no longer supported - use applyUpdates instead'
 
 						doDelete = (locator) ->
-							if angular.isFunction locator
-								temp = []
-								temp.unshift item for item in buffer
-								((wrapper)->
-									if locator wrapper.scope
-										removeFromBuffer temp.length-1-i, temp.length-i
-										next--
-								) wrapper for wrapper,i in temp
-							else
-								if 0 <= locator-first-1 < buffer.length
-									removeFromBuffer locator-first-1, locator-first
-									next--
-
-							item.scope.$index = first + i for item,i in buffer
-							adjustBuffer()
+							throw new Error 'delete event is no longer supported - use applyUpdates instead'
 
 						doInsert = (locator, item) ->
-							if angular.isFunction locator
-								throw new Error('not implemented - Insert with locator function')
-							else
-								if 0 <= locator-first-1 < buffer.length
-									insert locator, item
-									next++
-							item.scope.$index = first + i for item,i in buffer
-							adjustBuffer()
+							throw new Error 'insert event is no longer supported - use applyUpdates instead'
 
 						eventListener.$on "insert.item", (event, locator, item)->doInsert(locator, item)
 						eventListener.$on "update.items", (event, locator, newItem)-> doUpdate(locator, newItem)
