@@ -149,7 +149,7 @@ angular.module('ui.scroll', [])
 								topPadding: -> topPadding.paddingHeight.apply(topPadding, arguments)
 								bottomPadding: -> bottomPadding.paddingHeight.apply(bottomPadding, arguments)
 								append:  (e) -> element.before.apply(bottomPadding, e)
-								prepend: (e) -> element.after.apply(topPadding, e)
+								prepend: (e, sibling) -> element.after.apply(sibling || topPadding, e)
 								bottomDataPos: ->
 									scrollHeight(viewport) - bottomPadding.paddingHeight()
 								topDataPos: ->
@@ -265,13 +265,14 @@ angular.module('ui.scroll', [])
 
 							linker itemScope, (clone) ->
 								wrapper.element = clone
-								# operations: 'append', 'prepend', 'remove', 'update', 'none'
-								if (insertAfter)
-									wrapper.op = 'append'
-									buffer.splice insertAfter, 0, wrapper
-								else
-									wrapper.op = 'prepend'
-									buffer.unshift wrapper
+
+							# operations: 'append', 'prepend', 'remove', 'update', 'none'
+							if (insertAfter?)
+								wrapper.op = 'append'
+								buffer.splice insertAfter, 0, wrapper
+							else
+								wrapper.op = 'prepend'
+								buffer.unshift wrapper
 
 						adjustBuffer = (rid, finalize) ->
 							for wrapper in buffer.slice(0).reverse() when wrapper.op is 'prepend'
@@ -288,10 +289,10 @@ angular.module('ui.scroll', [])
 								wrapper.op = 'none'
 
 							for wrapper,i in buffer when wrapper.op is 'append'
-								#if (i == 0)
-									#builder.append wrapper.element
-								#else
-								buffer[i-1].element.after wrapper.element
+								if (i == 0)
+									builder.prepend wrapper.element
+								else
+									builder.prepend wrapper.element, buffer[i-1].element
 								builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
 								wrapper.op = 'none'
 
@@ -409,15 +410,14 @@ angular.module('ui.scroll', [])
 						adapter = {}
 						adapter.isLoading = false
 
-						applyUpdate = (bufferClone, index, newItems) ->
+						applyUpdate = (wrapper, newItems) ->
 							if angular.isArray newItems
-								wrapper = bufferClone[index]
+								pos = (buffer.indexOf wrapper) + 1
 								for newItem,i in newItems.reverse()
 									if newItem == wrapper.scope[itemName]
 										keepIt = true;
+										pos--
 									else
-										pos = (buffer.indexOf wrapper) + 1
-										pos-- if keepIt
 										insert newItem, pos
 								unless keepIt
 									wrapper.op = 'remove'
@@ -429,12 +429,12 @@ angular.module('ui.scroll', [])
 								bufferClone = buffer.slice(0)
 								for wrapper,i in bufferClone  # we need to do it on the buffer clone, because buffer content
 																							# may change as we iterate through
-									applyUpdate bufferClone, i, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
+									applyUpdate wrapper, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
 							else
 								# arg1 is item index, arg2 is the newItems array
 								if arg1%1 == 0 # checking if it is an integer
 									if 0 <= arg1-first < buffer.length
-										applyUpdate buffer, arg1 - first, arg2
+										applyUpdate buffer[arg1 - first], arg2
 								else
 									throw new Error "applyUpdates - #{arg1} is not a valid index"
 							adjustBuffer ridActual

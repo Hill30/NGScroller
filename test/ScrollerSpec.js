@@ -1029,7 +1029,7 @@ describe('uiScroll', function () {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
-                            item.text  += ' *' + scope.$index;
+                            item.text += ' *' + scope.$index;
                         }
                     );
 
@@ -1096,7 +1096,6 @@ describe('uiScroll', function () {
             runTest(scrollSettings,
                 function (viewport, scope, $timeout) {
 
-                    debugger
                     scope.adapter.applyUpdates(
                         function (item, scope) {
                             if (scope.$index == 1) {
@@ -1117,11 +1116,11 @@ describe('uiScroll', function () {
                     expect(viewport.children().length).toBe(9);
                     var row1 = viewport.children()[1];
                     expect(row1.tagName.toLowerCase()).toBe('div');
-                    expect(row1.innerHTML).toBe('1: one *1 before 2');
+                    expect(row1.innerHTML).toBe('1: one *1 before 1');
 
                     var row1 = viewport.children()[2];
                     expect(row1.tagName.toLowerCase()).toBe('div');
-                    expect(row1.innerHTML).toBe('2: one *1 before 1');
+                    expect(row1.innerHTML).toBe('2: one *1 before 2');
 
                     var row1 = viewport.children()[3];
                     expect(row1.tagName.toLowerCase()).toBe('div');
@@ -1148,9 +1147,70 @@ describe('uiScroll', function () {
                     //expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one *1');
                 }
             );
-        });
-    });
 
+        });
+
+        it('should preserve the order of inserted items 2', function () {
+
+            runTest(scrollSettings,
+                function (viewport, scope, $timeout) {
+
+                    scope.adapter.applyUpdates(
+                        function (item, scope) {
+                            if (scope.$index == 2) {
+                                item.text += ' *' + scope.$index;
+                                return [
+                                    {text: item.text + ' before 1'},
+                                    {text: item.text + ' before 2'},
+                                    item,
+                                    {text: item.text + ' after 1'},
+                                    {text: item.text + ' after 2'}
+                                ];
+                            }
+                        }
+                    );
+
+                    $timeout.flush();
+
+                    expect(viewport.children().length).toBe(9);
+
+                    var row1 = viewport.children()[1];
+                    expect(row1.tagName.toLowerCase()).toBe('div');
+                    expect(row1.innerHTML).toBe('1: one');
+
+                    var row1 = viewport.children()[2];
+                    expect(row1.tagName.toLowerCase()).toBe('div');
+                    expect(row1.innerHTML).toBe('2: two *2 before 1');
+
+                    var row1 = viewport.children()[3];
+                    expect(row1.tagName.toLowerCase()).toBe('div');
+                    expect(row1.innerHTML).toBe('3: two *2 before 2');
+
+                    var row2 = viewport.children()[4];
+                    expect(row2.tagName.toLowerCase()).toBe('div');
+                    expect(row2.innerHTML).toBe('4: two *2');
+
+                    var row1 = viewport.children()[5];
+                    expect(row1.tagName.toLowerCase()).toBe('div');
+                    expect(row1.innerHTML).toBe('5: two *2 after 1');
+
+                    var row1 = viewport.children()[6];
+                    expect(row1.tagName.toLowerCase()).toBe('div');
+                    expect(row1.innerHTML).toBe('6: two *2 after 2');
+
+                    var row3 = viewport.children()[7];
+                    expect(row3.tagName.toLowerCase()).toBe('div');
+                    expect(row3.innerHTML).toBe('7: three');
+
+
+                    expect(scope.adapter).toBeTruthy();
+                    //expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one *1');
+                }
+            );
+
+        });
+
+    });
 
 
     describe('datasource with only 3 elements (negative index)', function () {
