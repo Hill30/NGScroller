@@ -154,6 +154,7 @@ describe('uiScroll', function () {
 
     describe('basic setup', function () {
 
+
             var scrollSettings = {datasource: 'myEmptyDatasource'};
 
             it('should bind to window scroll and resize events and unbind them after the scope is destroyed', function () {
@@ -1236,7 +1237,6 @@ describe('uiScroll', function () {
 			);
 		});
 
-
 		it('should call get on the datasource 2 times ', function () {
 			var spy;
 			inject(function (anotherDatasource) {
@@ -1599,6 +1599,7 @@ describe('uiScroll', function () {
 
 
 	describe('prevent unwanted scroll bubbling', function () {
+
 		var scrollSettings = { datasource: 'myDatasourceToPreventScrollBubbling', bufferSize: 3, viewportHeight: 300 };
 		var documentScrollBubblingCount = 0;
 

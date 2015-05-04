@@ -91,23 +91,32 @@ angular.module('ui.scroll', [])
 
 						# Element manipulation routines
 
-						removeElement =
+						removeItem =
 							if $animate
-								(wrapper)->
-									$animate.leave wrapper.element,
-										->
-											wrapper.scope.$destroy()
+								(wrapper) ->
 									buffer.splice buffer.indexOf(wrapper), 1
+									$animate.leave wrapper.element, ->
+										wrapper.scope.$destroy()
+									[($animate.leave(wrapper.element)).then ->
+										wrapper.scope.$destroy()
+									]
 							else
-								(wrapper)->
+								(wrapper) ->
+									buffer.splice buffer.indexOf(wrapper), 1
 									wrapper.element.remove()
 									wrapper.scope.$destroy()
-									buffer.splice buffer.indexOf(wrapper), 1
-									deferred = $q.defer()
-									deferred.resolve()
-									deferred.promise
+									[]
 
-						appendElement = (wrapper, sibling) ->
+						insertElement =
+							(newElement, previousElement) ->
+								element.after.apply(previousElement, newElement)
+								[]
+
+						insertElementAnimated =
+							if $animate
+								(newElement, previousElement) ->
+									[$animate.enter newElement, element, previousElement]
+							else insertElement
 
 						# Element builder
 						#
@@ -148,8 +157,8 @@ angular.module('ui.scroll', [])
 								viewport: viewport
 								topPadding: -> topPadding.paddingHeight.apply(topPadding, arguments)
 								bottomPadding: -> bottomPadding.paddingHeight.apply(bottomPadding, arguments)
-								append:  (e) -> element.before.apply(bottomPadding, e)
-								prepend: (e, sibling) -> element.after.apply(sibling || topPadding, e)
+								insertElement: (e, sibling) -> insertElement(e, sibling || topPadding)
+								insertElementAnimated: (e, sibling) -> insertElementAnimated(e, sibling || topPadding)
 								bottomDataPos: ->
 									scrollHeight(viewport) - bottomPadding.paddingHeight()
 								topDataPos: ->
@@ -257,7 +266,7 @@ angular.module('ui.scroll', [])
 							if pending.push(direction) == 1
 								fetch(rid)
 
-						insert = (item, insertAfter) ->
+						insertItem = (operation, item) ->
 							itemScope = $scope.$new()
 							itemScope[itemName] = item
 							wrapper =
@@ -266,17 +275,43 @@ angular.module('ui.scroll', [])
 							linker itemScope, (clone) ->
 								wrapper.element = clone
 
-							# operations: 'append', 'prepend', 'remove', 'update', 'none'
-							if (insertAfter?)
-								wrapper.op = 'append'
-								buffer.splice insertAfter, 0, wrapper
+							# operations: 'append', 'prepend', 'insert', 'remove', 'update', 'none'
+							if (operation%1 == 0) # it is an insert
+								wrapper.op = 'insert'
+								buffer.splice operation, 0, wrapper
 							else
-								wrapper.op = 'prepend'
-								buffer.unshift wrapper
+								wrapper.op = operation
+								switch operation
+									when 'append' then buffer.push wrapper
+									when 'prepend' then buffer.unshift wrapper
 
 						adjustBuffer = (rid, finalize) ->
-							for wrapper in buffer.slice(0).reverse() when wrapper.op is 'prepend'
-								builder.prepend wrapper.element
+
+							promises = []
+							toBePrepended = []
+							toBeRemoved = []
+
+							for wrapper, i in buffer
+								switch wrapper.op
+									when 'prepend' then toBePrepended.unshift wrapper
+									when 'append'
+										if (i == 0)
+											builder.insertElement wrapper.element
+										else
+											builder.insertElement wrapper.element, buffer[i-1].element
+										builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
+										wrapper.op = 'none'
+									when 'insert'
+										if (i == 0)
+											promises = promises.concat (builder.insertElementAnimated wrapper.element)
+										else
+											promises = promises.concat (builder.insertElementAnimated wrapper.element, buffer[i-1].element)
+										builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
+										wrapper.op = 'none'
+									when 'remove' then toBeRemoved.push wrapper
+
+							for wrapper in toBePrepended
+								builder.insertElement wrapper.element
 								# an element is inserted at the top
 								newHeight = builder.topPadding() - wrapper.element.outerHeight(true)
 								# adjust padding to prevent it from visually pushing everything down
@@ -288,16 +323,8 @@ angular.module('ui.scroll', [])
 									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
 								wrapper.op = 'none'
 
-							for wrapper,i in buffer when wrapper.op is 'append'
-								if (i == 0)
-									builder.prepend wrapper.element
-								else
-									builder.prepend wrapper.element, buffer[i-1].element
-								builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
-								wrapper.op = 'none'
-
-							for wrapper in buffer.slice(0) when wrapper.op is 'remove'
-								removeElement wrapper
+							for wrapper in toBeRemoved
+								promises = promises.concat (removeItem wrapper)
 
 							# re-index the buffer
 							item.scope.$index = first + i for item,i in buffer
@@ -322,6 +349,12 @@ angular.module('ui.scroll', [])
 										else
 											topVisible(item) if newRow
 											break
+								# the promise from the timeout should be added to promises array
+								# I just could not make promises work with the jasmine tests
+								if (promises.length)
+									$q.all(promises).then ->
+										log "Animation completed rid #{rid}"
+										adjustBuffer rid
 
 						finalize = (rid) ->
 							adjustBuffer rid, ->
@@ -349,7 +382,7 @@ angular.module('ui.scroll', [])
 											clipTop()
 											for item in result
 												++next
-												insert item, buffer.length
+												insertItem 'append', item
 											#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize rid
 							else
@@ -368,7 +401,7 @@ angular.module('ui.scroll', [])
 											clipBottom() if buffer.length
 											for i in [result.length-1..0]
 												--first
-												insert result[i]
+												insertItem 'prepend', result[i]
 											#log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize rid
 
@@ -418,7 +451,7 @@ angular.module('ui.scroll', [])
 										keepIt = true;
 										pos--
 									else
-										insert newItem, pos
+										insertItem pos, newItem
 								unless keepIt
 									wrapper.op = 'remove'
 
