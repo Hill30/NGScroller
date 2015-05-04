@@ -93,13 +93,20 @@ angular.module('ui.scroll', [])
 
 						removeItem =
 							if $animate
-								(wrapper) ->
-									buffer.splice buffer.indexOf(wrapper), 1
-									deferred = $q.defer()
-									$animate.leave wrapper.element, ->
-										wrapper.scope.$destroy()
-										deferred.resolve()
-									[deferred.promise]
+								if angular.version.minor == 2
+									(wrapper) ->
+										buffer.splice buffer.indexOf(wrapper), 1
+										deferred = $q.defer()
+										$animate.leave wrapper.element, ->
+											wrapper.scope.$destroy()
+											deferred.resolve()
+										[deferred.promise]
+								else
+									(wrapper) ->
+										buffer.splice buffer.indexOf(wrapper), 1
+										[($animate.leave wrapper.element).then ->
+											wrapper.scope.$destroy()
+										]
 							else
 								(wrapper) ->
 									buffer.splice buffer.indexOf(wrapper), 1
@@ -114,10 +121,15 @@ angular.module('ui.scroll', [])
 
 						insertElementAnimated =
 							if $animate
-								(newElement, previousElement) ->
-									deferred = $q.defer()
-									$animate.enter newElement, element, previousElement, -> deferred.resolve()
-									[deferred.promise]
+								if angular.version.minor == 2
+									(newElement, previousElement) ->
+										deferred = $q.defer()
+										$animate.enter newElement, element, previousElement, -> deferred.resolve()
+										[deferred.promise]
+								else
+									(newElement, previousElement) ->
+										[$animate.enter newElement, element, previousElement]
+
 							else insertElement
 
 						# Element builder
