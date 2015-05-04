@@ -95,11 +95,11 @@ angular.module('ui.scroll', [])
 							if $animate
 								(wrapper) ->
 									buffer.splice buffer.indexOf(wrapper), 1
+									deferred = $q.defer()
 									$animate.leave wrapper.element, ->
 										wrapper.scope.$destroy()
-									[($animate.leave(wrapper.element)).then ->
-										wrapper.scope.$destroy()
-									]
+										deferred.resolve()
+									[deferred.promise]
 							else
 								(wrapper) ->
 									buffer.splice buffer.indexOf(wrapper), 1
@@ -115,7 +115,9 @@ angular.module('ui.scroll', [])
 						insertElementAnimated =
 							if $animate
 								(newElement, previousElement) ->
-									[$animate.enter newElement, element, previousElement]
+									deferred = $q.defer()
+									$animate.enter newElement, element, previousElement, -> deferred.resolve()
+									[deferred.promise]
 							else insertElement
 
 						# Element builder
@@ -353,7 +355,7 @@ angular.module('ui.scroll', [])
 								# I just could not make promises work with the jasmine tests
 								if (promises.length)
 									$q.all(promises).then ->
-										log "Animation completed rid #{rid}"
+										#log "Animation completed rid #{rid}"
 										adjustBuffer rid
 
 						finalize = (rid) ->
