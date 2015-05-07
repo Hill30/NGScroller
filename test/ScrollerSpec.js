@@ -110,12 +110,13 @@ describe('uiScroll', function () {
 		var viewportStyle = ' style="height:' + (settings.viewportHeight || 200) + 'px"';
 		var itemStyle = settings.itemHeight ? ' style="height:' + settings.itemHeight + 'px"' : '';
 		var bufferSize = settings.bufferSize ? ' buffer-size="' + settings.bufferSize + '"' : '';
+		var isLoading = settings.isLoading ? ' is-loading="' + settings.isLoading + '"' : '';
 		var adapter = settings.adapter ? ' adapter="' + settings.adapter + '"' : '';
 		var template = settings.template ? settings.template : '{{$index}}: {{item}}';
 		return '<div ui-scroll-viewport' + viewportStyle + '>' +
 			'<div ui-scroll="item in ' + settings.datasource + '"' +
 			adapter +
-			itemStyle + bufferSize + '>' +
+			itemStyle + bufferSize + isLoading + '>' +
 			template +
 			'</div>' +
 			'</div>';
@@ -1611,6 +1612,60 @@ describe('uiScroll', function () {
 				}
 			);
 		});
+	});
+
+
+	describe('isLoading property: deep access and sync', function () {
+
+		it('should get isLoading as an adapter property', function () {
+			runTest({datasource: 'myOnePageDatasource', adapter: 'container.sub.adapter'},
+				function (viewport, scope) {
+					expect(!!scope.container && !!scope.container.sub && !!scope.container.sub.adapter).toBe(true);
+					expect(typeof scope.container.sub.adapter.isLoading).toBe('boolean');
+				}
+			);
+		});
+
+		it('should get isLoading as a scope property', function () {
+			runTest({datasource: 'myOnePageDatasource', isLoading: 'container.sub.isLoading'},
+				function (viewport, scope) {
+					expect(!!scope.container && !!scope.container.sub).toBe(true);
+					expect(typeof scope.container.sub.isLoading).toBe('boolean');
+				}
+			);
+		});
+
+		it('should sync scope-isLoading with adapter-isLoading', function () {
+			runTest({
+					datasource: 'myMultipageDatasource',
+					itemHeight: 40,
+					bufferSize: 3,
+					adapter: 'container1.adapter',
+					isLoading: 'container2.isLoading'
+				},
+				function (viewport, scope, $timeout) {
+					var isLoadingChangeCount = 0;
+
+					expect(!!scope.container1 && !!scope.container1.adapter && !!scope.container2).toBe(true);
+
+					scope.$watch('container2.isLoading', function(newValue, oldValue) {
+						switch(++isLoadingChangeCount) {
+							case 1: expect(newValue).toBe(false); expect(oldValue).toBe(false); break;
+							case 2: expect(newValue).toBe(true); expect(oldValue).toBe(false); break;
+							case 3: expect(newValue).toBe(false); expect(oldValue).toBe(true); break;
+						}
+						expect(scope.container1.adapter.isLoading).toBe(newValue);
+					});
+
+					viewport.scrollTop(100);
+					viewport.trigger('scroll');
+					$timeout.flush();
+
+					expect(isLoadingChangeCount).toBe(3);
+				}
+			);
+		});
+
 	});
 
 

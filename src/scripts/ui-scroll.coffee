@@ -54,15 +54,13 @@ angular.module('ui.scroll', [])
 							return targetScope[target] if not chain or chain.length isnt 3
 							return getValueChain(targetScope[chain[1]], chain[2])
 
-						setValueChain = (targetScope, target, value, doNotSet) ->
+						setValueChain = (targetScope, target, value) ->
 							return if not targetScope or not target
-							if not chain = target.match(/^([\w]+)\.(.+)$/)
-								return if target.indexOf('.') isnt -1
-							if not chain or chain.length isnt 3
-								return targetScope[target] = value if !angular.isObject(targetScope[target]) and !doNotSet
-								return targetScope[target] = value
-							targetScope[chain[1]] = {} if !angular.isObject(targetScope[chain[1]]) and !doNotSet
-							return setValueChain(targetScope[chain[1]], chain[2], value, doNotSet)
+							chain = target.match(/^([\w]+)\.(.+)$/)
+							return if not chain and target.indexOf('.') isnt -1
+							return targetScope[target] = value if not chain or chain.length isnt 3
+							targetScope[chain[1]] = {} if !angular.isObject(targetScope[chain[1]])
+							return setValueChain(targetScope[chain[1]], chain[2], value)
 
 						datasource = getValueChain($scope, datasourceName)
 						isDatasourceValid = () -> angular.isObject(datasource) and typeof datasource.get is 'function'
