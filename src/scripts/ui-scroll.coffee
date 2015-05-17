@@ -440,7 +440,7 @@ angular.module('ui.scroll', [])
 							if angular.isFunction arg1
 								# arg1 is the updater function, arg2 is ignored
 								for wrapper in buffer.slice(0)  # we need to do it on the buffer clone
-									inserted.concat inserted, applyUpdate wrapper, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
+									inserted = inserted.concat inserted, applyUpdate wrapper, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
 							else
 								# arg1 is item index, arg2 is the newItems array
 								if arg1%1 == 0 # checking if it is an integer

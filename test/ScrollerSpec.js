@@ -134,7 +134,7 @@ describe('uiScroll', function () {
                     $timeout.flush();
                 }
 
-                run(scroller, scope);
+                run(scroller, scope, $timeout);
 
                 scroller.remove();
 
@@ -289,7 +289,7 @@ describe('uiScroll', function () {
 
         it('should update rows in place', function () {
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -297,7 +297,7 @@ describe('uiScroll', function () {
                         }
                     );
 
-                    scope.$apply();
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(5);
                     var row1 = viewport.children()[1];
@@ -320,7 +320,7 @@ describe('uiScroll', function () {
 
         it('should update selected (first) row', function () {
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -329,7 +329,7 @@ describe('uiScroll', function () {
                         }
                     );
 
-                    scope.$apply();
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(5);
 
@@ -506,7 +506,7 @@ describe('uiScroll', function () {
 
         it('should insert a new element before selected (first) row', function () {
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -515,7 +515,7 @@ describe('uiScroll', function () {
                         }
                     );
 
-                    scope.$apply();
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(6);
 
@@ -970,11 +970,12 @@ describe('uiScroll', function () {
 
         it('should insert a new element after selected (last) row', function () {
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(3, ['three', 'after three']);
 
                     scope.$apply();
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(6);
 
@@ -993,6 +994,7 @@ describe('uiScroll', function () {
                     var row3 = viewport.children()[4];
                     expect(row3.tagName.toLowerCase()).toBe('div');
                     expect(row3.innerHTML).toBe('4: after three');
+                    expect(row3.style.cssText).toBe('');
 
                     expect(scope.adapter).toBeTruthy();
                     expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one');
@@ -1042,7 +1044,7 @@ describe('uiScroll', function () {
 
         it('should replace existing item with an updated one', function () {
             runTest(scrollSettings,
-                function (viewport, scope) {
+                function (viewport, scope, $timeout) {
 
                     scope.adapter.applyUpdates(
                         function (item, scope) {
@@ -1054,7 +1056,7 @@ describe('uiScroll', function () {
                         }
                     );
 
-                    scope.$apply();
+                    $timeout.flush();
 
                     expect(viewport.children().length).toBe(5);
                     var row1 = viewport.children()[1];
