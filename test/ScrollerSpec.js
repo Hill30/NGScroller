@@ -994,7 +994,7 @@ describe('uiScroll', function () {
                     var row3 = viewport.children()[4];
                     expect(row3.tagName.toLowerCase()).toBe('div');
                     expect(row3.innerHTML).toBe('4: after three');
-                    expect(row3.style.cssText).toBe('');
+                    expect(row3.style.cssText).not.toBe('display: none;');
 
                     expect(scope.adapter).toBeTruthy();
                     expect(scope.adapter.topVisibleElement[0].innerHTML).toBe('1: one');
