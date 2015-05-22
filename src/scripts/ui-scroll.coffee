@@ -40,7 +40,7 @@ angular.module('ui.scroll', [])
 
 						match = $attr.uiScroll.match(/^\s*(\w+)\s+in\s+([\w\.]+)\s*$/)
 						if !match
-							throw new Error "Expected uiScroll in form of '_item_ in _datasource_' but got '#{$attr.uiScroll}'"
+							throw new Error 'Expected uiScroll in form of \'_item_ in _datasource_\' but got \'#{$attr.uiScroll}\''
 
 						itemName = match[1]
 						datasourceName = match[2]
@@ -67,7 +67,7 @@ angular.module('ui.scroll', [])
 						if !isDatasourceValid() # then try to inject datasource as service
 							datasource = $injector.get(datasourceName)
 							if !isDatasourceValid()
-								throw new Error "#{datasourceName} is not a valid datasource"
+								throw new Error '#{datasourceName} is not a valid datasource'
 
 						bufferSize = Math.max(3, +$attr.bufferSize || 10)
 						bufferPadding = -> viewport.outerHeight() * Math.max(0.1, +$attr.padding || 0.1) # some extra space to initiate preload
@@ -84,7 +84,7 @@ angular.module('ui.scroll', [])
 
 							repeaterType = template[0].localName
 							if repeaterType in ['dl']
-								throw new Error "ui-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
+								throw new Error 'ui-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}'
 							repeaterType = 'div' if repeaterType not in ['li', 'tr']
 
 							viewport = if controllers[0] and controllers[0].viewport then controllers[0].viewport else angular.element(window)
@@ -99,7 +99,7 @@ angular.module('ui.scroll', [])
 										result.paddingHeight = -> div.height.apply(div, arguments)
 										result
 									else
-										result = angular.element("<#{repeaterType}></#{repeaterType}>")
+										result = angular.element('<#{repeaterType}></#{repeaterType}>')
 										result.paddingHeight = result.height
 										result
 
@@ -201,7 +201,7 @@ angular.module('ui.scroll', [])
 								builder.bottomPadding(builder.bottomPadding() + bottomHeight)
 								removeFromBuffer(buffer.length - overage, buffer.length)
 								next -= overage
-								#log "clipped off bottom #{overage} bottom padding #{builder.bottomPadding()}"
+								#log 'clipped off bottom #{overage} bottom padding #{builder.bottomPadding()}'
 
 						shouldLoadTop = ->
 							!bof && (builder.topDataPos() > topVisiblePos() - bufferPadding())
@@ -226,7 +226,7 @@ angular.module('ui.scroll', [])
 								builder.topPadding(builder.topPadding() + topHeight)
 								removeFromBuffer(0, overage)
 								first += overage
-								#log "clipped off top #{overage} top padding #{builder.topPadding()}"
+								#log 'clipped off top #{overage} top padding #{builder.topPadding()}'
 
 						enqueueFetch = (rid, direction)->
 							if (!adapter.isLoading)
@@ -282,7 +282,7 @@ angular.module('ui.scroll', [])
 									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
 
 						doAdjustment = (rid, finalize)->
-							#log "top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}"
+							#log 'top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}'
 							if shouldLoadBottom()
 								enqueueFetch(rid, true)
 							else
@@ -328,12 +328,12 @@ angular.module('ui.scroll', [])
 
 						fetch = (rid) ->
 							direction = pending[0]
-							#log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
+							#log 'Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}'
 							if direction
 								if buffer.length && !shouldLoadBottom()
 									finalize(rid)
 								else
-									#log "appending... requested #{bufferSize} records starting from #{next}"
+									#log 'appending... requested #{bufferSize} records starting from #{next}'
 									datasource.get next, bufferSize,
 									(result) ->
 										return if (rid and rid isnt ridActual) or $scope.$$destroyed
@@ -341,18 +341,18 @@ angular.module('ui.scroll', [])
 										if result.length < bufferSize
 											eof = true
 											builder.bottomPadding(0)
-											#log "eof is reached"
+											#log 'eof is reached'
 										if result.length > 0
 											clipTop()
 											for item in result
 												newItems.push (insert ++next, item)
-											#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+											#log 'appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}'
 										finalize(rid, newItems)
 							else
 								if buffer.length && !shouldLoadTop()
 									finalize(rid)
 								else
-									#log "prepending... requested #{size} records starting from #{start}"
+									#log 'prepending... requested #{size} records starting from #{start}'
 									datasource.get first-bufferSize, bufferSize,
 									(result) ->
 										return if (rid and rid isnt ridActual) or $scope.$$destroyed
@@ -360,12 +360,12 @@ angular.module('ui.scroll', [])
 										if result.length < bufferSize
 											bof = true
 											builder.topPadding(0)
-											#log "bof is reached"
+											#log 'bof is reached'
 										if result.length > 0
 											clipBottom() if buffer.length
 											for i in [result.length-1..0]
 												newItems.unshift (insert --first, result[i])
-											#log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+											#log 'prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}'
 										finalize(rid, newItems)
 
 
@@ -413,6 +413,7 @@ angular.module('ui.scroll', [])
 								if newItems.length
 									if newItems.length == 1 && newItems[0] == wrapper.scope[itemName]
 										# update inplace
+										return inserted
 									else
 										ndx = wrapper.scope.$index
 										if ndx > first
@@ -447,7 +448,7 @@ angular.module('ui.scroll', [])
 									if 0 <= arg1-first < buffer.length
 										inserted = applyUpdate buffer[arg1 - first], arg2
 								else
-									throw new Error "applyUpdates - #{arg1} is not a valid index or outside of range"
+									throw new Error 'applyUpdates - #{arg1} is not a valid index or outside of range'
 							adjustBuffer(ridActual, inserted)
 
 						if $attr.adapter # so we have an adapter on $scope
@@ -499,9 +500,9 @@ angular.module('ui.scroll', [])
 							item.scope.$index = first + i for item,i in buffer
 							adjustBuffer(null, inserted)
 
-						eventListener.$on "insert.item", (event, locator, item)->doInsert(locator, item)
-						eventListener.$on "update.items", (event, locator, newItem)-> doUpdate(locator, newItem)
-						eventListener.$on "delete.items", (event, locator)-> doDelete(locator)
+						eventListener.$on 'insert.item', (event, locator, item)->doInsert(locator, item)
+						eventListener.$on 'update.items', (event, locator, newItem)-> doUpdate(locator, newItem)
+						eventListener.$on 'delete.items', (event, locator)-> doDelete(locator)
 
 		])
 
