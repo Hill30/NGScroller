@@ -180,6 +180,9 @@ See [index.html](http://rawgithub.com/Hill30/NGScroller/master/src/index.html)
 
 ###History
 
+####v1.1.2
+* Fixed inserting elements via applyUpdates error.
+
 ####v1.1.1
 * Fixed jqlite on $destroy error.
 
