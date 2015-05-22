@@ -40,7 +40,7 @@ angular.module('ui.scroll', [])
 
 						match = $attr.uiScroll.match(/^\s*(\w+)\s+in\s+([\w\.]+)\s*$/)
 						if !match
-							throw new Error 'Expected uiScroll in form of \'_item_ in _datasource_\' but got \'#{$attr.uiScroll}\''
+							throw new Error 'Expected uiScroll in form of \'_item_ in _datasource_\' but got \'' + $attr.uiScroll + '\''
 
 						itemName = match[1]
 						datasourceName = match[2]
@@ -67,7 +67,7 @@ angular.module('ui.scroll', [])
 						if !isDatasourceValid() # then try to inject datasource as service
 							datasource = $injector.get(datasourceName)
 							if !isDatasourceValid()
-								throw new Error '#{datasourceName} is not a valid datasource'
+								throw new Error datasourceName + ' is not a valid datasource'
 
 						bufferSize = Math.max(3, +$attr.bufferSize || 10)
 						bufferPadding = -> viewport.outerHeight() * Math.max(0.1, +$attr.padding || 0.1) # some extra space to initiate preload
@@ -84,7 +84,7 @@ angular.module('ui.scroll', [])
 
 							repeaterType = template[0].localName
 							if repeaterType in ['dl']
-								throw new Error 'ui-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}'
+								throw new Error 'ui-scroll directive does not support <' + template[0].localName + '> as a repeating tag: '+ template[0].outerHTML
 							repeaterType = 'div' if repeaterType not in ['li', 'tr']
 
 							viewport = if controllers[0] and controllers[0].viewport then controllers[0].viewport else angular.element(window)
@@ -99,7 +99,7 @@ angular.module('ui.scroll', [])
 										result.paddingHeight = -> div.height.apply(div, arguments)
 										result
 									else
-										result = angular.element('<#{repeaterType}></#{repeaterType}>')
+										result = angular.element('<' + repeaterType + '></' + repeaterType + '>')
 										result.paddingHeight = result.height
 										result
 
@@ -448,7 +448,7 @@ angular.module('ui.scroll', [])
 									if 0 <= arg1-first < buffer.length
 										inserted = applyUpdate buffer[arg1 - first], arg2
 								else
-									throw new Error 'applyUpdates - #{arg1} is not a valid index or outside of range'
+									throw new Error 'applyUpdates - ' + arg1 + ' is not a valid index or outside of range'
 							adjustBuffer(ridActual, inserted)
 
 						if $attr.adapter # so we have an adapter on $scope
