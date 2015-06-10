@@ -11,6 +11,7 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite', 'ngAnimate']).co
 					->
 						result = []
 						for i in [index..index + count-1]
+							continue if i <= 0 or i > 14
 							item = {}
 							item.id = i
 							item.content = "item #" + i
