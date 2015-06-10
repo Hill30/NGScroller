@@ -26,8 +26,8 @@ angular.module('ui.scroll', [])
 		])
 
 	.directive( 'uiScroll'
-		[ '$log', '$injector', '$rootScope', '$timeout', '$q',
-			(console, $injector, $rootScope, $timeout, $q) ->
+		[ '$log', '$injector', '$rootScope', '$timeout', '$q', '$parse'
+			(console, $injector, $rootScope, $timeout, $q, $parse) ->
 
 				$animate = $injector.get('$animate') if $injector.has && $injector.has('$animate')
 
@@ -42,29 +42,12 @@ angular.module('ui.scroll', [])
 						log = console.debug || console.log
 
 						match = $attr.uiScroll.match(/^\s*(\w+)\s+in\s+([\w\.]+)\s*$/)
-						if !match
-							throw new Error "Expected uiScroll in form of '_item_ in _datasource_' but got '#{$attr.uiScroll}'"
-
+						throw new Error "Expected uiScroll in form of '_item_ in _datasource_' but got '#{$attr.uiScroll}'" if !match
 						itemName = match[1]
 						datasourceName = match[2]
 
-						getValueChain = (targetScope, target) ->
-							return if not targetScope
-							chain = target.match(/^([\w]+)\.(.+)$/)
-							return targetScope[target] if not chain or chain.length isnt 3
-							return getValueChain(targetScope[chain[1]], chain[2])
-
-						setValueChain = (targetScope, target, value) ->
-							return if not targetScope or not target
-							chain = target.match(/^([\w]+)\.(.+)$/)
-							return if not chain and target.indexOf('.') isnt -1
-							return targetScope[target] = value if not chain or chain.length isnt 3
-							targetScope[chain[1]] = {} if !angular.isObject(targetScope[chain[1]])
-							return setValueChain(targetScope[chain[1]], chain[2], value)
-
-						datasource = getValueChain($scope, datasourceName)
-						isDatasourceValid = () -> angular.isObject(datasource) and typeof datasource.get is 'function'
-
+						datasource = $parse(datasourceName)($scope)
+						isDatasourceValid = () -> angular.isObject(datasource) and angular.isFunction(datasource.get)
 						if !isDatasourceValid() # then try to inject datasource as service
 							datasource = $injector.get(datasourceName)
 							if !isDatasourceValid()
@@ -184,15 +167,15 @@ angular.module('ui.scroll', [])
 							adapter.topVisible = item.scope[itemName]
 							adapter.topVisibleElement = item.element
 							adapter.topVisibleScope = item.scope
-							setValueChain(viewportScope, $attr.topVisible, adapter.topVisible) if $attr.topVisible
-							setValueChain(viewportScope, $attr.topVisibleElement, adapter.topVisibleElement) if $attr.topVisibleElement
-							setValueChain(viewportScope, $attr.topVisibleScope, adapter.topVisibleScope) if $attr.topVisibleScope
-							datasource.topVisible(item) if typeof datasource.topVisible is 'function'
+							$parse($attr.topVisible).assign(viewportScope, adapter.topVisible) if $attr.topVisible
+							$parse($attr.topVisibleElement).assign(viewportScope, adapter.topVisibleElement) if $attr.topVisibleElement
+							$parse($attr.topVisibleScope).assign(viewportScope, adapter.topVisibleScope) if $attr.topVisibleScope
+							datasource.topVisible(item) if angular.isFunction(datasource.topVisible)
 
 						loading = (value) ->
 							adapter.isLoading = value
-							setValueChain($scope, $attr.isLoading, value) if $attr.isLoading
-							datasource.loading(value) if typeof datasource.loading is 'function'
+							$parse($attr.isLoading).assign($scope, value) if $attr.isLoading
+							datasource.loading(value) if angular.isFunction(datasource.loading)
 
 						#removes items from start (including) through stop (excluding)
 						removeFromBuffer = (start, stop)->
@@ -322,27 +305,27 @@ angular.module('ui.scroll', [])
 										wrapper.op = 'none'
 									when 'remove' then toBeRemoved.push wrapper
 
-							for wrapper in toBePrepended
-								builder.insertElement wrapper.element
-								# an element is inserted at the top
-								newHeight = builder.topPadding() - wrapper.element.outerHeight(true)
-								# adjust padding to prevent it from visually pushing everything down
-								if newHeight >= 0
-									# if possible, reduce topPadding
-									builder.topPadding(newHeight)
-								else
-									# if not, increment scrollTop
-									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
-								wrapper.op = 'none'
-
-							for wrapper in toBeRemoved
-								promises = promises.concat (removeItem wrapper)
-
-							# re-index the buffer
-							item.scope.$index = first + i for item,i in buffer
-
 							# We need the item bindings to be processed before we can do adjustment
 							$timeout ->
+								for wrapper in toBePrepended
+									builder.insertElement wrapper.element
+									# an element is inserted at the top
+									newHeight = builder.topPadding() - wrapper.element.outerHeight(true)
+									# adjust padding to prevent it from visually pushing everything down
+									if newHeight >= 0
+										# if possible, reduce topPadding
+										builder.topPadding(newHeight)
+									else
+										# if not, increment scrollTop
+										viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
+									wrapper.op = 'none'
+
+								for wrapper in toBeRemoved
+									promises = promises.concat (removeItem wrapper)
+
+								# re-index the buffer
+								item.scope.$index = first + i for item,i in buffer
+
 								#log "top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}"
 								if shouldLoadBottom()
 									enqueueFetch(rid, true)
@@ -395,7 +378,7 @@ angular.module('ui.scroll', [])
 											for item in result
 												++next
 												insertItem 'append', item
-											#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+												#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
 										finalize rid
 							else
 								if buffer.length && !shouldLoadTop()
@@ -473,7 +456,7 @@ angular.module('ui.scroll', [])
 								# arg1 is the updater function, arg2 is ignored
 								bufferClone = buffer.slice(0)
 								for wrapper,i in bufferClone  # we need to do it on the buffer clone, because buffer content
-																							# may change as we iterate through
+									# may change as we iterate through
 									applyUpdate wrapper, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
 							else
 								# arg1 is item index, arg2 is the newItems array
@@ -485,10 +468,10 @@ angular.module('ui.scroll', [])
 							adjustBuffer ridActual
 
 						if $attr.adapter # so we have an adapter on $scope
-							adapterOnScope = getValueChain($scope, $attr.adapter)
+							adapterOnScope = $parse($attr.adapter)($scope)
 							if not adapterOnScope
-								setValueChain($scope, $attr.adapter, {})
-								adapterOnScope = getValueChain($scope, $attr.adapter)
+								$parse($attr.adapter).assign($scope, {})
+								adapterOnScope = $parse($attr.adapter)($scope)
 							angular.extend(adapterOnScope, adapter)
 							adapter = adapterOnScope
 
