@@ -437,6 +437,7 @@ angular.module('ui.scroll', [])
 
 						adapter = {}
 						adapter.isLoading = false
+						adapter.reload = reload
 
 						applyUpdate = (wrapper, newItems) ->
 							if angular.isArray newItems
