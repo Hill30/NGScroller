@@ -74,8 +74,8 @@ module.exports = function(config) {
         browsers:
             process.env.TRAVIS ?
             ['Firefox']:
-            ['Chrome', 'IE', 'Firefox'],
-            //['Chrome', 'IE'],
+            //['Chrome', 'IE', 'Firefox'],
+            ['Chrome'],
         //browsers: ['Firefox'],
         //browsers = ['Chrome'];
         //browsers = ['IE'];

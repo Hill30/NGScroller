@@ -33,7 +33,7 @@ uiScrollViewport directive (see below), browser window will be used as viewport.
 
 ### Dependencies
 
-To use the directive make sure the ui-scroll.js (as transpiled from [ui-scroll.coffee](https://github.com/Hill30/NGScroller/blob/master/src/scripts/application.coffee)) is loaded in your page. You also have to include
+To use the directive make sure the ui-scroll.js (as transpired from [ui-scroll.coffee](https://github.com/Hill30/NGScroller/blob/master/src/scripts/application.coffee)) is loaded in your page. You also have to include
 module name 'ui.scroll' on the list of your application module dependencies.
 
 The code in this file relies on a few DOM element methods of jQuery which are currently not implemented in jQlite, namely
@@ -75,7 +75,7 @@ dl as a repeated tag is not supported.
 The value is relative to the visible height of the area, the default is 0.5 and the minimal value is 0.3
 * **adapter - name**, optional - if provided a reference to the adapter object for the scroller instance will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope. The adapter is a collection of methods and properties to manipulate and assess the scroller the adapter was created for.
 
-Some of the properties offered by the adapter can also be accessed directly from the directive by using matching attributes. In the same way as for the adapter attribute syntax for such attributes allows for providing a name under which the appropariate value will be placed on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope. Below is a list of such attributes:
+Some of the properties offered by the adapter can also be accessed directly from the directive by using matching attributes. In the same way as for the adapter attribute syntax for such attributes allows for providing a name under which the appropriate value will be placed on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope. Below is a list of such attributes:
 
 * **is-loading - name**, optional - a boolean value indicating whether there are any pending load requests will be placed in the member with the said name. See also `isLoading` adapter property.
 * **top-visible - name**, optional - a reference to the item currently in the topmost visible position will be placed in the member with the said name. See also `topVisible` adapter property.
@@ -123,7 +123,7 @@ exactly `count` elements unless it hit eof/bof
     this is an optional method. If supplied the scroller will $watch its value and will refresh the content if the value has changed
 
 ###Adapter
-Adapter object is a collection of methods and properties to be used to assess and manipulate the scroller instance adapater is created for. Adapter based API replaces old (undocumented) event based API introduced earlier for this purpose. The event based API is now deprecated but will remain available for backwards compatibililty purposes.
+Adapter object is a collection of methods and properties to be used to assess and manipulate the scroller instance adapter is created for. Adapter based API replaces old (undocumented) event based API introduced earlier for this purpose. The event based API is now deprecated but will remain available for backwards compatibility purposes.
 
 ####Manipulating the scroller content with applyUpdates method
 
@@ -142,7 +142,7 @@ Method `applyUpdates` provides a way to update the scroller content without full
     #### Description
     Updates scroller content as determined by the updater function
 #### Parameters
-    * **updater** a function to be applied to every item currently in the buffer. The function will recieve 3 parameters: `item`, `scope`, and `element`. Here `item` is the item to be affected, `scope` is the item $scope, and `element` is the html element for the item. The return value of the function should be an array of items. Similarly to the `newItem` parameter (see above), if the array is empty(`[]`), the item is deleted, otherwise the item is replaced by the items in the array. If the return value is not an array, the item remains unaffected, unless some updates were made to the item in the updater function. This can be thought of as in place update. 
+    * **updater** a function to be applied to every item currently in the buffer. The function will receive 3 parameters: `item`, `scope`, and `element`. Here `item` is the item to be affected, `scope` is the item $scope, and `element` is the html element for the item. The return value of the function should be an array of items. Similarly to the `newItem` parameter (see above), if the array is empty(`[]`), the item is deleted, otherwise the item is replaced by the items in the array. If the return value is not an array, the item remains unaffected, unless some updates were made to the item in the updater function. This can be thought of as in place update.
 
 **Important: update datasource to match the scroller buffer content:** Keep in mind that the modifications made by the `applyUpdates` methods are only applied to the content of the buffer. As the items in response to scrolling are pushed out of the buffer, the modifications are lost. It is your responsibility to ensure that as the scroller is scrolled back and a modified item is requested from the datasource again the values returned by the datasource would reflect the updated state. In other words you have to make sure that in addition to manipulating the scroller content you also apply the modifications to the dataset underlying the datasource.
 
@@ -189,7 +189,7 @@ See [index.html](http://rawgithub.com/Hill30/NGScroller/master/src/index.html)
 ####v1.1.0
 * Introduced API to dynamically update scroller content.
 * Deep 'name' properties access via dot-notation in template.
-* Fixed the problem occuring if the scroller is $destroyed while there are requests pending: [#64](https://github.com/Hill30/NGScroller/issues/64).
+* Fixed the problem occurring if the scroller is $destroyed while there are requests pending: [#64](https://github.com/Hill30/NGScroller/issues/64).
 
 ####v1.0.3
 * Fixed memory leak on scroller destroy: [#63](https://github.com/Hill30/NGScroller/issues/63).
