@@ -26,8 +26,11 @@ angular.module('ui.scroll', [])
 		])
 
 	.directive( 'uiScroll'
-		[ '$log', '$injector', '$rootScope', '$timeout'
-			(console, $injector, $rootScope, $timeout) ->
+		[ '$log', '$injector', '$rootScope', '$timeout', '$q',
+			(console, $injector, $rootScope, $timeout, $q) ->
+
+				$animate = $injector.get('$animate') if $injector.has && $injector.has('$animate')
+
 				require: ['?^uiScrollViewport']
 				transclude: 'element'
 				priority: 1000
@@ -40,7 +43,7 @@ angular.module('ui.scroll', [])
 
 						match = $attr.uiScroll.match(/^\s*(\w+)\s+in\s+([\w\.]+)\s*$/)
 						if !match
-							throw new Error 'Expected uiScroll in form of \'_item_ in _datasource_\' but got \'' + $attr.uiScroll + '\''
+							throw new Error "Expected uiScroll in form of '_item_ in _datasource_' but got '#{$attr.uiScroll}'"
 
 						itemName = match[1]
 						datasourceName = match[2]
@@ -51,15 +54,13 @@ angular.module('ui.scroll', [])
 							return targetScope[target] if not chain or chain.length isnt 3
 							return getValueChain(targetScope[chain[1]], chain[2])
 
-						setValueChain = (targetScope, target, value, doNotSet) ->
+						setValueChain = (targetScope, target, value) ->
 							return if not targetScope or not target
-							if not chain = target.match(/^([\w]+)\.(.+)$/)
-								return if target.indexOf('.') isnt -1
-							if not chain or chain.length isnt 3
-								return targetScope[target] = value if !angular.isObject(targetScope[target]) and !doNotSet
-								return targetScope[target] = value
-							targetScope[chain[1]] = {} if !angular.isObject(targetScope[chain[1]]) and !doNotSet
-							return setValueChain(targetScope[chain[1]], chain[2], value, doNotSet)
+							chain = target.match(/^([\w]+)\.(.+)$/)
+							return if not chain and target.indexOf('.') isnt -1
+							return targetScope[target] = value if not chain or chain.length isnt 3
+							targetScope[chain[1]] = {} if !angular.isObject(targetScope[chain[1]])
+							return setValueChain(targetScope[chain[1]], chain[2], value)
 
 						datasource = getValueChain($scope, datasourceName)
 						isDatasourceValid = () -> angular.isObject(datasource) and typeof datasource.get is 'function'
@@ -67,7 +68,7 @@ angular.module('ui.scroll', [])
 						if !isDatasourceValid() # then try to inject datasource as service
 							datasource = $injector.get(datasourceName)
 							if !isDatasourceValid()
-								throw new Error datasourceName + ' is not a valid datasource'
+								throw new Error "#{datasourceName} is not a valid datasource"
 
 						bufferSize = Math.max(3, +$attr.bufferSize || 10)
 						bufferPadding = -> viewport.outerHeight() * Math.max(0.1, +$attr.padding || 0.1) # some extra space to initiate preload
@@ -75,8 +76,62 @@ angular.module('ui.scroll', [])
 						scrollHeight = (elem)->
 							elem[0].scrollHeight ? elem[0].document.documentElement.scrollHeight
 
-						builder = null
+						# initial settings
 
+						builder = null
+						ridActual = 0 # current data revision id
+						first = 1
+						next = 1
+						buffer = []
+						pending = []
+						eof = false
+						bof = false
+
+						# Element manipulation routines
+
+						removeItem =
+							if $animate
+								if angular.version.minor == 2
+									(wrapper) ->
+										buffer.splice buffer.indexOf(wrapper), 1
+										deferred = $q.defer()
+										$animate.leave wrapper.element, ->
+											wrapper.scope.$destroy()
+											deferred.resolve()
+										[deferred.promise]
+								else
+									(wrapper) ->
+										buffer.splice buffer.indexOf(wrapper), 1
+										[($animate.leave wrapper.element).then ->
+											wrapper.scope.$destroy()
+										]
+							else
+								(wrapper) ->
+									buffer.splice buffer.indexOf(wrapper), 1
+									wrapper.element.remove()
+									wrapper.scope.$destroy()
+									[]
+
+						insertElement =
+							(newElement, previousElement) ->
+								element.after.apply(previousElement, newElement)
+								[]
+
+						insertElementAnimated =
+							if $animate
+								if angular.version.minor == 2
+									(newElement, previousElement) ->
+										deferred = $q.defer()
+										$animate.enter newElement, element, previousElement, -> deferred.resolve()
+										[deferred.promise]
+								else
+									(newElement, previousElement) ->
+										[$animate.enter newElement, element, previousElement]
+
+							else insertElement
+
+						# Element builder
+						#
 						# Calling linker is the only way I found to get access to the tag name of the template
 						# to prevent the directive scope from pollution a new scope is created and destroyed
 						# right after the repeaterHandler creation is completed
@@ -84,7 +139,7 @@ angular.module('ui.scroll', [])
 
 							repeaterType = template[0].localName
 							if repeaterType in ['dl']
-								throw new Error 'ui-scroll directive does not support <' + template[0].localName + '> as a repeating tag: '+ template[0].outerHTML
+								throw new Error "ui-scroll directive does not support <#{template[0].localName}> as a repeating tag: #{template[0].outerHTML}"
 							repeaterType = 'div' if repeaterType not in ['li', 'tr']
 
 							viewport = if controllers[0] and controllers[0].viewport then controllers[0].viewport else angular.element(window)
@@ -97,28 +152,25 @@ angular.module('ui.scroll', [])
 										div = table.find('div')
 										result = table.find('tr')
 										result.paddingHeight = -> div.height.apply(div, arguments)
-										result
 									else
-										result = angular.element('<' + repeaterType + '></' + repeaterType + '>')
+										result = angular.element("<#{repeaterType}></#{repeaterType}>")
 										result.paddingHeight = result.height
-										result
+								result
 
-							createPadding = (padding, element, direction) ->
-								element[{top:'before',bottom:'after'}[direction]] padding
-								paddingHeight: -> padding.paddingHeight.apply(padding, arguments)
-								insert: (element) -> padding[{top:'after',bottom:'before'}[direction]] element
+							topPadding = padding(repeaterType)
+							element.before topPadding
 
-							topPadding = createPadding(padding(repeaterType), element, 'top')
-							bottomPadding = createPadding(padding(repeaterType), element, 'bottom')
+							bottomPadding = padding(repeaterType)
+							element.after bottomPadding
 
 							$scope.$on '$destroy', -> template.remove()
 
 							builder =
 								viewport: viewport
-								topPadding: topPadding.paddingHeight
-								bottomPadding: bottomPadding.paddingHeight
-								append: bottomPadding.insert
-								prepend: topPadding.insert
+								topPadding: -> topPadding.paddingHeight.apply(topPadding, arguments)
+								bottomPadding: -> bottomPadding.paddingHeight.apply(bottomPadding, arguments)
+								insertElement: (e, sibling) -> insertElement(e, sibling || topPadding)
+								insertElementAnimated: (e, sibling) -> insertElementAnimated(e, sibling || topPadding)
 								bottomDataPos: ->
 									scrollHeight(viewport) - bottomPadding.paddingHeight()
 								topDataPos: ->
@@ -142,14 +194,6 @@ angular.module('ui.scroll', [])
 							setValueChain($scope, $attr.isLoading, value) if $attr.isLoading
 							datasource.loading(value) if typeof datasource.loading is 'function'
 
-						ridActual = 0
-						first = 1
-						next = 1
-						buffer = []
-						pending = []
-						eof = false
-						bof = false
-
 						#removes items from start (including) through stop (excluding)
 						removeFromBuffer = (start, stop)->
 							for i in [start...stop]
@@ -167,7 +211,7 @@ angular.module('ui.scroll', [])
 							pending = []
 							eof = false
 							bof = false
-							adjustBuffer(ridActual)
+							adjustBuffer ridActual
 
 						bottomVisiblePos = ->
 							viewport.scrollTop() + viewport.outerHeight()
@@ -201,7 +245,7 @@ angular.module('ui.scroll', [])
 								builder.bottomPadding(builder.bottomPadding() + bottomHeight)
 								removeFromBuffer(buffer.length - overage, buffer.length)
 								next -= overage
-								#log 'clipped off bottom #{overage} bottom padding #{builder.bottomPadding()}'
+								#log "clipped off bottom #{overage} bottom padding #{builder.bottomPadding()}"
 
 						shouldLoadTop = ->
 							!bof && (builder.topDataPos() > topVisiblePos() - bufferPadding())
@@ -226,7 +270,7 @@ angular.module('ui.scroll', [])
 								builder.topPadding(builder.topPadding() + topHeight)
 								removeFromBuffer(0, overage)
 								first += overage
-								#log 'clipped off top #{overage} top padding #{builder.topPadding()}'
+								#log "clipped off top #{overage} top padding #{builder.topPadding()}"
 
 						enqueueFetch = (rid, direction)->
 							if (!adapter.isLoading)
@@ -234,43 +278,52 @@ angular.module('ui.scroll', [])
 							if pending.push(direction) == 1
 								fetch(rid)
 
-						hideElementBeforeAppend = (element) ->
-							element.displayTemp = element.css('display')
-							element.css 'display', 'none'
-
-						showElementAfterRender = (element) ->
-							if element.hasOwnProperty 'displayTemp'
-								element.css 'display', element.displayTemp
-
-						insert = (index, item) ->
+						insertItem = (operation, item) ->
 							itemScope = $scope.$new()
 							itemScope[itemName] = item
-							toBeAppended = index > first
-							itemScope.$index = index
-							itemScope.$index-- if toBeAppended
 							wrapper =
 								scope: itemScope
 
 							linker itemScope, (clone) ->
 								wrapper.element = clone
-								if toBeAppended
-									if index == next
-										hideElementBeforeAppend clone
-										builder.append clone
-										buffer.push wrapper
-									else
-										buffer[index-first].element.after clone
-										buffer.splice index-first+1, 0, wrapper
-								else
-									hideElementBeforeAppend clone
-									builder.prepend clone
-									buffer.unshift wrapper
-							{appended: toBeAppended, wrapper: wrapper}
 
-						adjustRowHeight = (appended, wrapper) ->
-							if appended
-								builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
+							# operations: 'append', 'prepend', 'insert', 'remove', 'update', 'none'
+							if (operation%1 == 0) # it is an insert
+								wrapper.op = 'insert'
+								buffer.splice operation, 0, wrapper
 							else
+								wrapper.op = operation
+								switch operation
+									when 'append' then buffer.push wrapper
+									when 'prepend' then buffer.unshift wrapper
+
+						adjustBuffer = (rid, finalize) ->
+
+							promises = []
+							toBePrepended = []
+							toBeRemoved = []
+
+							for wrapper, i in buffer
+								switch wrapper.op
+									when 'prepend' then toBePrepended.unshift wrapper
+									when 'append'
+										if (i == 0)
+											builder.insertElement wrapper.element
+										else
+											builder.insertElement wrapper.element, buffer[i-1].element
+										builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
+										wrapper.op = 'none'
+									when 'insert'
+										if (i == 0)
+											promises = promises.concat (builder.insertElementAnimated wrapper.element)
+										else
+											promises = promises.concat (builder.insertElementAnimated wrapper.element, buffer[i-1].element)
+										builder.bottomPadding(Math.max(0,builder.bottomPadding() - wrapper.element.outerHeight(true)))
+										wrapper.op = 'none'
+									when 'remove' then toBeRemoved.push wrapper
+
+							for wrapper in toBePrepended
+								builder.insertElement wrapper.element
 								# an element is inserted at the top
 								newHeight = builder.topPadding() - wrapper.element.outerHeight(true)
 								# adjust padding to prevent it from visually pushing everything down
@@ -280,46 +333,43 @@ angular.module('ui.scroll', [])
 								else
 									# if not, increment scrollTop
 									viewport.scrollTop(viewport.scrollTop() + wrapper.element.outerHeight(true))
+								wrapper.op = 'none'
 
-						doAdjustment = (rid, finalize)->
-							#log 'top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}'
-							if shouldLoadBottom()
-								enqueueFetch(rid, true)
-							else
-								enqueueFetch(rid, false) if shouldLoadTop()
-							finalize(rid) if finalize
-							if pending.length == 0
-								topHeight = 0
-								for item in buffer
-									itemTop = item.element.offset().top
-									newRow = rowTop isnt itemTop
-									rowTop = itemTop
-									itemHeight = item.element.outerHeight(true) if newRow
-									if newRow and (builder.topDataPos() + topHeight + itemHeight < topVisiblePos())
-										topHeight += itemHeight
-									else
-										topVisible(item) if newRow
-										break
+							for wrapper in toBeRemoved
+								promises = promises.concat (removeItem wrapper)
 
-						adjustBuffer = (rid, newItems, finalize)->
-							if newItems and newItems.length
-								$timeout ->
-									rows = []
-									for row in newItems
-										elt = row.wrapper.element
-										showElementAfterRender elt
-										itemTop = elt.offset().top
-										if rowTop isnt itemTop
-											rows.push(row)
-											rowTop = itemTop
-									for row in rows
-										adjustRowHeight(row.appended, row.wrapper)
-									doAdjustment(rid, finalize)
-							else
-								doAdjustment(rid, finalize)
+							# re-index the buffer
+							item.scope.$index = first + i for item,i in buffer
 
-						finalize = (rid, newItems)->
-							adjustBuffer rid, newItems, ->
+							# We need the item bindings to be processed before we can do adjustment
+							$timeout ->
+								#log "top {actual=#{builder.topDataPos()} visible from=#{topVisiblePos()} bottom {visible through=#{bottomVisiblePos()} actual=#{builder.bottomDataPos()}}"
+								if shouldLoadBottom()
+									enqueueFetch(rid, true)
+								else
+									enqueueFetch(rid, false) if shouldLoadTop()
+								finalize(rid) if finalize
+								if pending.length == 0
+									topHeight = 0
+									for item in buffer
+										itemTop = item.element.offset().top
+										newRow = rowTop isnt itemTop
+										rowTop = itemTop
+										itemHeight = item.element.outerHeight(true) if newRow
+										if newRow and (builder.topDataPos() + topHeight + itemHeight < topVisiblePos())
+											topHeight += itemHeight
+										else
+											topVisible(item) if newRow
+											break
+								# the promise from the timeout should be added to promises array
+								# I just could not make promises work with the jasmine tests
+								if (promises.length)
+									$q.all(promises).then ->
+										#log "Animation completed rid #{rid}"
+										adjustBuffer rid
+
+						finalize = (rid) ->
+							adjustBuffer rid, ->
 								pending.shift()
 								if pending.length == 0
 									loading(false)
@@ -327,47 +377,45 @@ angular.module('ui.scroll', [])
 									fetch(rid)
 
 						fetch = (rid) ->
-							direction = pending[0]
-							#log 'Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}'
-							if direction
+							#log "Running fetch... #{{true:'bottom', false: 'top'}[direction]} pending #{pending.length}"
+							if pending[0] # scrolling down
 								if buffer.length && !shouldLoadBottom()
-									finalize(rid)
+									finalize rid
 								else
-									#log 'appending... requested #{bufferSize} records starting from #{next}'
+									#log "appending... requested #{bufferSize} records starting from #{next}"
 									datasource.get next, bufferSize,
 									(result) ->
 										return if (rid and rid isnt ridActual) or $scope.$$destroyed
-										newItems = []
 										if result.length < bufferSize
 											eof = true
 											builder.bottomPadding(0)
-											#log 'eof is reached'
+											#log "eof is reached"
 										if result.length > 0
 											clipTop()
 											for item in result
-												newItems.push (insert ++next, item)
-											#log 'appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}'
-										finalize(rid, newItems)
+												++next
+												insertItem 'append', item
+											#log "appended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+										finalize rid
 							else
 								if buffer.length && !shouldLoadTop()
-									finalize(rid)
+									finalize rid
 								else
-									#log 'prepending... requested #{size} records starting from #{start}'
+									#log "prepending... requested #{size} records starting from #{start}"
 									datasource.get first-bufferSize, bufferSize,
 									(result) ->
 										return if (rid and rid isnt ridActual) or $scope.$$destroyed
-										newItems = []
 										if result.length < bufferSize
 											bof = true
 											builder.topPadding(0)
-											#log 'bof is reached'
+											#log "bof is reached"
 										if result.length > 0
 											clipBottom() if buffer.length
 											for i in [result.length-1..0]
-												newItems.unshift (insert --first, result[i])
-											#log 'prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}'
-										finalize(rid, newItems)
-
+												--first
+												insertItem 'prepend', result[i]
+											#log "prepended: requested #{bufferSize} received #{result.length} buffer size #{buffer.length} first #{first} next #{next}"
+										finalize rid
 
 						# events and bindings
 
@@ -402,54 +450,39 @@ angular.module('ui.scroll', [])
 							viewport.unbind 'mousewheel', wheelHandler
 
 
-						# adapter initializing
+						# adapter setup
 
 						adapter = {}
 						adapter.isLoading = false
 
 						applyUpdate = (wrapper, newItems) ->
-							inserted = []
 							if angular.isArray newItems
-								if newItems.length
-									if newItems.length == 1 && newItems[0] == wrapper.scope[itemName]
-										# update inplace
-										return inserted
+								pos = (buffer.indexOf wrapper) + 1
+								for newItem,i in newItems.reverse()
+									if newItem == wrapper.scope[itemName]
+										keepIt = true;
+										pos--
 									else
-										ndx = wrapper.scope.$index
-										if ndx > first
-											oldItemNdx = ndx-first
-										else
-											# this is where the first item from the batch is prepended to the
-											# old item, but the rest of them are appended to it. the old item will be in this position
-											oldItemNdx = 1
-										#replace items. First insert new items
-										inserted.push (insert ndx+i, newItem) for newItem,i in newItems
-										# now delete the old one
-										removeFromBuffer oldItemNdx, oldItemNdx+1
-										# re-index the buffer
-										item.scope.$index = first + i for item,i in buffer
-								else
-									# delete the item
-									removeFromBuffer wrapper.scope.$index-first, wrapper.scope.$index-first+1
-									next--
-									item.scope.$index = first + i for item,i in buffer
-							inserted
+										insertItem pos, newItem
+								unless keepIt
+									wrapper.op = 'remove'
 
 						adapter.applyUpdates = (arg1, arg2) ->
-							inserted = []
 							ridActual++
 							if angular.isFunction arg1
 								# arg1 is the updater function, arg2 is ignored
-								for wrapper in buffer.slice(0)  # we need to do it on the buffer clone
-									inserted = inserted.concat inserted, applyUpdate wrapper, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
+								bufferClone = buffer.slice(0)
+								for wrapper,i in bufferClone  # we need to do it on the buffer clone, because buffer content
+																							# may change as we iterate through
+									applyUpdate wrapper, arg1(wrapper.scope[itemName], wrapper.scope, wrapper.element)
 							else
 								# arg1 is item index, arg2 is the newItems array
 								if arg1%1 == 0 # checking if it is an integer
 									if 0 <= arg1-first < buffer.length
-										inserted = applyUpdate buffer[arg1 - first], arg2
+										applyUpdate buffer[arg1 - first], arg2
 								else
-									throw new Error 'applyUpdates - ' + arg1 + ' is not a valid index or outside of range'
-							adjustBuffer(ridActual, inserted)
+									throw new Error "applyUpdates - #{arg1} is not a valid index"
+							adjustBuffer ridActual
 
 						if $attr.adapter # so we have an adapter on $scope
 							adapterOnScope = getValueChain($scope, $attr.adapter)
@@ -459,50 +492,20 @@ angular.module('ui.scroll', [])
 							angular.extend(adapterOnScope, adapter)
 							adapter = adapterOnScope
 
-
-						# update events (are deprecated since v1.1.0)
+						# update events (deprecated since v1.1.0)
 
 						doUpdate = (locator, newItem) ->
-							if angular.isFunction locator
-								((wrapper)->
-									locator wrapper.scope
-								) wrapper for wrapper in buffer
-							else
-								if 0 <= locator-first-1 < buffer.length
-									buffer[locator-first-1].scope[itemName] = newItem
-							null
+							throw new Error 'update event is no longer supported - use applyUpdates instead'
 
 						doDelete = (locator) ->
-							if angular.isFunction locator
-								temp = []
-								temp.unshift item for item in buffer
-								((wrapper)->
-									if locator wrapper.scope
-										removeFromBuffer temp.length-1-i, temp.length-i
-										next--
-								) wrapper for wrapper,i in temp
-							else
-								if 0 <= locator-first-1 < buffer.length
-									removeFromBuffer locator-first-1, locator-first
-									next--
-
-							item.scope.$index = first + i for item,i in buffer
-							adjustBuffer()
+							throw new Error 'delete event is no longer supported - use applyUpdates instead'
 
 						doInsert = (locator, item) ->
-							inserted = []
-							if angular.isFunction locator
-								throw new Error('not implemented - Insert with locator function')
-							else
-								if 0 <= locator-first-1 < buffer.length
-									inserted.push (insert locator, item)
-									next++
-							item.scope.$index = first + i for item,i in buffer
-							adjustBuffer(null, inserted)
+							throw new Error 'insert event is no longer supported - use applyUpdates instead'
 
-						eventListener.$on 'insert.item', (event, locator, item)->doInsert(locator, item)
-						eventListener.$on 'update.items', (event, locator, newItem)-> doUpdate(locator, newItem)
-						eventListener.$on 'delete.items', (event, locator)-> doDelete(locator)
+						eventListener.$on "insert.item", (event, locator, item)->doInsert(locator, item)
+						eventListener.$on "update.items", (event, locator, newItem)-> doUpdate(locator, newItem)
+						eventListener.$on "delete.items", (event, locator)-> doDelete(locator)
 
 		])
 
