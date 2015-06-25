@@ -180,6 +180,11 @@ See [index.html](http://rawgithub.com/Hill30/NGScroller/master/src/index.html)
 
 ###History
 
+####v1.2.0
+* Changed the algorithm of list items building.
+* Integration with angular $animation.
+* Insert/update/delete events are no longer supported.
+
 ####v1.1.2
 * Fixed inserting elements via applyUpdates error.
 
