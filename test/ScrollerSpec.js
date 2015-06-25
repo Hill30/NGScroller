@@ -408,7 +408,7 @@ describe('uiScroll', function () {
 				function (viewport, scope, $timeout) {
 
 					scope.adapter.applyUpdates(
-						function (item, scope) {
+						function (item) {
 							if (item === 'one')
 								return [];
 						}
@@ -437,7 +437,7 @@ describe('uiScroll', function () {
 				function (viewport, scope, $timeout) {
 
 					scope.adapter.applyUpdates(
-						function (item, scope) {
+						function (item) {
 							if (item === 'two')
 								return [];
 						}
@@ -466,7 +466,7 @@ describe('uiScroll', function () {
 				function (viewport, scope, $timeout) {
 
 					scope.adapter.applyUpdates(
-						function (item, scope) {
+						function (item) {
 							if (item === 'three')
 								return [];
 						}
@@ -495,7 +495,7 @@ describe('uiScroll', function () {
 				function (viewport, scope, $timeout) {
 
 					scope.adapter.applyUpdates(
-						function (item, scope) {
+						function (item) {
 							if (item === 'one')
 								return ['before one', item];
 						}
@@ -532,7 +532,7 @@ describe('uiScroll', function () {
 				function (viewport, scope, $timeout) {
 
 					scope.adapter.applyUpdates(
-						function (item, scope) {
+						function (item) {
 							if (item === 'one')
 								return [item, 'after one'];
 						}
@@ -569,7 +569,7 @@ describe('uiScroll', function () {
 				function (viewport, scope, $timeout) {
 
 					scope.adapter.applyUpdates(
-						function (item, scope) {
+						function (item) {
 							if (item === 'two')
 								return ['before two', item];
 						}
@@ -606,7 +606,7 @@ describe('uiScroll', function () {
 				function (viewport, scope, $timeout) {
 
 					scope.adapter.applyUpdates(
-						function (item, scope) {
+						function (item) {
 							if (item === 'three')
 								return [item, 'after three'];
 						}
