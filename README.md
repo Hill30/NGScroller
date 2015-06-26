@@ -21,7 +21,7 @@ Now a part of [angular-ui](https://github.com/angular-ui/ui-utils/tree/master/mo
 
 The uiScroll directive is similar to the ngRepeat. Like the ngRepeat, uiScroll directive instantiates a template once per item from a collection.
 Each template instance gets its own scope, where the given loop variable is set to the current collection item. The collection content is provided by
-the datasource. The datasource name is specified in the scroll_expression.
+the datasource. The datasource name is specified in the scroll_expression. Starting with v 1.2.0 uiScroll supports animation.
 
 The viewport is an element representing the space where the items from the collection are to be shown. Unless specified explicitly with the
 uiScrollViewport directive (see below), browser window will be used as viewport.
@@ -121,6 +121,7 @@ exactly `count` elements unless it hit eof/bof
 
     #### Description
     this is an optional method. If supplied the scroller will $watch its value and will refresh the content if the value has changed
+**Deprecated:** Method `revision` is deprecated - use `reload()` method on the adapter instead
 
 ###Adapter
 Adapter object is a collection of methods and properties to be used to assess and manipulate the scroller instance adapter is created for. Adapter based API replaces old (undocumented) event based API introduced earlier for this purpose. The event based API is now deprecated but will remain available for backwards compatibility purposes.
@@ -146,12 +147,26 @@ Method `applyUpdates` provides a way to update the scroller content without full
 
 **Important: update datasource to match the scroller buffer content:** Keep in mind that the modifications made by the `applyUpdates` methods are only applied to the content of the buffer. As the items in response to scrolling are pushed out of the buffer, the modifications are lost. It is your responsibility to ensure that as the scroller is scrolled back and a modified item is requested from the datasource again the values returned by the datasource would reflect the updated state. In other words you have to make sure that in addition to manipulating the scroller content you also apply the modifications to the dataset underlying the datasource.
 
+####Adapter methods
+* Method `applyUpdates` is used to insert/modifu/delete items from scroller without reloading the entire thing. Look [here](NGScroller#manipulating-the-scroller-content-with-applyupdates-method) for details.
+* Method `reload()` can be used to re-initialize and reload the scroller 
+
 ####Adapter properties
 
 * `isLoading` - a boolean value indicating whether there are any pending load requests.
 * `topVisible` - a reference to the item currently in the topmost visible position.
 * `topVisibleElement` - a reference to the DOM element currently in the topmost visible position.
 * `topVisibleScope` - a reference to the scope created for the item currently in the topmost visible position.
+ 
+###Animations
+In the fashion similar to ngRepeat the following animations are supported:
+* .enter - when a new item is added to the list or when an item is revealed after a filter
+* .leave - when an item is removed from the list or when an item is filtered out
+
+Animations are only supported for the updates made via applyUpdates method. Updates caused by scrolling are not going through animation transitions. 
+
+
+
 
 uiScrollViewport directive
 -------------------
