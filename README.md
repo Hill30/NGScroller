@@ -33,7 +33,7 @@ uiScrollViewport directive (see below), browser window will be used as viewport.
 
 ### Dependencies
 
-To use the directive make sure the ui-scroll.js (as transpired from [ui-scroll.coffee](https://github.com/Hill30/NGScroller/blob/master/src/scripts/application.coffee)) is loaded in your page. You also have to include
+To use the directive make sure the ui-scroll.js (as transpiled from [ui-scroll.coffee](https://github.com/Hill30/NGScroller/blob/master/src/scripts/application.coffee)) is loaded in your page. You also have to include
 module name 'ui.scroll' on the list of your application module dependencies.
 
 The code in this file relies on a few DOM element methods of jQuery which are currently not implemented in jQlite, namely
@@ -163,10 +163,7 @@ In the fashion similar to ngRepeat the following animations are supported:
 * .enter - when a new item is added to the list or when an item is revealed after a filter
 * .leave - when an item is removed from the list or when an item is filtered out
 
-Animations are only supported for the updates made via applyUpdates method. Updates caused by scrolling are not going through animation transitions. 
-
-
-
+Animations are only supported for the updates made via applyUpdates method. Updates caused by scrolling are not going through animation transitions. Usual [rules](https://docs.angularjs.org/api/ngAnimate) of working with Angular animations apply. Look [here](http://rawgit.com/Hill30/NGScroller/master/src/examples/animation.html) for an example of animations in the scroller
 
 uiScrollViewport directive
 -------------------
