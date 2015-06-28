@@ -133,7 +133,7 @@ Here is a list of properties and methods of the adapter object:
 * Property `topVisibleElement` - a reference to the DOM element currently in the topmost visible position.
 * Property `topVisibleScope` - a reference to the scope created for the item currently in the topmost visible position.
 * Method `reload()` can be used to re-initialize and reload the scroller 
-* Method `applyUpdates` is used to insert/modifu/delete items from scroller without reloading the entire thing
+* Method `applyUpdates` is used to insert/modify/delete items from scroller without reloading the entire thing
 
 ####Manipulating the scroller content with applyUpdates method
 
