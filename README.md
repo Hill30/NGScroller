@@ -160,8 +160,8 @@ Method `applyUpdates` provides a way to update the scroller content without full
  
 ###Animations
 In the fashion similar to ngRepeat the following animations are supported:
-* .enter - when a new item is added to the list or when an item is revealed after a filter
-* .leave - when an item is removed from the list or when an item is filtered out
+* .enter - when a new item is added to the list
+* .leave - when an item is removed from the list
 
 Animations are only supported for the updates made via applyUpdates method. Updates caused by scrolling are not going through animation transitions. Usual [rules](https://docs.angularjs.org/api/ngAnimate) of working with Angular animations apply. Look [here](http://rawgit.com/Hill30/NGScroller/master/src/examples/animation.html) for an example of animations in the scroller
 
