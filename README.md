@@ -73,9 +73,9 @@ dl as a repeated tag is not supported.
 * **buffer-size - value**, optional - number of items requested from the datasource in a single request. The default is 10 and the minimal value is 3
 * **padding - value**, optional - extra height added to the visible area for the purpose of determining when the items should be created/destroyed.
 The value is relative to the visible height of the area, the default is 0.5 and the minimal value is 0.3
-* **adapter - name**, optional - if provided a reference to the adapter object for the scroller instance will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope. The adapter is a collection of methods and properties to manipulate and assess the scroller the adapter was created for.
+* **adapter - name**, optional - if provided a reference to the adapter object for the scroller instance will be placed in the member with the said name on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope. 
 
-Some of the properties offered by the adapter can also be accessed directly from the directive by using matching attributes. In the same way as for the adapter attribute syntax for such attributes allows for providing a name under which the appropriate value will be placed on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope. Below is a list of such attributes:
+Some of the properties offered by the adapter can also be accessed directly from the directive by using matching attributes. In the same way as for the adapter attribute, syntax for such attributes allows for providing a name to be used to access the corresponding value. A reference to the value will be placed on the scope associated with the viewport. If the viewport is the window, the value will be placed on the $rootScope. Below is a list of such attributes:
 
 * **is-loading - name**, optional - a boolean value indicating whether there are any pending load requests will be placed in the member with the said name. See also `isLoading` adapter property.
 * **top-visible - name**, optional - a reference to the item currently in the topmost visible position will be placed in the member with the said name. See also `topVisible` adapter property.
@@ -124,7 +124,16 @@ exactly `count` elements unless it hit eof/bof
 **Deprecated:** Method `revision` is deprecated - use `reload()` method on the adapter instead
 
 ###Adapter
-Adapter object is a collection of methods and properties to be used to assess and manipulate the scroller instance adapter is created for. Adapter based API replaces old (undocumented) event based API introduced earlier for this purpose. The event based API is now deprecated but will remain available for backwards compatibility purposes.
+The adapter object is an internal object created for every instance of the scroller. Properties and methods of the adapter can be used to manipulate and assess the scroller the adapter was created for. Adapter based API replaces old (undocumented) event based API introduced earlier for this purpose. The event based API is now deprecated and no longer supported.
+
+Here is a list of properties and methods of the adapter object:
+
+* Property `isLoading` - a boolean value indicating whether there are any pending load requests.
+* Property `topVisible` - a reference to the item currently in the topmost visible position.
+* Property `topVisibleElement` - a reference to the DOM element currently in the topmost visible position.
+* Property `topVisibleScope` - a reference to the scope created for the item currently in the topmost visible position.
+* Method `reload()` can be used to re-initialize and reload the scroller 
+* Method `applyUpdates` is used to insert/modifu/delete items from scroller without reloading the entire thing
 
 ####Manipulating the scroller content with applyUpdates method
 
@@ -147,17 +156,6 @@ Method `applyUpdates` provides a way to update the scroller content without full
 
 **Important: update datasource to match the scroller buffer content:** Keep in mind that the modifications made by the `applyUpdates` methods are only applied to the content of the buffer. As the items in response to scrolling are pushed out of the buffer, the modifications are lost. It is your responsibility to ensure that as the scroller is scrolled back and a modified item is requested from the datasource again the values returned by the datasource would reflect the updated state. In other words you have to make sure that in addition to manipulating the scroller content you also apply the modifications to the dataset underlying the datasource.
 
-####Adapter methods
-* Method `applyUpdates` is used to insert/modifu/delete items from scroller without reloading the entire thing. Look [here](NGScroller#manipulating-the-scroller-content-with-applyupdates-method) for details.
-* Method `reload()` can be used to re-initialize and reload the scroller 
-
-####Adapter properties
-
-* `isLoading` - a boolean value indicating whether there are any pending load requests.
-* `topVisible` - a reference to the item currently in the topmost visible position.
-* `topVisibleElement` - a reference to the DOM element currently in the topmost visible position.
-* `topVisibleScope` - a reference to the scope created for the item currently in the topmost visible position.
- 
 ###Animations
 In the fashion similar to ngRepeat the following animations are supported:
 * .enter - when a new item is added to the list
