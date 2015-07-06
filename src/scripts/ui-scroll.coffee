@@ -185,14 +185,17 @@ angular.module('ui.scroll', [])
 						buffer[i].element.remove()
 					buffer.splice start, stop - start
 
-				reload = ->
+				dismissPendingRequests = () ->
 					ridActual++
+					pending = []
+
+				reload = ->
+					dismissPendingRequests()
 					first = 1
 					next = 1
 					removeFromBuffer(0, buffer.length)
 					builder.topPadding(0)
 					builder.bottomPadding(0)
-					pending = []
 					eof = false
 					bof = false
 					adjustBuffer ridActual
@@ -449,7 +452,7 @@ angular.module('ui.scroll', [])
 							wrapper.op = 'remove'
 
 				adapter.applyUpdates = (arg1, arg2) ->
-					ridActual++
+					dismissPendingRequests()
 					if angular.isFunction arg1
 						# arg1 is the updater function, arg2 is ignored
 						bufferClone = buffer.slice(0)
