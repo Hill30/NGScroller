@@ -129,7 +129,7 @@ module.exports = (grunt) ->
 
 	grunt.registerTask 'build', [
 		'jshint:test'
-		#'karma:travis'
+		'karma:travis'
 		'coffee:build'
 		'concat'
 		'jshint:dist'
