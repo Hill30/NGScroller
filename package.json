@@ -1,10 +1,10 @@
 {
-	"name": "ng-scroll",
+	"name": "ui-scroll",
 	"description": "two way infinite scroll",
-	"version": "0.1.0",
+	"version": "1.2.1",
 	"src": "./src/",
 	"public": "./public/",
-	"main": "./dist/scroll.js",
+	"main": "./dist/ui-scroll.js",
 	"homepage": "https://github.com/Hill30/NGScroller",
 	"author": {
 		"name": "Michael Feingold",

@@ -40,7 +40,7 @@ module.exports = (grunt) ->
 			build:
 				files: [
 					cwd: './src'
-					src: 'scripts/**/*.coffee'
+					src: '*.coffee'
 					dest: './temp/'
 					expand: true
 					ext: '.js'
@@ -72,24 +72,24 @@ module.exports = (grunt) ->
 
 			dynamic_mappings:
 				files: 
-					'dist/scroll.js': ['./temp/**/ui-scroll.js']
-					'dist/scroll-jqlite.js': ['./temp/**/ui-scroll-jqlite.js']
+					'dist/ui-scroll.js': ['./temp/**/ui-scroll.js']
+					'dist/ui-scroll-jqlite.js': ['./temp/**/ui-scroll-jqlite.js']
 
 		uglify:
 			common:
 				files:
-					'./dist/scroll.min.js': [
-						'./dist/scroll.js'
+					'./dist/ui-scroll.min.js': [
+						'./dist/ui-scroll.js'
 					]
-					'./dist/scroll-jqlite.min.js': [
-						'./dist/scroll-jqlite.js'
+					'./dist/ui-scroll-jqlite.min.js': [
+						'./dist/ui-scroll-jqlite.js'
 					]
 
 		# run the linter
 		jshint:
 			dist:
 				files:
-					src: ['./dist/scroll.js', './dist/scroll-jqlite.js']
+					src: ['./dist/ui-scroll.js', './dist/ui-scroll-jqlite.js']
 				options: jshintrc: '.jshintrc'
 			test:
 				files:
@@ -129,7 +129,7 @@ module.exports = (grunt) ->
 
 	grunt.registerTask 'build', [
 		'jshint:test'
-		'karma:travis'
+		#'karma:travis'
 		'coffee:build'
 		'concat'
 		'jshint:dist'
