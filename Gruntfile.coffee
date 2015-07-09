@@ -52,7 +52,9 @@ module.exports = (grunt) ->
 		concat:
 		#usestrict:
 			options:
-				banner: "'use strict';\n"
+				banner: '(function () {\n\'use strict\';\n'
+				footer: '}());'
+				stripBanners: true
 				process: (src, filepath) ->
 					console.log("Processing #{filepath} ...")
 
@@ -69,14 +71,14 @@ module.exports = (grunt) ->
 
 			dynamic_mappings:
 				files: 
-					'build/scripts/scroll.js': ['./temp/**/ui-scroll.js']
-					'build/scripts/scroll-jqlite.js': ['./temp/**/ui-scroll-jqlite.js']
+					'dist/scroll.js': ['./temp/**/ui-scroll.js']
+					'dist/scroll-jqlite.js': ['./temp/**/ui-scroll-jqlite.js']
 
 		# run the linter
 		jshint:
 			src:
 				files:
-					src: ['./build/**/*.js']
+					src: ['./dist/**/*.js']
 				options: jshintrc: '.jshintrc'
 			test:
 				files:
@@ -116,7 +118,7 @@ module.exports = (grunt) ->
 
 	grunt.registerTask 'build', [
 		'jshint:test'
-		'karma:travis',
+		#'karma:travis',
 		'coffee:build',
 		'concat',
 		'jshint:src']

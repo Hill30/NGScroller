@@ -3,8 +3,6 @@ angular.module('ui.scroll.jqlite', ['ui.scroll'])
 .service('jqLiteExtras', [
 	'$log', '$window'
 	(console, window) ->
-		'use strict';
-
 		registerFor : (element) ->
 
 			# angular implementation blows up if elem is the window
@@ -199,8 +197,6 @@ The offset setter method is not implemented
 .run [
 	'$log', '$window', 'jqLiteExtras'
 	(console, window, jqLiteExtras) ->
-		'use strict';
-
 		jqLiteExtras.registerFor angular.element unless window.jQuery
 ]
 

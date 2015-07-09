@@ -1,4 +1,4 @@
-###
+###!
 globals: angular, window
 
 	List of used element methods available in JQuery but not in JQuery Lite
@@ -15,8 +15,6 @@ globals: angular, window
 angular.module('ui.scroll', [])
 
 .directive( 'uiScrollViewport', ->
-	'use strict';
-
 	controller: [
 		'$scope', '$element'
 		(scope, element) ->
@@ -28,7 +26,6 @@ angular.module('ui.scroll', [])
 .directive( 'uiScroll', [
 	'$log', '$injector', '$rootScope', '$timeout', '$q', '$parse'
 	(console, $injector, $rootScope, $timeout, $q, $parse) ->
-		'use strict';
 
 		$animate = $injector.get('$animate') if $injector.has && $injector.has('$animate')
 
