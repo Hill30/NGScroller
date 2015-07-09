@@ -84,5 +84,5 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite']).controller('mai
 angular.bootstrap(document, ["application"])
 
 ###
-//# sourceURL=src/scripts/adapter.js
+//# sourceURL=src/adapter.js
 ###

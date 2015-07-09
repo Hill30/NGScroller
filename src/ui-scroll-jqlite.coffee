@@ -201,5 +201,5 @@ The offset setter method is not implemented
 ]
 
 ###
-//# sourceURL=src/scripts/ui-scroll-jqlite.js
+//# sourceURL=src/ui-scroll-jqlite.js
 ###

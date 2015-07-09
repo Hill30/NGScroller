@@ -25,5 +25,5 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite'])
 angular.bootstrap(document, ["application"])
 
 ###
-//# sourceURL=src/scripts/windowviewportInline.js
+//# sourceURL=src/windowviewportInline.js
 ###

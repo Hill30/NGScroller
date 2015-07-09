@@ -486,5 +486,5 @@ angular.module('ui.scroll', [])
 ])
 
 ###
-//# sourceURL=src/scripts/ui-scroll.js
+//# sourceURL=src/ui-scroll.js
 ###

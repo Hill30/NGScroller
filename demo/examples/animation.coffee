@@ -56,5 +56,5 @@ angular.module('application', ['ui.scroll', 'ui.scroll.jqlite', 'ngAnimate']).co
 angular.bootstrap(document, ["application"])
 
 ###
-//# sourceURL=src/scripts/animation.js
+//# sourceURL=src/animation.js
 ###

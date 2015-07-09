@@ -573,7 +573,7 @@ angular.module('ui.scroll', []).directive('uiScrollViewport', function() {
 ]);
 
 /*
-//# sourceURL=src/scripts/ui-scroll.js
+//# sourceURL=src/ui-scroll.js
 */
 
 }());
