@@ -7,6 +7,7 @@ module.exports = (grunt) ->
 	grunt.loadNpmTasks 'grunt-contrib-coffee'
 	grunt.loadNpmTasks 'grunt-contrib-jshint'
 	grunt.loadNpmTasks 'grunt-contrib-concat'
+	grunt.loadNpmTasks 'grunt-contrib-uglify'
 
 	grunt.initConfig
 		connect:
@@ -74,11 +75,21 @@ module.exports = (grunt) ->
 					'dist/scroll.js': ['./temp/**/ui-scroll.js']
 					'dist/scroll-jqlite.js': ['./temp/**/ui-scroll-jqlite.js']
 
+		uglify:
+			common:
+				files:
+					'./dist/scroll.min.js': [
+						'./dist/scroll.js'
+					]
+					'./dist/scroll-jqlite.min.js': [
+						'./dist/scroll-jqlite.js'
+					]
+
 		# run the linter
 		jshint:
-			src:
+			dist:
 				files:
-					src: ['./dist/**/*.js']
+					src: ['./dist/scroll.js', './dist/scroll-jqlite.js']
 				options: jshintrc: '.jshintrc'
 			test:
 				files:
@@ -118,10 +129,11 @@ module.exports = (grunt) ->
 
 	grunt.registerTask 'build', [
 		'jshint:test'
-		#'karma:travis',
-		'coffee:build',
-		'concat',
-		'jshint:src']
+		#'karma:travis'
+		'coffee:build'
+		'concat'
+		'jshint:dist'
+		'uglify:common']
 
 	grunt.registerTask 'travis', [
 		'karma:travis'

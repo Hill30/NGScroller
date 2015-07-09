@@ -33,6 +33,7 @@
 		"grunt-contrib-coffee": "~0.7.0",
 		"grunt-contrib-jshint": "~0.5.4",
 		"grunt-contrib-concat": "~0.5.1",
+		"grunt-contrib-uglify": "0.2.4",
 		"coffee-script": "~1.6.3",
 		"express": "~3.4.1",
 		"karma-coffee-preprocessor": "~0.1",
