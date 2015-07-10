@@ -15,7 +15,7 @@ uiScroll directive
 **uiScroll** directive solves this problem by dynamically destroying elements as they become invisible and recreating
 them if they become visible again.
 
-Now a part of [angular-ui](https://github.com/angular-ui/ui-utils/tree/master/modules/scroll)
+Now a part of [angular-ui](https://github.com/angular-ui/ui-scroll)
 
 ###Description
 
@@ -161,7 +161,7 @@ In the fashion similar to ngRepeat the following animations are supported:
 * .enter - when a new item is added to the list
 * .leave - when an item is removed from the list
 
-Animations are only supported for the updates made via applyUpdates method. Updates caused by scrolling are not going through animation transitions. Usual [rules](https://docs.angularjs.org/api/ngAnimate) of working with Angular animations apply. Look [here](http://rawgit.com/Hill30/NGScroller/master/src/examples/animation.html) for an example of animations in the scroller
+Animations are only supported for the updates made via applyUpdates method. Updates caused by scrolling are not going through animation transitions. Usual [rules](https://docs.angularjs.org/api/ngAnimate) of working with Angular animations apply. Look [here](http://rawgit.com/Hill30/NGScroller/master/demo/examples/animation.html) for an example of animations in the scroller
 
 uiScrollViewport directive
 -------------------
