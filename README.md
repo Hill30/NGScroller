@@ -190,6 +190,9 @@ See [index.html](http://rawgithub.com/Hill30/NGScroller/master/demo/index.html)
 
 ###History
 
+####v1.3.0
+* Reorganized the repository structure.
+
 ####v1.2.1
 * Dismiss pending requests on applyUpdates().
 
