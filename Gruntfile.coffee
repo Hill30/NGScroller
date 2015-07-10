@@ -7,6 +7,7 @@ module.exports = (grunt) ->
 	grunt.loadNpmTasks 'grunt-contrib-coffee'
 	grunt.loadNpmTasks 'grunt-contrib-jshint'
 	grunt.loadNpmTasks 'grunt-contrib-concat'
+	grunt.loadNpmTasks 'grunt-contrib-uglify'
 
 	grunt.initConfig
 		connect:
@@ -39,7 +40,7 @@ module.exports = (grunt) ->
 			build:
 				files: [
 					cwd: './src'
-					src: 'scripts/**/*.coffee'
+					src: '*.coffee'
 					dest: './temp/'
 					expand: true
 					ext: '.js'
@@ -52,7 +53,9 @@ module.exports = (grunt) ->
 		concat:
 		#usestrict:
 			options:
-				banner: "'use strict';\n"
+				banner: '(function () {\n\'use strict\';\n'
+				footer: '}());'
+				stripBanners: true
 				process: (src, filepath) ->
 					console.log("Processing #{filepath} ...")
 
@@ -69,14 +72,24 @@ module.exports = (grunt) ->
 
 			dynamic_mappings:
 				files: 
-					'build/scripts/scroll.js': ['./temp/**/ui-scroll.js']
-					'build/scripts/scroll-jqlite.js': ['./temp/**/ui-scroll-jqlite.js']
+					'dist/ui-scroll.js': ['./temp/**/ui-scroll.js']
+					'dist/ui-scroll-jqlite.js': ['./temp/**/ui-scroll-jqlite.js']
+
+		uglify:
+			common:
+				files:
+					'./dist/ui-scroll.min.js': [
+						'./dist/ui-scroll.js'
+					]
+					'./dist/ui-scroll-jqlite.min.js': [
+						'./dist/ui-scroll-jqlite.js'
+					]
 
 		# run the linter
 		jshint:
-			src:
+			dist:
 				files:
-					src: ['./build/**/*.js']
+					src: ['./dist/ui-scroll.js', './dist/ui-scroll-jqlite.js']
 				options: jshintrc: '.jshintrc'
 			test:
 				files:
@@ -116,10 +129,11 @@ module.exports = (grunt) ->
 
 	grunt.registerTask 'build', [
 		'jshint:test'
-		'karma:travis',
-		'coffee:build',
-		'concat',
-		'jshint:src']
+		'karma:travis'
+		'coffee:build'
+		'concat'
+		'jshint:dist'
+		'uglify:common']
 
 	grunt.registerTask 'travis', [
 		'karma:travis'
