@@ -17,12 +17,12 @@ module.exports = function(config) {
             'http://code.jquery.com/jquery-1.9.1.js',
             'https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.js',
             'https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular-mocks.js',
-            '../src/scripts/**/ui-scroll*.coffee',
+            '../src/ui-scroll*.coffee',
             '**/*Spec.js'
         ],
 
         preprocessors: {
-            '../src/scripts/**/ui-scroll*.coffee': ['coffee']
+            '../src/ui-scroll*.coffee': ['coffee']
         },
 
         coffeePreprocessor: {
