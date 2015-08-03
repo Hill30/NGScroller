@@ -15,7 +15,10 @@ uiScroll directive
 **uiScroll** directive solves this problem by dynamically destroying elements as they become invisible and recreating
 them if they become visible again.
 
-Now a part of [angular-ui](https://github.com/angular-ui/ui-scroll)
+Please note 
+-----------  
+Going forward all new features/bug fixes will be provided under [angular-ui](https://github.com/angular-ui) umbrella. No new versions will be released through this repository. Please post any questions/support requests to the [ui-scroll](https://github.com/angular-ui/ui-scroll) repository
+
 
 ###Description
 
