@@ -20,7 +20,7 @@ For new versions look [here](https://github.com/angular-ui/ui-scroll)
 **Please note:** going forward all new features/bug fixes will be provided under [angular-ui](https://github.com/angular-ui) umbrella. No new versions will be released through this repository. Please post any questions/support requests to the [ui-scroll](https://github.com/angular-ui/ui-scroll) repository
 
 
-###Description
+### Description
 
 The uiScroll directive is similar to the ngRepeat. Like the ngRepeat, uiScroll directive instantiates a template once per item from a collection.
 Each template instance gets its own scope, where the given loop variable is set to the current collection item. The collection content is provided by
@@ -53,7 +53,7 @@ only as necessary for the directive. It is tested on IE8 and up as well as on th
 This module is only necessary if you plan to use ui-scroll without jQuery. If jQuery implementation is present it will not override them.
 If you plan to use ui-scroll over jQuery feel free to skip ui-scroll-jqlite.
 
-###Usage
+### Usage
 
 ```html
 <ANY ui-scroll="{scroll_expression}" buffer-size="value" padding="value">
@@ -66,11 +66,11 @@ require special treatment. If the repeated tag is a li, it is best to use ul or 
 viewport has to be the tbody.  
 dl as a repeated tag is not supported.
 
-###Directive info
+### Directive info
 * This directive creates a new scope
 * This directive executes at priority level 1000
 
-###Parameters
+### Parameters
 * **uiScroll – {scroll_expression}** – The expression indicating how to enumerate a collection. Only one format is currently supported:
     * **variable in datasource** – where variable is the user defined loop variable and datasource is the name of the data source service to enumerate.
 * **buffer-size - value**, optional - number of items requested from the datasource in a single request. The default is 10 and the minimal value is 3
@@ -85,7 +85,7 @@ Some of the properties offered by the adapter can also be accessed directly from
 * **top-visible-element - name**, optional - a reference to the DOM element currently in the topmost visible position will be placed in the member with the said name. See also `topVisibleElement` adapter property.
 * **top-visible-scope - name**, optional - a reference to the scope created for the item currently in the topmost visible position will be placed in the member with the said name. See also `topVisibleScope` adapter property.
 
-###Data Source 
+### Data Source 
 Data source is an object to be used by the uiScroll directive to access the data. 
 
 The directive will locate the object using the provided data source name. It will first look for a property with the given name on its $scope.
@@ -126,7 +126,7 @@ exactly `count` elements unless it hit eof/bof
     this is an optional method. If supplied the scroller will $watch its value and will refresh the content if the value has changed
 **Deprecated:** Method `revision` is deprecated - use `reload()` method on the adapter instead
 
-###Adapter
+### Adapter
 The adapter object is an internal object created for every instance of the scroller. Properties and methods of the adapter can be used to manipulate and assess the scroller the adapter was created for. Adapter based API replaces old (undocumented) event based API introduced earlier for this purpose. The event based API is now deprecated and no longer supported.
 
 Here is a list of properties and methods of the adapter object:
@@ -138,7 +138,7 @@ Here is a list of properties and methods of the adapter object:
 * Method `reload()` can be used to re-initialize and reload the scroller 
 * Method `applyUpdates` is used to insert/modify/delete items from scroller without reloading the entire thing
 
-####Manipulating the scroller content with applyUpdates method
+#### Manipulating the scroller content with applyUpdates method
 
 Method `applyUpdates` provides a way to update the scroller content without full reload of the content from the datasource. The updates are performed by changing the items in the scroller internal buffer after they are loaded from the datasource. An item in the buffer can be deleted or modified. Also several items can be inserted to replace a given item.
 
@@ -159,7 +159,7 @@ Method `applyUpdates` provides a way to update the scroller content without full
 
 **Important: update datasource to match the scroller buffer content:** Keep in mind that the modifications made by the `applyUpdates` methods are only applied to the content of the buffer. As the items in response to scrolling are pushed out of the buffer, the modifications are lost. It is your responsibility to ensure that as the scroller is scrolled back and a modified item is requested from the datasource again the values returned by the datasource would reflect the updated state. In other words you have to make sure that in addition to manipulating the scroller content you also apply the modifications to the dataset underlying the datasource.
 
-###Animations
+### Animations
 In the fashion similar to ngRepeat the following animations are supported:
 * .enter - when a new item is added to the list
 * .leave - when an item is removed from the list
@@ -168,12 +168,12 @@ Animations are only supported for the updates made via applyUpdates method. Upda
 
 uiScrollViewport directive
 -------------------
-###Description
+### Description
 
 The uiScrollViewport directive marks a particular element as viewport for the uiScroll directive. If no parent of the uiScroll directive is
 marked with uiScrollViewport directive, the browser window object will be used as viewport
 
-###Usage
+### Usage
 
 ```html
 <ANY ui-scroll-viewport>
@@ -182,7 +182,7 @@ marked with uiScrollViewport directive, the browser window object will be used a
 ```
 
 
-###Examples
+### Examples
 
 Examples ([look here](https://github.com/Hill30/NGScroller/tree/master/demo/examples)) consist of several pages (.html files) showing various ways to use the ui-scroll directive. Each page relays on its own datasource service (called `datasource`) defined in the coffescript file with the same name and .coffee extension.
 
@@ -191,42 +191,42 @@ it to you to do it properly - whatever properly means in your book.
 
 See [index.html](http://rawgithub.com/Hill30/NGScroller/master/demo/index.html)
 
-###History
+### History
 
-####v1.3.0
+#### v1.3.0
 * Reorganized the repository structure.
 
-####v1.2.1
+#### v1.2.1
 * Dismiss pending requests on applyUpdates().
 
-####v1.2.0
+#### v1.2.0
 * Changed the algorithm of list items building.
 * Integration with angular $animation.
 * Insert/update/delete events are no longer supported.
 
-####v1.1.2
+#### v1.1.2
 * Fixed inserting elements via applyUpdates error.
 
-####v1.1.1
+#### v1.1.1
 * Fixed jqlite on $destroy error.
 
-####v1.1.0
+#### v1.1.0
 * Introduced API to dynamically update scroller content.
 * Deep 'name' properties access via dot-notation in template.
 * Fixed the problem occurring if the scroller is $destroyed while there are requests pending: [#64](https://github.com/Hill30/NGScroller/issues/64).
 
-####v1.0.3
+#### v1.0.3
 * Fixed memory leak on scroller destroy: [#63](https://github.com/Hill30/NGScroller/issues/63).
 * Removed examples from bower download list.
 
-####v1.0.2
+#### v1.0.2
 * Registration of ui-scroll in bower.
 
-####v1.0.1
+#### v1.0.1
 * Deep datasource access via dot-notation in template. 
 * [Angular 1.3.x breaking change](https://github.com/angular/angular.js/issues/8876) fix with backward compatibility.
 
-####v1.0.0
+#### v1.0.0
 
 * Renamed ng-scroll to ui-scroll.
 * Reduced server requests by eof and bof recalculation.
@@ -236,10 +236,10 @@ See [index.html](http://rawgithub.com/Hill30/NGScroller/master/demo/index.html)
 * Fixed race-condition and others minor bugs.
 * Added more usage examples (such as cache within datasource implementation).
 
-####v0.1.*
+#### v0.1.*
 
 Introduced `is-loading` and `top-visible-*` attributes. Streamlined and added a few more usage examples.
 
-####v0.0.*
+#### v0.0.*
 
 Initial commit including uiScroll, uiScrollViewPort directives and usage examples.
